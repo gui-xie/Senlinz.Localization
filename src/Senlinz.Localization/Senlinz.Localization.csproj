@@ -14,15 +14,15 @@
     <PackageProjectUrl>https://github.com/gui-xie/Senlinz.Localization</PackageProjectUrl>
     <PackageId>Senlinz.Localization</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageDescription>Single-project localization package with runtime helpers and a JSON source generator.</PackageDescription>
+    <PackageDescription>Localization source generator package that ships with Senlinz.Localization.Abstractions runtime support.</PackageDescription>
     <PackageTags>Localization JSON SourceGenerator NuGet</PackageTags>
     <VersionPrefix>1.0.0</VersionPrefix>
     <VersionSuffix Condition="'$(VersionSuffix)' == ''">beta.1</VersionSuffix>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <Authors>gui-xie</Authors>
     <Title>Senlinz.Localization</Title>
-    <Description>Single-project localization package with runtime helpers and a JSON source generator.</Description>
-    <PackageReleaseNotes>Beta release with .NET 6+ support and manual NuGet publishing.</PackageReleaseNotes>
+    <Description>Localization source generator package that ships with Senlinz.Localization.Abstractions runtime support.</Description>
+    <PackageReleaseNotes>Beta release with bundled Senlinz.Localization.Abstractions support.</PackageReleaseNotes>
     <Copyright>Copyright (c) gui-xie 2026</Copyright>
     <RepositoryUrl>https://github.com/gui-xie/Senlinz.Localization</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
@@ -33,8 +33,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Senlinz.Localization.Abstractions\Senlinz.Localization.Abstractions.csproj" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\..\README.md" Link="README.md" Pack="true" PackagePath="\" />
     <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(OutputPath)Senlinz.Localization.Abstractions.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="lib/netstandard2.0" Visible="false" />
+    <None Include="$(OutputPath)Senlinz.Localization.Abstractions.dll" Pack="true" PackagePath="lib/netstandard2.0" Visible="false" />
   </ItemGroup>
 </Project>
