@@ -1,7 +1,5 @@
 # Senlinz.Localization
 
-Single-project localization package extracted from the localization support in `gui-xie/Senlin.Mo`.
-
 Supports .NET 6 and newer consumer projects.
 
 ## Features
