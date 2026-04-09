@@ -22,7 +22,7 @@
     <Authors>gui-xie</Authors>
     <Title>Senlinz.Localization</Title>
     <Description>Single-project localization package with runtime helpers and a JSON source generator.</Description>
-    <PackageReleaseNotes>Beta release with automated NuGet publishing support.</PackageReleaseNotes>
+    <PackageReleaseNotes>Beta release with .NET 6+ support and manual NuGet publishing.</PackageReleaseNotes>
     <Copyright>Copyright (c) gui-xie 2026</Copyright>
     <RepositoryUrl>https://github.com/gui-xie/Senlinz.Localization</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
