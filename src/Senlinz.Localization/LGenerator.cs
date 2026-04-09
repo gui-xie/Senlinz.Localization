@@ -325,7 +325,7 @@ public sealed class LGenerator : IIncrementalGenerator
             return value;
         }
 
-        var builder = new StringBuilder(value.Length + 1);
+        var builder = new StringBuilder();
         foreach (var character in value)
         {
             if (builder.Length == 0)
