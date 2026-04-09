@@ -15,6 +15,8 @@ Supports .NET 6 and newer consumer projects.
 dotnet add package Senlinz.Localization --prerelease
 ```
 
+`Senlinz.Localization` now ships together with `Senlinz.Localization.Abstractions`, and you can install the abstractions package separately when you only need the shared contracts/runtime helpers.
+
 ## Define localization keys
 
 Create `l.json` in the consuming project:
