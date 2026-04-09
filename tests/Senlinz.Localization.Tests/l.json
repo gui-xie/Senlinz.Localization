@@ -1,0 +1,5 @@
+{
+  "hello": "Hello",
+  "sayHelloTo": "Hello {name}!",
+  "statusReady": "Ready"
+}

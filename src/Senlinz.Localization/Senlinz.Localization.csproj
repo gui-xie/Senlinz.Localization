@@ -1,7 +1,39 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>12</LangVersion>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <PackageProjectUrl>https://github.com/gui-xie/Senlinz.Localization</PackageProjectUrl>
+    <PackageId>Senlinz.Localization</PackageId>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageDescription>Single-project localization package with runtime helpers and a JSON source generator.</PackageDescription>
+    <PackageTags>Localization JSON SourceGenerator NuGet</PackageTags>
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <Authors>gui-xie</Authors>
+    <Title>Senlinz.Localization</Title>
+    <Description>Single-project localization package with runtime helpers and a JSON source generator.</Description>
+    <PackageReleaseNotes>Initial single-project NuGet package extracted from Senlin.Mo localization support.</PackageReleaseNotes>
+    <Copyright>Copyright (c) gui-xie 2026</Copyright>
+    <RepositoryUrl>https://github.com/gui-xie/Senlinz.Localization</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.12.0" PrivateAssets="all" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" PrivateAssets="all" GeneratePathProperty="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Link="README.md" Pack="true" PackagePath="\" />
+    <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="lib/netstandard2.0" Visible="false" />
+    <None Include="$(PkgNewtonsoft_Json)lib/netstandard2.0/Newtonsoft.Json.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
 </Project>

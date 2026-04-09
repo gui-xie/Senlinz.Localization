@@ -1,2 +1,8 @@
 <Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Senlinz.Localization/Senlinz.Localization.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Senlinz.Localization.Tests/Senlinz.Localization.Tests.csproj" />
+  </Folder>
 </Solution>
