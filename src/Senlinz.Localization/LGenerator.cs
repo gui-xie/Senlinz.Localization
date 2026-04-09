@@ -30,10 +30,10 @@ public sealed class LGenerator : IIncrementalGenerator
         context.RegisterSourceOutput(GetLocalizationFileProvider(context), (sourceContext, pair) =>
         {
             var file = pair.Left.Left;
-            var assemblyName = pair.Left.Right;
+            var targetNamespace = pair.Left.Right;
             var configuredFileName = pair.Right;
 
-            if (assemblyName is null || !file.Path.EndsWith(configuredFileName, StringComparison.OrdinalIgnoreCase))
+            if (targetNamespace is null || !file.Path.EndsWith(configuredFileName, StringComparison.OrdinalIgnoreCase))
             {
                 return;
             }
@@ -45,48 +45,38 @@ public sealed class LGenerator : IIncrementalGenerator
             }
 
             var infos = GetLStringInfos(dictionary);
-            CreateLSource(sourceContext, assemblyName, infos);
-            CreateLResourceSource(sourceContext, assemblyName, infos);
-            CreateDynamicResolverInterface(sourceContext, assemblyName);
+            CreateLSource(sourceContext, targetNamespace, infos);
+            CreateLResourceSource(sourceContext, targetNamespace, infos);
+            CreateDynamicResolverInterface(sourceContext, targetNamespace);
         });
     }
 
-    private static void CreateDynamicResolverInterface(SourceProductionContext context, string assemblyName)
+    private static void CreateDynamicResolverInterface(SourceProductionContext context, string targetNamespace)
     {
         var source = new StringBuilder();
         source.AppendLine("#nullable enable");
         source.AppendLine("using Senlinz.Localization;");
-        source.AppendLine($"namespace {assemblyName}");
-        source.AppendLine("{");
+        AppendNamespaceStart(source, targetNamespace);
         source.AppendLine("    /// <summary>");
         source.AppendLine("    /// Typed localization resolver contract.");
         source.AppendLine("    /// </summary>");
         source.AppendLine("    public interface IL : ILStringResolver");
         source.AppendLine("    {");
         source.AppendLine("    }");
-        source.AppendLine("}");
+        AppendNamespaceEnd(source, targetNamespace);
         source.Append("#nullable restore");
         context.AddSource("IL.g.cs", source.ToString());
     }
 
     private static void AddEnumAttributeSource(IncrementalGeneratorInitializationContext context)
     {
-        var assemblyNameProvider = context.CompilationProvider.Select(static (compilation, _) => compilation.AssemblyName);
-
         var enumProviders = context.SyntaxProvider.ForAttributeWithMetadataName(
                 LStringAttributeName,
                 static (node, _) => node is EnumDeclarationSyntax,
-                static (syntaxContext, _) => (Symbol: (INamedTypeSymbol)syntaxContext.TargetSymbol, Syntax: (EnumDeclarationSyntax)syntaxContext.TargetNode))
-            .Combine(assemblyNameProvider);
+                static (syntaxContext, _) => (Symbol: (INamedTypeSymbol)syntaxContext.TargetSymbol, Syntax: (EnumDeclarationSyntax)syntaxContext.TargetNode));
 
-        context.RegisterSourceOutput(enumProviders, (sourceContext, info) =>
+        context.RegisterSourceOutput(enumProviders, (sourceContext, enumInfo) =>
         {
-            var (enumInfo, assemblyName) = info;
-            if (assemblyName is null)
-            {
-                return;
-            }
-
             var enumSymbol = enumInfo.Symbol;
             var enumSyntax = enumInfo.Syntax;
             var enumFields = enumSyntax.Members;
@@ -103,14 +93,7 @@ public sealed class LGenerator : IIncrementalGenerator
             var source = new StringBuilder();
             source.AppendLine("#nullable enable");
             source.AppendLine("using Senlinz.Localization;");
-            if (!string.IsNullOrWhiteSpace(enumNamespace) && enumNamespace != assemblyName)
-            {
-                source.AppendLine($"using {enumNamespace};");
-            }
-
-            source.AppendLine();
-            source.AppendLine($"namespace {assemblyName}");
-            source.AppendLine("{");
+            AppendNamespaceStart(source, enumNamespace);
             source.AppendLine("    /// <summary>");
             source.AppendLine($"    /// {enumName} localization helpers.");
             source.AppendLine("    /// </summary>");
@@ -151,7 +134,7 @@ public sealed class LGenerator : IIncrementalGenerator
             source.AppendLine("            };");
             source.AppendLine("        }");
             source.AppendLine("    }");
-            source.AppendLine("}");
+            AppendNamespaceEnd(source, enumNamespace);
             source.Append("#nullable restore");
             sourceContext.AddSource($"{className}.g.cs", source.ToString());
         });
@@ -160,21 +143,20 @@ public sealed class LGenerator : IIncrementalGenerator
     private static IncrementalValuesProvider<((AdditionalText Left, string? Right) Left, string? Right)> GetLocalizationFileProvider(
         IncrementalGeneratorInitializationContext context) =>
         context.AdditionalTextsProvider
-            .Combine(context.CompilationProvider.Select(static (compilation, _) => compilation.AssemblyName))
+            .Combine(context.CompilationProvider.Select(static (_, _) => string.Empty))
             .Combine(context.AnalyzerConfigOptionsProvider.Select(static (provider, _) =>
             {
                 provider.GlobalOptions.TryGetValue(LocalizationFileProperty, out var fileName);
                 return string.IsNullOrWhiteSpace(fileName) ? "l.json" : fileName;
             }));
 
-    private static void CreateLResourceSource(SourceProductionContext context, string assemblyName, IReadOnlyCollection<LStringInfo> infos)
+    private static void CreateLResourceSource(SourceProductionContext context, string targetNamespace, IReadOnlyCollection<LStringInfo> infos)
     {
         var source = new StringBuilder();
         source.AppendLine("#nullable enable");
         source.AppendLine("using Senlinz.Localization;");
         source.AppendLine("using System.Collections.Generic;");
-        source.AppendLine($"namespace {assemblyName}");
-        source.AppendLine("{");
+        AppendNamespaceStart(source, targetNamespace);
         source.AppendLine("    /// <summary>");
         source.AppendLine("    /// Base class for generated localization resources.");
         source.AppendLine("    /// </summary>");
@@ -207,18 +189,17 @@ public sealed class LGenerator : IIncrementalGenerator
 
         source.AppendLine("        };");
         source.AppendLine("    }");
-        source.AppendLine("}");
+        AppendNamespaceEnd(source, targetNamespace);
         source.Append("#nullable restore");
         context.AddSource("LResource.g.cs", source.ToString());
     }
 
-    private static void CreateLSource(SourceProductionContext context, string assemblyName, IReadOnlyCollection<LStringInfo> infos)
+    private static void CreateLSource(SourceProductionContext context, string targetNamespace, IReadOnlyCollection<LStringInfo> infos)
     {
         var source = new StringBuilder();
         source.AppendLine("#nullable enable");
         source.AppendLine("using Senlinz.Localization;");
-        source.AppendLine($"namespace {assemblyName}");
-        source.AppendLine("{");
+        AppendNamespaceStart(source, targetNamespace);
         source.AppendLine("    /// <summary>");
         source.AppendLine("    /// Auto-generated localization keys.");
         source.AppendLine("    /// </summary>");
@@ -263,9 +244,29 @@ public sealed class LGenerator : IIncrementalGenerator
         }
 
         source.AppendLine("    }");
-        source.AppendLine("}");
+        AppendNamespaceEnd(source, targetNamespace);
         source.Append("#nullable restore");
         context.AddSource("L.g.cs", source.ToString());
+    }
+
+    private static void AppendNamespaceStart(StringBuilder source, string targetNamespace)
+    {
+        source.AppendLine();
+        if (string.IsNullOrWhiteSpace(targetNamespace))
+        {
+            return;
+        }
+
+        source.AppendLine($"namespace {targetNamespace}");
+        source.AppendLine("{");
+    }
+
+    private static void AppendNamespaceEnd(StringBuilder source, string targetNamespace)
+    {
+        if (!string.IsNullOrWhiteSpace(targetNamespace))
+        {
+            source.AppendLine("}");
+        }
     }
 
     private static string GetNamespace(BaseTypeDeclarationSyntax syntax)
