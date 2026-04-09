@@ -2,6 +2,8 @@
 
 Single-project localization package extracted from the localization support in `gui-xie/Senlin.Mo`.
 
+Supports .NET 6 and newer consumer projects.
+
 ## Features
 
 - `LString` runtime helpers for resolving localized text
@@ -50,9 +52,11 @@ Optional custom file name:
 
 The package is currently published as a beta release.
 
-1. Add the `NUGET_API_KEY` repository secret.
-2. Push a tag such as `v1.0.0-beta.1`.
-3. GitHub Actions will build, test, pack, and publish the package to NuGet automatically.
+1. Build the package:
+   ```bash
+   dotnet pack src/Senlinz.Localization/Senlinz.Localization.csproj --configuration Release
+   ```
+2. Publish the generated `.nupkg` manually when you are ready for the next beta release.
 
 ## Use generated types
 
