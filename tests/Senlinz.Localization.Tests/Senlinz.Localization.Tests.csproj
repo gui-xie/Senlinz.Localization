@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Senlinz.Localization\Senlinz.Localization.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="true" />
+    <ProjectReference Include="..\..\src\Senlinz.Localization.Abstractions\Senlinz.Localization.Abstractions.csproj" />
   </ItemGroup>
 
   <ItemGroup>

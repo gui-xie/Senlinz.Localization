@@ -7,7 +7,7 @@ Supports .NET 6 and newer consumer projects.
 - `LString` runtime helpers for resolving localized text
 - JSON-driven source generator that creates `L` and `LResource` types
 - Enum-to-localization helpers with `[LString]` and `[LStringKey]`
-- NuGet packing support from one project
+- Separate `Senlinz.Localization` and `Senlinz.Localization.Abstractions` NuGet packages
 
 ## Install
 
