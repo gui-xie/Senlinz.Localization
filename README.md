@@ -12,7 +12,7 @@ Supports .NET 6 and newer consumer projects.
 ## Install
 
 ```bash
-dotnet add package Senlinz.Localization --prerelease
+dotnet add package Senlinz.Localization
 ```
 
 `Senlinz.Localization` now ships together with `Senlinz.Localization.Abstractions`, and you can install the abstractions package separately when you only need the shared contracts/runtime helpers.
@@ -48,15 +48,19 @@ Optional custom file name:
 </ItemGroup>
 ```
 
-## Publish beta packages
+## Release packages
 
-The package is currently published as a beta release.
+Create and push a version tag such as `v1.0.0` to trigger the publish workflow.
 
-1. Build the package:
+1. Validate the solution:
    ```bash
-   dotnet pack src/Senlinz.Localization/Senlinz.Localization.csproj --configuration Release
+   dotnet test Senlinz.Localization.slnx --configuration Release
    ```
-2. Publish the generated `.nupkg` manually when you are ready for the next beta release.
+2. Create release packages locally when needed:
+   ```bash
+   dotnet pack Senlinz.Localization.slnx --configuration Release --output artifacts
+   ```
+3. The GitHub Actions workflow publishes both `Senlinz.Localization` and `Senlinz.Localization.Abstractions` to NuGet when the tag build succeeds.
 
 ## Use generated types
 

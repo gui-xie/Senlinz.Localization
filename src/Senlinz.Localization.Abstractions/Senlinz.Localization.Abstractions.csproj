@@ -14,12 +14,11 @@
     <PackageDescription>Shared localization contracts and runtime helpers for Senlinz.Localization.</PackageDescription>
     <PackageTags>Localization JSON SourceGenerator NuGet</PackageTags>
     <VersionPrefix>1.0.0</VersionPrefix>
-    <VersionSuffix Condition="'$(VersionSuffix)' == ''">beta.1</VersionSuffix>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <Authors>gui-xie</Authors>
     <Title>Senlinz.Localization.Abstractions</Title>
     <Description>Shared localization contracts and runtime helpers for Senlinz.Localization.</Description>
-    <PackageReleaseNotes>Beta release with shared abstractions package support.</PackageReleaseNotes>
+    <PackageReleaseNotes>Stable release with shared abstractions package support.</PackageReleaseNotes>
     <Copyright>Copyright (c) gui-xie 2026</Copyright>
     <RepositoryUrl>https://github.com/gui-xie/Senlinz.Localization</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
