@@ -12,7 +12,7 @@ Single-project localization package extracted from the localization support in `
 ## Install
 
 ```bash
-dotnet add package Senlinz.Localization
+dotnet add package Senlinz.Localization --prerelease
 ```
 
 ## Define localization keys
@@ -45,6 +45,14 @@ Optional custom file name:
   <CompilerVisibleProperty Include="MoLocalizationFile" />
 </ItemGroup>
 ```
+
+## Publish beta packages
+
+The package is currently published as a beta release.
+
+1. Add the `NUGET_API_KEY` repository secret.
+2. Push a tag such as `v1.0.0-beta.1`.
+3. GitHub Actions will build, test, pack, and publish the package to NuGet automatically.
 
 ## Use generated types
 
