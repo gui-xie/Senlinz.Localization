@@ -1,0 +1,72 @@
+name: Publish NuGet package
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Resolve package version
+        id: version
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            version="${GITHUB_REF_NAME#v}"
+          else
+            version=""
+          fi
+
+          echo "value=${version}" >> "${GITHUB_OUTPUT}"
+
+      - name: Restore
+        run: dotnet restore Senlinz.Localization.slnx
+
+      - name: Build
+        run: >
+          dotnet build Senlinz.Localization.slnx
+          --configuration Release
+          --no-restore
+          -p:GeneratePackageOnBuild=false
+          -p:ContinuousIntegrationBuild=true
+          ${{ steps.version.outputs.value != '' && format('-p:Version={0}', steps.version.outputs.value) || '' }}
+
+      - name: Test
+        run: >
+          dotnet test Senlinz.Localization.slnx
+          --configuration Release
+          --no-build
+          --verbosity normal
+          ${{ steps.version.outputs.value != '' && format('-p:Version={0}', steps.version.outputs.value) || '' }}
+
+      - name: Pack
+        run: >
+          dotnet pack src/Senlinz.Localization/Senlinz.Localization.csproj
+          --configuration Release
+          --no-build
+          --output artifacts
+          -p:ContinuousIntegrationBuild=true
+          -p:GeneratePackageOnBuild=false
+          ${{ steps.version.outputs.value != '' && format('-p:Version={0}', steps.version.outputs.value) || '' }}
+
+      - name: Publish package to NuGet
+        run: >
+          dotnet nuget push artifacts/*.nupkg
+          --api-key "${{ secrets.NUGET_API_KEY }}"
+          --source "https://api.nuget.org/v3/index.json"
+          --skip-duplicate
