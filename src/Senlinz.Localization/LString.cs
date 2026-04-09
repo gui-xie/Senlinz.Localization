@@ -37,7 +37,7 @@ public readonly struct LString
     /// </summary>
     public string Resolve(Func<string, string>? resolve = null)
     {
-        var value = resolve?.Invoke(Key);
+        var value = resolve?.Invoke(Key) ?? DefaultValue;
         if (string.IsNullOrWhiteSpace(value))
         {
             value = DefaultValue;

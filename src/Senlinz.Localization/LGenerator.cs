@@ -3,7 +3,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Newtonsoft.Json;
 
 namespace Senlinz.Localization;
 
@@ -40,8 +39,7 @@ public sealed class LGenerator : IIncrementalGenerator
             }
 
             var jsonText = file.GetText()?.ToString() ?? string.Empty;
-            var dictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(jsonText);
-            if (dictionary is null)
+            if (!TryParseLocalizationDictionary(jsonText, out var dictionary))
             {
                 return;
             }
@@ -141,7 +139,7 @@ public sealed class LGenerator : IIncrementalGenerator
                         var attributeValue = attribute.ArgumentList?.Arguments.FirstOrDefault()?.Expression.ToString().Trim('"');
                         if (!string.IsNullOrWhiteSpace(attributeValue))
                         {
-                            lKeyProperty = JsonKeyToIdentifier(attributeValue);
+                            lKeyProperty = JsonKeyToIdentifier(attributeValue!);
                         }
                     }
                 }
@@ -159,7 +157,7 @@ public sealed class LGenerator : IIncrementalGenerator
         });
     }
 
-    private static IncrementalValuesProvider<((AdditionalText Left, string? Right) Left, string Right)> GetLocalizationFileProvider(
+    private static IncrementalValuesProvider<((AdditionalText Left, string? Right) Left, string? Right)> GetLocalizationFileProvider(
         IncrementalGeneratorInitializationContext context) =>
         context.AdditionalTextsProvider
             .Combine(context.CompilationProvider.Select(static (compilation, _) => compilation.AssemblyName))
@@ -314,9 +312,9 @@ public sealed class LGenerator : IIncrementalGenerator
             var value = pair.Value;
             foreach (Match match in Regex.Matches(value, pattern))
             {
-                if (match.Value.StartsWith('$'))
+                if (match.Value.StartsWith("$", StringComparison.Ordinal))
                 {
-                    value = value.Replace(match.Value, match.Value.Substring(1), StringComparison.Ordinal);
+                    value = value.Replace(match.Value, match.Value.Substring(1));
                     continue;
                 }
 
@@ -332,6 +330,76 @@ public sealed class LGenerator : IIncrementalGenerator
         }
 
         return result;
+    }
+
+    private static bool TryParseLocalizationDictionary(string jsonText, out Dictionary<string, string> dictionary)
+    {
+        dictionary = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (string.IsNullOrWhiteSpace(jsonText))
+        {
+            return false;
+        }
+
+        foreach (Match match in Regex.Matches(
+                     jsonText,
+                     "\"(?<key>(?:\\\\.|[^\"\\\\])*)\"\\s*:\\s*\"(?<value>(?:\\\\.|[^\"\\\\])*)\""))
+        {
+            dictionary[UnescapeJson(match.Groups["key"].Value)] = UnescapeJson(match.Groups["value"].Value);
+        }
+
+        return dictionary.Count > 0;
+    }
+
+    private static string UnescapeJson(string value)
+    {
+        var builder = new StringBuilder(value.Length);
+        for (var index = 0; index < value.Length; index++)
+        {
+            var character = value[index];
+            if (character != '\\' || index == value.Length - 1)
+            {
+                builder.Append(character);
+                continue;
+            }
+
+            index++;
+            switch (value[index])
+            {
+                case '"':
+                    builder.Append('"');
+                    break;
+                case '\\':
+                    builder.Append('\\');
+                    break;
+                case '/':
+                    builder.Append('/');
+                    break;
+                case 'b':
+                    builder.Append('\b');
+                    break;
+                case 'f':
+                    builder.Append('\f');
+                    break;
+                case 'n':
+                    builder.Append('\n');
+                    break;
+                case 'r':
+                    builder.Append('\r');
+                    break;
+                case 't':
+                    builder.Append('\t');
+                    break;
+                case 'u' when index + 4 < value.Length:
+                    builder.Append((char)Convert.ToInt32(value.Substring(index + 1, 4), 16));
+                    index += 4;
+                    break;
+                default:
+                    builder.Append(value[index]);
+                    break;
+            }
+        }
+
+        return builder.ToString();
     }
 
     private static string EnsureUniqueParameterName(IEnumerable<LStringParameter> existingParameters, string candidate)
@@ -386,11 +454,40 @@ public sealed class LGenerator : IIncrementalGenerator
         return char.ToLowerInvariant(value[0]) + value.Substring(1);
     }
 
-    private static string ToLiteral(string value) => SymbolDisplay.FormatLiteral(value, true);
+    private static string ToLiteral(string value) =>
+        $"\"{value.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\r", "\\r").Replace("\n", "\\n").Replace("\t", "\\t")}\"";
 
     private static string EscapeXml(string value) => value.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
 
-    private sealed record LStringInfo(string Key, string DefaultValue, string KeyProperty, IReadOnlyList<LStringParameter> Parameters);
+    private sealed class LStringInfo
+    {
+        public LStringInfo(string key, string defaultValue, string keyProperty, IReadOnlyList<LStringParameter> parameters)
+        {
+            Key = key;
+            DefaultValue = defaultValue;
+            KeyProperty = keyProperty;
+            Parameters = parameters;
+        }
 
-    private sealed record LStringParameter(string Token, string ParameterName);
+        public string Key { get; }
+
+        public string DefaultValue { get; }
+
+        public string KeyProperty { get; }
+
+        public IReadOnlyList<LStringParameter> Parameters { get; }
+    }
+
+    private sealed class LStringParameter
+    {
+        public LStringParameter(string token, string parameterName)
+        {
+            Token = token;
+            ParameterName = parameterName;
+        }
+
+        public string Token { get; }
+
+        public string ParameterName { get; }
+    }
 }
