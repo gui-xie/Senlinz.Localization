@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Senlinz.Localization;
@@ -14,6 +15,7 @@ public sealed class LGenerator : IIncrementalGenerator
 {
     private static readonly AssemblyName ExecutingAssembly = Assembly.GetExecutingAssembly().GetName();
     private const string LocalizationFileProperty = "build_property.MoLocalizationFile";
+    private const string RootNamespaceProperty = "build_property.RootNamespace";
     private const string LStringAttributeName = "Senlinz.Localization.LStringAttribute";
     private const string LStringKeyAttributeSuffix = "LStringKey";
     private const string LStringAttributePrefix = "LString";
@@ -48,6 +50,7 @@ public sealed class LGenerator : IIncrementalGenerator
             CreateLSource(sourceContext, targetNamespace, infos);
             CreateLResourceSource(sourceContext, targetNamespace, infos);
             CreateDynamicResolverInterface(sourceContext, targetNamespace);
+            CreateGlobalAliasesSource(sourceContext, targetNamespace);
         });
     }
 
@@ -140,10 +143,17 @@ public sealed class LGenerator : IIncrementalGenerator
         });
     }
 
-    private static IncrementalValuesProvider<((AdditionalText Left, string? Right) Left, string? Right)> GetLocalizationFileProvider(
+    private static IncrementalValuesProvider<((AdditionalText Left, string Right) Left, string? Right)> GetLocalizationFileProvider(
         IncrementalGeneratorInitializationContext context) =>
         context.AdditionalTextsProvider
-            .Combine(context.CompilationProvider.Select(static (_, _) => string.Empty))
+            .Combine(
+                context.CompilationProvider.Select(static (compilation, _) => compilation.AssemblyName)
+                    .Combine(context.AnalyzerConfigOptionsProvider.Select(static (provider, _) =>
+                    {
+                        provider.GlobalOptions.TryGetValue(RootNamespaceProperty, out var rootNamespace);
+                        return rootNamespace;
+                    }))
+                    .Select(static (values, _) => ResolveTargetNamespace(values.Left, values.Right)))
             .Combine(context.AnalyzerConfigOptionsProvider.Select(static (provider, _) =>
             {
                 provider.GlobalOptions.TryGetValue(LocalizationFileProperty, out var fileName);
@@ -249,6 +259,23 @@ public sealed class LGenerator : IIncrementalGenerator
         context.AddSource("L.g.cs", source.ToString());
     }
 
+    private static void CreateGlobalAliasesSource(SourceProductionContext context, string targetNamespace)
+    {
+        if (string.IsNullOrWhiteSpace(targetNamespace))
+        {
+            return;
+        }
+
+        var source = new StringBuilder();
+        source.AppendLine("#nullable enable");
+        source.AppendLine();
+        source.AppendLine($"global using L = {targetNamespace}.L;");
+        source.AppendLine($"global using LResource = {targetNamespace}.LResource;");
+        source.AppendLine($"global using IL = {targetNamespace}.IL;");
+        source.Append("#nullable restore");
+        context.AddSource("LAliases.g.cs", source.ToString());
+    }
+
     private static void AppendNamespaceStart(StringBuilder source, string targetNamespace)
     {
         source.AppendLine();
@@ -267,6 +294,64 @@ public sealed class LGenerator : IIncrementalGenerator
         {
             source.AppendLine("}");
         }
+    }
+
+    private static string ResolveTargetNamespace(string? assemblyName, string? rootNamespace)
+    {
+        var candidate = string.IsNullOrWhiteSpace(rootNamespace) ? assemblyName : rootNamespace;
+        if (string.IsNullOrWhiteSpace(candidate))
+        {
+            return string.Empty;
+        }
+
+        var segments = candidate!.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+        if (segments.Length == 0)
+        {
+            return string.Empty;
+        }
+
+        return string.Join(".", segments.Select(SanitizeNamespaceIdentifier));
+    }
+
+    private static string SanitizeNamespaceIdentifier(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return "_";
+        }
+
+        if (SyntaxFacts.IsValidIdentifier(value))
+        {
+            return value;
+        }
+
+        var builder = new StringBuilder(value.Length + 1);
+        foreach (var character in value)
+        {
+            if (builder.Length == 0)
+            {
+                if (character == '_' || char.IsLetter(character))
+                {
+                    builder.Append(character);
+                    continue;
+                }
+
+                if (char.IsDigit(character))
+                {
+                    builder.Append('_');
+                    builder.Append(character);
+                    continue;
+                }
+
+                builder.Append('_');
+                continue;
+            }
+
+            builder.Append(character == '_' || char.IsLetterOrDigit(character) ? character : '_');
+        }
+
+        var identifier = builder.Length == 0 ? "_" : builder.ToString();
+        return SyntaxFacts.IsValidIdentifier(identifier) ? identifier : $"_{identifier}";
     }
 
     private static string GetNamespace(BaseTypeDeclarationSyntax syntax)
