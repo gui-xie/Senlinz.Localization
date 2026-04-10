@@ -2,8 +2,8 @@
 
 [English](./README.md) | **中文**
 
-**English**: A JSON-driven localization source generator for .NET that generates strongly typed localization accessors, resource base classes, and enum-to-localization helpers.  
-**中文**：一个面向 .NET 的基于 JSON 的本地化源码生成器，用于生成强类型本地化访问器、资源基类以及枚举本地化辅助方法。
+A JSON-driven localization source generator for .NET that generates strongly typed localization accessors, resource base classes, and enum-to-localization helpers.  
+一个面向 .NET 的基于 JSON 的本地化源码生成器，用于生成强类型本地化访问器、资源基类以及枚举本地化辅助方法。
 
 Supports .NET 6 and newer consumer projects.  
 支持 .NET 6 及以上的消费项目。
@@ -263,13 +263,16 @@ Use `[LStringKey]` on enum members when you want to map to an existing localizat
 [LString]
 public enum SampleText
 {
+    [LStringKey("hello")]
     Hello,
+
+    [LStringKey("statusReady")]
     Ready
 }
 ```
 
-- **English**: By default, `SampleText.Ready.ToLString()` resolves through the prefixed localization key `SampleText_Ready`.
-- **中文**：默认情况下，`SampleText.Ready.ToLString()` 会通过带前缀的本地化键 `SampleText_Ready` 进行解析。
+- **English**: By default, `SampleText.Ready.ToLString()` resolves through the prefixed localization key `SampleText_Ready`, but `[LStringKey]` overrides that mapping for the annotated members.
+- **中文**：默认情况下，`SampleText.Ready.ToLString()` 会通过带前缀的本地化键 `SampleText_Ready` 进行解析，但带有 `[LStringKey]` 的成员会覆盖这个默认映射。
 
 Matching JSON:  
 对应的 JSON：

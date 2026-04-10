@@ -226,12 +226,15 @@ Use `[LStringKey]` on enum members when you want to map to an existing localizat
 [LString]
 public enum SampleText
 {
+    [LStringKey("hello")]
     Hello,
+
+    [LStringKey("statusReady")]
     Ready
 }
 ```
 
-By default, `SampleText.Ready.ToLString()` resolves through the prefixed localization key `SampleText_Ready`.
+By default, `SampleText.Ready.ToLString()` resolves through the prefixed localization key `SampleText_Ready`, but `[LStringKey]` overrides that mapping for the annotated members.
 
 Matching JSON:
 
