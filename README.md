@@ -1,5 +1,7 @@
 # Senlinz.Localization
 
+English | <a>中文</a>
+
 **English**: A JSON-driven localization source generator for .NET that generates strongly typed localization accessors, resource base classes, and enum-to-localization helpers.  
 **中文**：一个面向 .NET 的基于 JSON 的本地化源码生成器，用于生成强类型本地化访问器、资源基类以及枚举本地化辅助方法。
 
