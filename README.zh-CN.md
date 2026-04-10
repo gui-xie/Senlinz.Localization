@@ -53,8 +53,8 @@ Create `l.json` in your project root.
   "hello": "Hello",
   "sayHelloTo": "Hello {name}!",
   "statusReady": "Ready",
-  "SampleText_Hello": "Hello",
-  "SampleText_Ready": "Ready"
+  "UserType_Teacher": "Teacher",
+  "UserType_Student": "Student"
 }
 ```
 
@@ -232,15 +232,15 @@ Apply `[LString]` to an enum to generate a `ToLString()` extension method.
 
 ```csharp
 [LString]
-public enum SampleText
+public enum UserType
 {
-    Hello,
-    Ready
+    Teacher,
+    Student
 }
 ```
 
-- **English**: This generates `SampleTextExtensions.ToLString(this SampleText value)`.
-- **中文**：这会生成 `SampleTextExtensions.ToLString(this SampleText value)`。
+- **English**: This generates `UserTypeExtensions.ToLString(this UserType value)`.
+- **中文**：这会生成 `UserTypeExtensions.ToLString(this UserType value)`。
 - **English**: By default, the generated key pattern is `<EnumName>_<MemberName>`.
 - **中文**：默认生成的键模式为 `<枚举名>_<成员名>`。
 
@@ -249,8 +249,8 @@ For the enum above, the expected localization keys are typically:
 
 ```json
 {
-  "SampleText_Hello": "Hello",
-  "SampleText_Ready": "Ready"
+  "UserType_Teacher": "Teacher",
+  "UserType_Student": "Student"
 }
 ```
 
@@ -261,33 +261,33 @@ Use `[LStringKey]` on enum members when you want to map to an existing localizat
 
 ```csharp
 [LString]
-public enum SampleText
+public enum UserType
 {
-    [LStringKey("hello")]
-    Hello,
+    [LStringKey("teacher")]
+    Teacher,
 
-    [LStringKey("statusReady")]
-    Ready
+    [LStringKey("student")]
+    Student
 }
 ```
 
-- **English**: By default, `SampleText.Ready.ToLString()` resolves through the prefixed localization key `SampleText_Ready`, but `[LStringKey]` overrides that mapping for the annotated members.
-- **中文**：默认情况下，`SampleText.Ready.ToLString()` 会通过带前缀的本地化键 `SampleText_Ready` 进行解析，但带有 `[LStringKey]` 的成员会覆盖这个默认映射。
+- **English**: By default, `UserType.Student.ToLString()` resolves through the prefixed localization key `UserType_Student`, but `[LStringKey]` overrides that mapping for the annotated members.
+- **中文**：默认情况下，`UserType.Student.ToLString()` 会通过带前缀的本地化键 `UserType_Student` 进行解析，但带有 `[LStringKey]` 的成员会覆盖这个默认映射。
 
 Matching JSON:  
 对应的 JSON：
 
 ```json
 {
-  "hello": "Hello",
-  "statusReady": "Ready"
+  "teacher": "Teacher",
+  "student": "Student"
 }
 ```
 
 Usage | 用法：
 
 ```csharp
-var text = SampleText.Ready.ToLString();
+var text = UserType.Student.ToLString();
 Console.WriteLine(resolver[text]);
 ```
 
@@ -318,7 +318,8 @@ public enum OrderStatus
 {
   "hello": "Hello",
   "sayHelloTo": "Hello {name}!",
-  "statusReady": "Ready"
+  "UserType_Teacher": "Teacher",
+  "UserType_Student": "Student"
 }
 ```
 
@@ -326,13 +327,10 @@ public enum OrderStatus
 
 ```csharp
 [LString]
-public enum SampleText
+public enum UserType
 {
-    [LStringKey("hello")]
-    Hello,
-
-    [LStringKey("statusReady")]
-    Ready
+    Teacher,
+    Student
 }
 ```
 
@@ -347,7 +345,7 @@ var resolver = new LStringResolver(() => currentCulture, provider.GetResource);
 
 Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
-Console.WriteLine(resolver[SampleText.Ready.ToLString()]);
+Console.WriteLine(resolver[UserType.Student.ToLString()]);
 
 public sealed class ZhResource : LResource
 {
@@ -355,9 +353,8 @@ public sealed class ZhResource : LResource
 
     protected override string Hello => "你好";
     protected override string SayHelloTo => "你好，{name}！";
-    protected override string StatusReady => "就绪";
-    protected override string SampleTextHello => "你好";
-    protected override string SampleTextReady => "就绪";
+    protected override string UserTypeTeacher => "老师";
+    protected override string UserTypeStudent => "学生";
 }
 ```
 
@@ -366,7 +363,7 @@ Expected output | 预期输出：
 ```text
 你好
 你好，世界！
-就绪
+学生
 ```
 
 ## Release packages | 发布包
