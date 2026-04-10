@@ -271,8 +271,8 @@ public enum UserType
 }
 ```
 
-- **English**: By default, `UserType.Student.ToLString()` resolves through the prefixed localization key `UserType_Student`, but `[LStringKey]` overrides that mapping for the annotated members.
-- **中文**：默认情况下，`UserType.Student.ToLString()` 会通过带前缀的本地化键 `UserType_Student` 进行解析，但带有 `[LStringKey]` 的成员会覆盖这个默认映射。
+- **English**: `[LStringKey]` replaces the whole generated key. It does not append to the default enum prefix.
+- **中文**：`[LStringKey]` 会替换整个生成键，不会在默认的枚举前缀后面继续追加。
 
 Matching JSON:  
 对应的 JSON：
@@ -281,6 +281,21 @@ Matching JSON:
 {
   "teacher": "Teacher",
   "student": "Student"
+}
+```
+
+If you want to keep the `UserType_` prefix, either remove `[LStringKey]` or pass the full key explicitly.  
+如果你想保留 `UserType_` 前缀，可以去掉 `[LStringKey]`，或者直接传入完整键名。
+
+```csharp
+[LString]
+public enum UserType
+{
+    [LStringKey("UserType_Teacher")]
+    Teacher,
+
+    [LStringKey("UserType_Student")]
+    Student
 }
 ```
 
@@ -307,8 +322,8 @@ public enum OrderStatus
 
 - **English**: Choose a separator that keeps the generated member name valid in C#, such as `_`.
 - **中文**：请使用能保证生成成员名仍然是合法 C# 标识符的分隔符，例如 `_`。
-- **English**: Use `[LStringKey]` when you need full control over the mapped localization key.
-- **中文**：如果你需要完全控制映射到哪个本地化键，建议直接使用 `[LStringKey]`。
+- **English**: Use `[LStringKey]` when you need full control over the mapped localization key, because it uses the exact key string you provide.
+- **中文**：如果你需要完全控制映射到哪个本地化键，建议直接使用 `[LStringKey]`，因为它会按你提供的完整键名进行映射。
 
 ## End-to-end example | 完整示例
 

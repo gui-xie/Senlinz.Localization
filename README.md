@@ -234,7 +234,7 @@ public enum UserType
 }
 ```
 
-By default, `UserType.Student.ToLString()` resolves through the prefixed localization key `UserType_Student`, but `[LStringKey]` overrides that mapping for the annotated members.
+`[LStringKey]` replaces the whole generated key. It does not append to the default enum prefix.
 
 Matching JSON:
 
@@ -242,6 +242,20 @@ Matching JSON:
 {
   "teacher": "Teacher",
   "student": "Student"
+}
+```
+
+If you want to keep the `UserType_` prefix, either remove `[LStringKey]` or pass the full key explicitly:
+
+```csharp
+[LString]
+public enum UserType
+{
+    [LStringKey("UserType_Teacher")]
+    Teacher,
+
+    [LStringKey("UserType_Student")]
+    Student
 }
 ```
 
@@ -266,7 +280,7 @@ public enum OrderStatus
 ```
 
 - Choose a separator that keeps the generated member name valid in C#, such as `_`.
-- Use `[LStringKey]` when you need full control over the mapped localization key.
+- Use `[LStringKey]` when you need full control over the mapped localization key, because it uses the exact key string you provide.
 
 ## End-to-end example
 
