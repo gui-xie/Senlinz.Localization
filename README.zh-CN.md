@@ -52,7 +52,9 @@ Create `l.json` in your project root.
 {
   "hello": "Hello",
   "sayHelloTo": "Hello {name}!",
-  "statusReady": "Ready"
+  "statusReady": "Ready",
+  "SampleText_Hello": "Hello",
+  "SampleText_Ready": "Ready"
 }
 ```
 
@@ -261,13 +263,13 @@ Use `[LStringKey]` on enum members when you want to map to an existing localizat
 [LString]
 public enum SampleText
 {
-    [LStringKey("hello")]
     Hello,
-
-    [LStringKey("statusReady")]
     Ready
 }
 ```
+
+- **English**: By default, `SampleText.Ready.ToLString()` resolves through the prefixed localization key `SampleText_Ready`.
+- **中文**：默认情况下，`SampleText.Ready.ToLString()` 会通过带前缀的本地化键 `SampleText_Ready` 进行解析。
 
 Matching JSON:  
 对应的 JSON：
@@ -351,6 +353,8 @@ public sealed class ZhResource : LResource
     protected override string Hello => "你好";
     protected override string SayHelloTo => "你好，{name}！";
     protected override string StatusReady => "就绪";
+    protected override string SampleTextHello => "你好";
+    protected override string SampleTextReady => "就绪";
 }
 ```
 
