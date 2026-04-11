@@ -36,9 +36,9 @@ public sealed class LGenerator : IIncrementalGenerator
     {
         context.RegisterSourceOutput(GetLocalizationFileProvider(context), (sourceContext, pair) =>
         {
-            var file = pair.Left.Left;
-            var targetNamespace = pair.Left.Right;
-            var configuredFileName = pair.Right;
+            var file = pair.Source.File;
+            var targetNamespace = pair.Source.TargetNamespace;
+            var configuredFileName = pair.FileName;
 
             if (targetNamespace is null || !file.Path.EndsWith(configuredFileName, StringComparison.OrdinalIgnoreCase))
             {
@@ -153,7 +153,7 @@ public sealed class LGenerator : IIncrementalGenerator
         });
     }
 
-    private static IncrementalValuesProvider<((AdditionalText Left, string Right) Left, string Right)> GetLocalizationFileProvider(
+    private static IncrementalValuesProvider<((AdditionalText File, string TargetNamespace) Source, string FileName)> GetLocalizationFileProvider(
         IncrementalGeneratorInitializationContext context) =>
         context.AdditionalTextsProvider
             .Combine(
