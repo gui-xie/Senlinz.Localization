@@ -111,12 +111,12 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 
 ### 自定义文件名
 
-如果你不想使用 `l.json`，可以设置 `Mo.Localization.File`。
+如果你不想使用 `l.json`，可以设置 `Senlinz.Localization.File`。
 
 ```ini
 is_global = true
 
-build_property.Mo.Localization.File = localization.json
+build_property.Senlinz.Localization.File = localization.json
 ```
 
 ```xml
@@ -126,8 +126,6 @@ build_property.Mo.Localization.File = localization.json
   <None Update="localization.json" CopyToOutputDirectory="PreserveNewest" />
 </ItemGroup>
 ```
-
-为了兼容，旧的 `MoLocalizationFile` MSBuild 属性仍然可用。
 
 ## 生成的类型
 

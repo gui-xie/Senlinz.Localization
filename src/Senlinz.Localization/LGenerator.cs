@@ -15,11 +15,7 @@ namespace Senlinz.Localization;
 public sealed class LGenerator : IIncrementalGenerator
 {
     private static readonly AssemblyName ExecutingAssembly = Assembly.GetExecutingAssembly().GetName();
-    private static readonly string[] LocalizationFileProperties =
-    [
-        "build_property.Mo.Localization.File",
-        "build_property.MoLocalizationFile"
-    ];
+    private const string LocalizationFileProperty = "build_property.Senlinz.Localization.File";
     private const string RootNamespaceProperty = "build_property.RootNamespace";
     private const string LStringAttributeName = "Senlinz.Localization.LStringAttribute";
     private const string LStringKeyAttributeSuffix = "LStringKey";
@@ -168,12 +164,9 @@ public sealed class LGenerator : IIncrementalGenerator
 
     private static string GetLocalizationFileName(AnalyzerConfigOptionsProvider provider)
     {
-        foreach (var propertyName in LocalizationFileProperties)
+        if (provider.GlobalOptions.TryGetValue(LocalizationFileProperty, out var fileName) && !string.IsNullOrWhiteSpace(fileName))
         {
-            if (provider.GlobalOptions.TryGetValue(propertyName, out var fileName) && !string.IsNullOrWhiteSpace(fileName))
-            {
-                return fileName;
-            }
+            return fileName;
         }
 
         return "l.json";

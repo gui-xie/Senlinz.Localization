@@ -111,12 +111,12 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 
 ### Custom file name
 
-If you do not want to use `l.json`, set `Mo.Localization.File`.
+If you do not want to use `l.json`, set `Senlinz.Localization.File`.
 
 ```ini
 is_global = true
 
-build_property.Mo.Localization.File = localization.json
+build_property.Senlinz.Localization.File = localization.json
 ```
 
 ```xml
@@ -126,8 +126,6 @@ build_property.Mo.Localization.File = localization.json
   <None Update="localization.json" CopyToOutputDirectory="PreserveNewest" />
 </ItemGroup>
 ```
-
-The legacy `MoLocalizationFile` MSBuild property is still supported for compatibility.
 
 ## Generated types
 
