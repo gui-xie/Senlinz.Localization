@@ -15,7 +15,7 @@ namespace Senlinz.Localization;
 public sealed class LGenerator : IIncrementalGenerator
 {
     private static readonly AssemblyName ExecutingAssembly = Assembly.GetExecutingAssembly().GetName();
-    private const string LocalizationFileProperty = "build_property.Senlinz.Localization.File";
+    private const string LocalizationFileProperty = "build_property.SenlinzLocalizationFile";
     private const string RootNamespaceProperty = "build_property.RootNamespace";
     private const string LStringAttributeName = "Senlinz.Localization.LStringAttribute";
     private const string LStringKeyAttributeSuffix = "LStringKey";

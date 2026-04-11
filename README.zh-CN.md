@@ -111,12 +111,12 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 
 ### 自定义文件名
 
-如果你不想使用 `l.json`，可以设置 `Senlinz.Localization.File`。
+如果你不想使用 `l.json`，可以设置 `SenlinzLocalizationFile`。
 
 ```ini
 is_global = true
 
-build_property.Senlinz.Localization.File = localization.json
+build_property.SenlinzLocalizationFile = localization.json
 ```
 
 ```xml
