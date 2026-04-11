@@ -46,6 +46,13 @@ public sealed class ZhAlternativeResource : LResource
     protected override string SampleTextReady => "已就绪";
 }
 
+public sealed class ZhPartialResource : LResource
+{
+    public override string Culture => "zh";
+
+    protected override string Hello => "你好";
+}
+
 public class LocalizationTests
 {
     [Fact]
@@ -86,6 +93,16 @@ public class LocalizationTests
         Assert.Equal("您好", secondResolver[L.Hello]);
         Assert.Equal("你好，世界！", firstResolver[L.SayHelloTo("世界")]);
         Assert.Equal("您好，世界！", secondResolver[L.SayHelloTo("世界")]);
+    }
+
+    [Fact]
+    public void Uses_generated_default_values_for_members_not_overridden_in_derived_resource()
+    {
+        var resolver = new LStringResolver(() => "zh", new LResourceProvider(new ZhPartialResource()).GetResource);
+
+        Assert.Equal("你好", resolver[L.Hello]);
+        Assert.Equal("Hello World!", resolver[L.SayHelloTo("World")]);
+        Assert.Equal("Ready", resolver[L.StatusReady]);
     }
 
     [Fact]

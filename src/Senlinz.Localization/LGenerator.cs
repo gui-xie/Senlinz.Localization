@@ -194,7 +194,7 @@ public sealed class LGenerator : IIncrementalGenerator
         {
             source.AppendLine();
             AppendSummary(source, "        ", info.DefaultValue);
-            source.AppendLine($"        protected abstract string {info.KeyProperty} {{ get; }}");
+            source.AppendLine($"        protected virtual string {info.KeyProperty} => {ToLiteral(info.DefaultValue)};");
         }
 
         source.AppendLine();
