@@ -8,12 +8,10 @@
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <Deterministic>true</Deterministic>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <IncludeSymbols>true</IncludeSymbols>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <PackageProjectUrl>https://github.com/gui-xie/Senlinz.Localization</PackageProjectUrl>
     <PackageId>Senlinz.Localization</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
