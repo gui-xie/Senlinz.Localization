@@ -111,14 +111,14 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 
 ### 自定义文件名
 
-如果你不想使用 `l.json`，可以设置 `MoLocalizationFile`。
+如果你不想使用 `l.json`，可以设置 `Mo.Localization.File`。
 
 ```xml
 <PropertyGroup>
-  <MoLocalizationFile>localization.json</MoLocalizationFile>
+  <Mo.Localization.File>localization.json</Mo.Localization.File>
 </PropertyGroup>
 <ItemGroup>
-  <CompilerVisibleProperty Include="MoLocalizationFile" />
+  <CompilerVisibleProperty Include="Mo.Localization.File" />
   <AdditionalFiles Include="localization.json" />
   <None Update="localization.json" CopyToOutputDirectory="PreserveNewest" />
 </ItemGroup>

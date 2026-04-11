@@ -111,14 +111,14 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 
 ### Custom file name
 
-If you do not want to use `l.json`, set `MoLocalizationFile`.
+If you do not want to use `l.json`, set `Mo.Localization.File`.
 
 ```xml
 <PropertyGroup>
-  <MoLocalizationFile>localization.json</MoLocalizationFile>
+  <Mo.Localization.File>localization.json</Mo.Localization.File>
 </PropertyGroup>
 <ItemGroup>
-  <CompilerVisibleProperty Include="MoLocalizationFile" />
+  <CompilerVisibleProperty Include="Mo.Localization.File" />
   <AdditionalFiles Include="localization.json" />
   <None Update="localization.json" CopyToOutputDirectory="PreserveNewest" />
 </ItemGroup>

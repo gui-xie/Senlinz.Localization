@@ -14,7 +14,11 @@ namespace Senlinz.Localization;
 public sealed class LGenerator : IIncrementalGenerator
 {
     private static readonly AssemblyName ExecutingAssembly = Assembly.GetExecutingAssembly().GetName();
-    private const string LocalizationFileProperty = "build_property.MoLocalizationFile";
+    private static readonly string[] LocalizationFileProperties =
+    [
+        "build_property.Mo.Localization.File",
+        "build_property.MoLocalizationFile"
+    ];
     private const string RootNamespaceProperty = "build_property.RootNamespace";
     private const string LStringAttributeName = "Senlinz.Localization.LStringAttribute";
     private const string LStringKeyAttributeSuffix = "LStringKey";
@@ -159,11 +163,20 @@ public sealed class LGenerator : IIncrementalGenerator
                         return rootNamespace;
                     }))
                     .Select(static (values, _) => ResolveTargetNamespace(values.Left, values.Right)))
-            .Combine(context.AnalyzerConfigOptionsProvider.Select(static (provider, _) =>
+            .Combine(context.AnalyzerConfigOptionsProvider.Select(static (provider, _) => GetLocalizationFileName(provider)));
+
+    private static string GetLocalizationFileName(AnalyzerConfigOptionsProvider provider)
+    {
+        foreach (var propertyName in LocalizationFileProperties)
+        {
+            if (provider.GlobalOptions.TryGetValue(propertyName, out var fileName) && !string.IsNullOrWhiteSpace(fileName))
             {
-                provider.GlobalOptions.TryGetValue(LocalizationFileProperty, out var fileName);
-                return string.IsNullOrWhiteSpace(fileName) ? "l.json" : fileName;
-            }));
+                return fileName;
+            }
+        }
+
+        return "l.json";
+    }
 
     private static void CreateLResourceSource(SourceProductionContext context, string targetNamespace, IReadOnlyCollection<LStringInfo> infos)
     {

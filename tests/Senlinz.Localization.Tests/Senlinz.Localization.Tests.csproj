@@ -6,6 +6,7 @@
     <IsPackable>false</IsPackable>
     <AssemblyName>Senlinz-Localization.Tests</AssemblyName>
     <RootNamespace>Senlinz.Localization.Tests</RootNamespace>
+    <Mo.Localization.File>localization.json</Mo.Localization.File>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net6.0'">
@@ -25,8 +26,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <AdditionalFiles Include="l.json" />
-    <None Update="l.json" CopyToOutputDirectory="PreserveNewest" />
+    <CompilerVisibleProperty Include="Mo.Localization.File" />
+    <AdditionalFiles Include="localization.json" />
+    <None Update="localization.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
