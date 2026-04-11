@@ -109,6 +109,8 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 
 - 生成后的默认文本会是 `Use {name} as a placeholder in your template.`
 
+- 仍然支持通过 `SenlinzLocalizationFile` 构建属性自定义文件名。
+
 ## 生成的类型
 
 ### `L`

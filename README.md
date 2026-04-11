@@ -109,6 +109,8 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 
 - The generated default text becomes `Use {name} as a placeholder in your template.`
 
+- Custom file names are still supported via the `SenlinzLocalizationFile` build property.
+
 ## Generated types
 
 ### `L`
