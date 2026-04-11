@@ -84,6 +84,8 @@ public class LocalizationTests
 
         Assert.Equal("你好", firstResolver[L.Hello]);
         Assert.Equal("您好", secondResolver[L.Hello]);
+        Assert.Equal("你好，世界！", firstResolver[L.SayHelloTo("世界")]);
+        Assert.Equal("您好，世界！", secondResolver[L.SayHelloTo("世界")]);
     }
 
     [Fact]

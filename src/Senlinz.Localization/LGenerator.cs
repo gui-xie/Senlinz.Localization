@@ -449,7 +449,7 @@ public sealed class LGenerator : IIncrementalGenerator
         }
         catch (SerializationException)
         {
-            dictionary.Clear();
+            dictionary = new Dictionary<string, string>(StringComparer.Ordinal);
             return false;
         }
 
