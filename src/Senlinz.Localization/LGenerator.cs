@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Senlinz.Localization;
 
@@ -14,7 +15,7 @@ namespace Senlinz.Localization;
 public sealed class LGenerator : IIncrementalGenerator
 {
     private static readonly AssemblyName ExecutingAssembly = Assembly.GetExecutingAssembly().GetName();
-    private const string LocalizationFileProperty = "build_property.MoLocalizationFile";
+    private const string LocalizationFileProperty = "build_property.SenlinzLocalizationFile";
     private const string RootNamespaceProperty = "build_property.RootNamespace";
     private const string LStringAttributeName = "Senlinz.Localization.LStringAttribute";
     private const string LStringKeyAttributeSuffix = "LStringKey";
@@ -31,9 +32,9 @@ public sealed class LGenerator : IIncrementalGenerator
     {
         context.RegisterSourceOutput(GetLocalizationFileProvider(context), (sourceContext, pair) =>
         {
-            var file = pair.Left.Left;
-            var targetNamespace = pair.Left.Right;
-            var configuredFileName = pair.Right;
+            var file = pair.Source.File;
+            var targetNamespace = pair.Source.TargetNamespace;
+            var configuredFileName = pair.FileName;
 
             if (targetNamespace is null || !file.Path.EndsWith(configuredFileName, StringComparison.OrdinalIgnoreCase))
             {
@@ -148,7 +149,7 @@ public sealed class LGenerator : IIncrementalGenerator
         });
     }
 
-    private static IncrementalValuesProvider<((AdditionalText Left, string Right) Left, string? Right)> GetLocalizationFileProvider(
+    private static IncrementalValuesProvider<((AdditionalText File, string TargetNamespace) Source, string FileName)> GetLocalizationFileProvider(
         IncrementalGeneratorInitializationContext context) =>
         context.AdditionalTextsProvider
             .Combine(
@@ -159,11 +160,17 @@ public sealed class LGenerator : IIncrementalGenerator
                         return rootNamespace;
                     }))
                     .Select(static (values, _) => ResolveTargetNamespace(values.Left, values.Right)))
-            .Combine(context.AnalyzerConfigOptionsProvider.Select(static (provider, _) =>
-            {
-                provider.GlobalOptions.TryGetValue(LocalizationFileProperty, out var fileName);
-                return string.IsNullOrWhiteSpace(fileName) ? "l.json" : fileName;
-            }));
+            .Combine(context.AnalyzerConfigOptionsProvider.Select(static (provider, _) => GetLocalizationFileName(provider)));
+
+    private static string GetLocalizationFileName(AnalyzerConfigOptionsProvider provider)
+    {
+        if (provider.GlobalOptions.TryGetValue(LocalizationFileProperty, out var fileName) && !string.IsNullOrWhiteSpace(fileName))
+        {
+            return fileName;
+        }
+
+        return "l.json";
+    }
 
     private static void CreateLResourceSource(SourceProductionContext context, string targetNamespace, IReadOnlyCollection<LStringInfo> infos)
     {
