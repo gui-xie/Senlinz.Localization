@@ -5,7 +5,10 @@ namespace Senlinz.Localization.Tests;
 [LString]
 public enum SampleText
 {
+    [LStringKey("SampleText_Hello")]
     Hello,
+
+    [LStringKey("Ready")]
     Ready
 }
 

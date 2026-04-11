@@ -234,18 +234,18 @@ public enum UserType
 }
 ```
 
-- `[LStringKey]` 会替换整个生成键，不会在默认的枚举前缀后面继续追加。
+- `[LStringKey]` 只会替换生成键中的枚举成员部分，仍然会保留默认的枚举前缀和分隔符。
 
 对应的 JSON：
 
 ```json
 {
-  "teacher": "Teacher",
-  "student": "Student"
+  "UserType_teacher": "Teacher",
+  "UserType_student": "Student"
 }
 ```
 
-如果你想保留 `UserType_` 前缀，可以去掉 `[LStringKey]`，或者直接传入完整键名。
+如果你直接传入完整键名，则会按原样使用，不会重复追加前缀。
 
 ```csharp
 [LString]
@@ -280,7 +280,7 @@ public enum OrderStatus
 ```
 
 - 请使用能保证生成成员名仍然是合法 C# 标识符的分隔符，例如 `_`。
-- 如果你需要完全控制映射到哪个本地化键，建议直接使用 `[LStringKey]`，因为它会按你提供的完整键名进行映射。
+- 如果你想自定义枚举成员对应的键名片段，同时保留枚举前缀，建议使用 `[LStringKey]`。
 
 ## 完整示例
 
