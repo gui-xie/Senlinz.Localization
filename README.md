@@ -12,7 +12,7 @@ Supports .NET 6 and newer consumer projects.
 - Generate `LResource` base classes for culture-specific resource implementations.
 - Resolve localized text through `LString`, `LStringResolver`, and `LResourceProvider`.
 - Convert enum values to localization keys with `[LString]` and `[LStringKey]`.
-- Publish `Senlinz.Localization` and `Senlinz.Localization.Abstractions` as separate NuGet packages.
+- Publish `Senlinz.Localization` and `Senlinz.Localization.Abstractions` as separate NuGet packages with a shared embedded package icon.
 
 ## Package selection
 
@@ -352,5 +352,5 @@ Expected output:
    dotnet pack Senlinz.Localization.slnx --configuration Release --output artifacts
    ```
 3. The `Validate` GitHub Actions workflow should pass before you cut a release tag.
-4. Local and CI pack operations produce `.nupkg` artifacts and any available `.snupkg` symbol artifacts, and the validation workflow uploads them for inspection.
+4. Local and CI pack operations produce `.nupkg` artifacts and any available `.snupkg` symbol artifacts, embed the shared package icon, and the validation workflow uploads them for inspection.
 5. The `Publish NuGet packages` workflow uploads the generated release artifacts, then publishes the primary packages and any generated symbol packages when the tag build succeeds.
