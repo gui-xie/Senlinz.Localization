@@ -112,7 +112,7 @@ public sealed class LGenerator : IIncrementalGenerator
             source.AppendLine("            {");
             foreach (var enumField in enumFields)
             {
-                var lKeyProperty = $"{enumName}{separator}{enumField.Identifier.Text}";
+                var lKeyProperty = JsonKeyToIdentifier($"{enumName}{separator}{enumField.Identifier.Text}");
                 foreach (var attributeList in enumField.AttributeLists)
                 {
                     foreach (var attribute in attributeList.Attributes)

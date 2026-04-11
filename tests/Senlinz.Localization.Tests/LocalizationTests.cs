@@ -5,9 +5,7 @@ namespace Senlinz.Localization.Tests;
 [LString]
 public enum SampleText
 {
-    [LStringKey("hello")]
     Hello,
-    [LStringKey("statusReady")]
     Ready
 }
 
@@ -20,6 +18,10 @@ public sealed class ZhResource : LResource
     protected override string SayHelloTo => "你好，{name}！";
 
     protected override string StatusReady => "就绪";
+
+    protected override string SampleTextHello => "你好";
+
+    protected override string SampleTextReady => "就绪";
 }
 
 public class LocalizationTests

@@ -1,4 +1,4 @@
-name: Publish NuGet package
+name: Publish NuGet packages
 
 on:
   push:
@@ -56,9 +56,9 @@ jobs:
           --verbosity normal
           ${{ steps.version.outputs.value != '' && format('-p:Version={0}', steps.version.outputs.value) || '' }}
 
-      - name: Pack
+      - name: Pack packages
         run: >
-          dotnet pack src/Senlinz.Localization/Senlinz.Localization.csproj
+          dotnet pack Senlinz.Localization.slnx
           --configuration Release
           --no-build
           --output artifacts
@@ -66,7 +66,7 @@ jobs:
           -p:GeneratePackageOnBuild=false
           ${{ steps.version.outputs.value != '' && format('-p:Version={0}', steps.version.outputs.value) || '' }}
 
-      - name: Publish package to NuGet
+      - name: Publish packages to NuGet
         run: >
           dotnet nuget push artifacts/*.nupkg
           --api-key "${{ secrets.NUGET_API_KEY }}"
