@@ -353,4 +353,4 @@ public sealed class ZhResource : LResource
    ```
 3. 发布前应先确保 `Validate` GitHub Actions 工作流通过。
 4. 本地与 CI 打包会产出 `.nupkg`，并在可用时产出 `.snupkg` 符号包制品，校验工作流也会上传这些制品供检查。
-5. 标签构建成功后，`Publish NuGet packages` 工作流会将主包以及已生成的符号包一起发布到 NuGet。
+5. 标签构建成功后，`Publish NuGet packages` 工作流会先上传本次发布生成的制品，再将主包以及已生成的符号包一起发布到 NuGet。

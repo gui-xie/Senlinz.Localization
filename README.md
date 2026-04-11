@@ -353,4 +353,4 @@ Expected output:
    ```
 3. The `Validate` GitHub Actions workflow should pass before you cut a release tag.
 4. Local and CI pack operations produce `.nupkg` artifacts and any available `.snupkg` symbol artifacts, and the validation workflow uploads them for inspection.
-5. The `Publish NuGet packages` workflow publishes the primary packages and any generated symbol packages when the tag build succeeds.
+5. The `Publish NuGet packages` workflow uploads the generated release artifacts, then publishes the primary packages and any generated symbol packages when the tag build succeeds.

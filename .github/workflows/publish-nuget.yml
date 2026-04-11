@@ -69,6 +69,15 @@ jobs:
           -p:GeneratePackageOnBuild=false
           ${{ steps.version.outputs.value != '' && format('-p:Version={0}', steps.version.outputs.value) || '' }}
 
+      - name: Upload release package artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-release-packages
+          path: |
+            artifacts/*.nupkg
+            artifacts/*.snupkg
+          if-no-files-found: error
+
       - name: Publish packages to NuGet
         run: >
           dotnet nuget push artifacts/*.nupkg
