@@ -109,7 +109,20 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 
 - 生成后的默认文本会是 `Use {name} as a placeholder in your template.`
 
-- 仍然支持通过 `SenlinzLocalizationFile` 构建属性自定义文件名。
+### 自定义文件名
+
+如果你不想使用 `l.json`，可以在项目文件中设置 `SenlinzLocalizationFile`。
+
+```xml
+<PropertyGroup>
+  <SenlinzLocalizationFile>localization.json</SenlinzLocalizationFile>
+</PropertyGroup>
+
+<ItemGroup>
+  <AdditionalFiles Include="localization.json" />
+  <None Update="localization.json" CopyToOutputDirectory="PreserveNewest" />
+</ItemGroup>
+```
 
 ## 生成的类型
 

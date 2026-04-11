@@ -37,6 +37,8 @@
 
   <ItemGroup>
     <None Include="..\..\README.md" Link="README.md" Pack="true" PackagePath="\" />
+    <None Include="Senlinz.Localization.props" Pack="true" PackagePath="build\Senlinz.Localization.props" />
+    <None Include="Senlinz.Localization.props" Pack="true" PackagePath="buildTransitive\Senlinz.Localization.props" />
     <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="$(OutputPath)Senlinz.Localization.Abstractions.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="lib/netstandard2.0" Visible="false" />
