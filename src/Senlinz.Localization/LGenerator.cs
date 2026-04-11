@@ -112,7 +112,9 @@ public sealed class LGenerator : IIncrementalGenerator
             source.AppendLine("            {");
             foreach (var enumField in enumFields)
             {
-                var lKeyProperty = JsonKeyToIdentifier($"{enumName}{separator}{enumField.Identifier.Text}");
+                var generatedKey = $"{enumName}{separator}{enumField.Identifier.Text}";
+                var enumKeyPrefix = $"{enumName}{separator}";
+                var lKeyProperty = JsonKeyToIdentifier(generatedKey);
                 foreach (var attributeList in enumField.AttributeLists)
                 {
                     foreach (var attribute in attributeList.Attributes)
@@ -122,10 +124,13 @@ public sealed class LGenerator : IIncrementalGenerator
                             continue;
                         }
 
-                        var attributeValue = attribute.ArgumentList?.Arguments.FirstOrDefault()?.Expression.ToString().Trim('"');
-                        if (!string.IsNullOrWhiteSpace(attributeValue))
+                        if (attribute.ArgumentList?.Arguments.FirstOrDefault()?.Expression.ToString().Trim('"') is string attributeValue
+                            && !string.IsNullOrWhiteSpace(attributeValue))
                         {
-                            lKeyProperty = JsonKeyToIdentifier(attributeValue!);
+                            var resolvedKey = attributeValue.StartsWith(enumKeyPrefix, StringComparison.Ordinal)
+                                ? attributeValue
+                                : $"{enumKeyPrefix}{attributeValue}";
+                            lKeyProperty = JsonKeyToIdentifier(resolvedKey);
                         }
                     }
                 }

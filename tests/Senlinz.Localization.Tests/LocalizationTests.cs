@@ -5,7 +5,10 @@ namespace Senlinz.Localization.Tests;
 [LString]
 public enum SampleText
 {
+    [LStringKey("SampleText_Hello")]
     Hello,
+
+    [LStringKey("Ready")]
     Ready
 }
 
@@ -45,6 +48,13 @@ public class LocalizationTests
         Assert.Equal("Hello", resolver[L.Hello]);
         Assert.Equal("Hello World!", resolver[L.SayHelloTo("World")]);
         Assert.Equal("Hello", resolver.Resolve(SampleText.Hello.ToLString()));
+    }
+
+    [Fact]
+    public void Keeps_enum_prefix_for_lstringkey_mappings()
+    {
+        Assert.Equal("SampleText_Hello", SampleText.Hello.ToLString().Key);
+        Assert.Equal("SampleText_Ready", SampleText.Ready.ToLString().Key);
     }
 
     private static LStringResolver CreateResolver(GetCulture getCulture)

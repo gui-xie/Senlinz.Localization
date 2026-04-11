@@ -1,7 +1,7 @@
 namespace Senlinz.Localization;
 
 /// <summary>
-/// Overrides the localization key generated for an enum field.
+/// Overrides the enum member portion of the generated localization key.
 /// </summary>
 [AttributeUsage(AttributeTargets.Field)]
 public sealed class LStringKeyAttribute(string key) : Attribute

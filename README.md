@@ -234,18 +234,18 @@ public enum UserType
 }
 ```
 
-`[LStringKey]` replaces the whole generated key. It does not append to the default enum prefix.
+`[LStringKey]` replaces only the enum member portion of the generated key. The enum prefix and separator are still kept.
 
 Matching JSON:
 
 ```json
 {
-  "teacher": "Teacher",
-  "student": "Student"
+  "UserType_teacher": "Teacher",
+  "UserType_student": "Student"
 }
 ```
 
-If you want to keep the `UserType_` prefix, either remove `[LStringKey]` or pass the full key explicitly:
+If you pass the full key explicitly, it is used as-is and the prefix is not duplicated:
 
 ```csharp
 [LString]
@@ -280,7 +280,7 @@ public enum OrderStatus
 ```
 
 - Choose a separator that keeps the generated member name valid in C#, such as `_`.
-- Use `[LStringKey]` when you need full control over the mapped localization key, because it uses the exact key string you provide.
+- Use `[LStringKey]` when you want to customize the enum member segment while keeping the enum prefix.
 
 ## End-to-end example
 
