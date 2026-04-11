@@ -25,8 +25,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <AdditionalFiles Include="localization.json" />
-    <None Update="localization.json" CopyToOutputDirectory="PreserveNewest" />
+    <AdditionalFiles Include="l.json" />
+    <None Update="l.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

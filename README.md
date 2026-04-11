@@ -109,24 +109,6 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 
 - The generated default text becomes `Use {name} as a placeholder in your template.`
 
-### Custom file name
-
-If you do not want to use `l.json`, set `SenlinzLocalizationFile`.
-
-```ini
-is_global = true
-
-build_property.SenlinzLocalizationFile = localization.json
-```
-
-```xml
-<ItemGroup>
-  <GlobalAnalyzerConfigFiles Include=".globalconfig" />
-  <AdditionalFiles Include="localization.json" />
-  <None Update="localization.json" CopyToOutputDirectory="PreserveNewest" />
-</ItemGroup>
-```
-
 ## Generated types
 
 ### `L`
