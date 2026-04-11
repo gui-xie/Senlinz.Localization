@@ -127,7 +127,7 @@ public sealed class LGenerator : IIncrementalGenerator
                         var attributeValue = attribute.ArgumentList?.Arguments.FirstOrDefault()?.Expression.ToString().Trim('"');
                         if (!string.IsNullOrWhiteSpace(attributeValue))
                         {
-                            var resolvedKey = attributeValue!.StartsWith(enumKeyPrefix, StringComparison.Ordinal)
+                            var resolvedKey = attributeValue.StartsWith(enumKeyPrefix, StringComparison.Ordinal)
                                 ? attributeValue
                                 : $"{enumKeyPrefix}{attributeValue}";
                             lKeyProperty = JsonKeyToIdentifier(resolvedKey);
