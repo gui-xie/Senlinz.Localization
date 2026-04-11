@@ -31,10 +31,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <CompilerVisibleProperty Include="SenlinzLocalizationFile" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
+
+  <Import Project="..\..\src\Senlinz.Localization\Senlinz.Localization.props" />
 </Project>
