@@ -50,6 +50,13 @@ public class LocalizationTests
         Assert.Equal("Hello", resolver.Resolve(SampleText.Hello.ToLString()));
     }
 
+    [Fact]
+    public void Keeps_enum_prefix_for_lstringkey_mappings()
+    {
+        Assert.Equal("SampleText_Hello", SampleText.Hello.ToLString().Key);
+        Assert.Equal("SampleText_Ready", SampleText.Ready.ToLString().Key);
+    }
+
     private static LStringResolver CreateResolver(GetCulture getCulture)
     {
         var provider = new LResourceProvider(new ZhResource());

@@ -124,16 +124,14 @@ public sealed class LGenerator : IIncrementalGenerator
                             continue;
                         }
 
-                        if (attribute.ArgumentList?.Arguments.FirstOrDefault()?.Expression.ToString().Trim('"') is not string attributeValue
-                            || string.IsNullOrWhiteSpace(attributeValue))
+                        if (attribute.ArgumentList?.Arguments.FirstOrDefault()?.Expression.ToString().Trim('"') is string attributeValue
+                            && !string.IsNullOrWhiteSpace(attributeValue))
                         {
-                            continue;
+                            var resolvedKey = attributeValue.StartsWith(enumKeyPrefix, StringComparison.Ordinal)
+                                ? attributeValue
+                                : $"{enumKeyPrefix}{attributeValue}";
+                            lKeyProperty = JsonKeyToIdentifier(resolvedKey);
                         }
-
-                        var resolvedKey = attributeValue.StartsWith(enumKeyPrefix, StringComparison.Ordinal)
-                            ? attributeValue
-                            : $"{enumKeyPrefix}{attributeValue}";
-                        lKeyProperty = JsonKeyToIdentifier(resolvedKey);
                     }
                 }
 
