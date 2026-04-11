@@ -352,4 +352,5 @@ Expected output:
    dotnet pack Senlinz.Localization.slnx --configuration Release --output artifacts
    ```
 3. The `Validate` GitHub Actions workflow should pass before you cut a release tag.
-4. The `Publish NuGet packages` workflow publishes both packages to NuGet when the tag build succeeds.
+4. Local and CI pack operations produce `.nupkg` artifacts and any available `.snupkg` symbol artifacts.
+5. The `Publish NuGet packages` workflow publishes the primary packages and any generated symbol packages when the tag build succeeds.

@@ -352,4 +352,5 @@ public sealed class ZhResource : LResource
    dotnet pack Senlinz.Localization.slnx --configuration Release --output artifacts
    ```
 3. 发布前应先确保 `Validate` GitHub Actions 工作流通过。
-4. 标签构建成功后，`Publish NuGet packages` 工作流会将两个包一起发布到 NuGet。
+4. 本地与 CI 打包会产出 `.nupkg`，并在可用时产出 `.snupkg` 符号包制品。
+5. 标签构建成功后，`Publish NuGet packages` 工作流会将主包以及已生成的符号包一起发布到 NuGet。

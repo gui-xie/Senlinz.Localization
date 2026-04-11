@@ -75,3 +75,15 @@ jobs:
           --api-key "${{ secrets.NUGET_API_KEY }}"
           --source "https://api.nuget.org/v3/index.json"
           --skip-duplicate
+
+      - name: Publish symbol packages to NuGet
+        shell: bash
+        run: |
+          if compgen -G "artifacts/*.snupkg" > /dev/null; then
+            dotnet nuget push artifacts/*.snupkg \
+              --api-key "${{ secrets.NUGET_API_KEY }}" \
+              --source "https://api.nuget.org/v3/index.json" \
+              --skip-duplicate
+          else
+            echo "No symbol packages were produced."
+          fi
