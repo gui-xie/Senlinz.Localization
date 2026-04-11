@@ -1,23 +1,23 @@
-name: Publish NuGet packages
+name: Validate
 
 on:
   push:
-    tags:
+    tags-ignore:
       - "v*"
-  workflow_dispatch:
+  pull_request:
 
 permissions:
   contents: read
 
 jobs:
-  publish:
+  validate:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup .NET
+      - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.201
@@ -26,18 +26,6 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 6.0.x
-
-      - name: Resolve package version
-        id: version
-        shell: bash
-        run: |
-          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
-            version="${GITHUB_REF_NAME#v}"
-          else
-            version=""
-          fi
-
-          echo "value=${version}" >> "${GITHUB_OUTPUT}"
 
       - name: Restore
         run: dotnet restore Senlinz.Localization.slnx
@@ -49,7 +37,6 @@ jobs:
           --no-restore
           -p:GeneratePackageOnBuild=false
           -p:ContinuousIntegrationBuild=true
-          ${{ steps.version.outputs.value != '' && format('-p:Version={0}', steps.version.outputs.value) || '' }}
 
       - name: Test
         run: >
@@ -57,9 +44,9 @@ jobs:
           --configuration Release
           --no-build
           --verbosity normal
-          ${{ steps.version.outputs.value != '' && format('-p:Version={0}', steps.version.outputs.value) || '' }}
+          -p:GeneratePackageOnBuild=false
 
-      - name: Pack packages
+      - name: Pack
         run: >
           dotnet pack Senlinz.Localization.slnx
           --configuration Release
@@ -67,11 +54,10 @@ jobs:
           --output artifacts
           -p:ContinuousIntegrationBuild=true
           -p:GeneratePackageOnBuild=false
-          ${{ steps.version.outputs.value != '' && format('-p:Version={0}', steps.version.outputs.value) || '' }}
 
-      - name: Publish packages to NuGet
-        run: >
-          dotnet nuget push artifacts/*.nupkg
-          --api-key "${{ secrets.NUGET_API_KEY }}"
-          --source "https://api.nuget.org/v3/index.json"
-          --skip-duplicate
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: artifacts/*.nupkg
+          if-no-files-found: error

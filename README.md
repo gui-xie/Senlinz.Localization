@@ -340,6 +340,7 @@ Expected output:
 
 ## Release packages
 
+- Every push and pull request runs the validation workflow to restore, build, test, and pack the solution.
 - Create and push a version tag such as `v1.0.0` to trigger the publish workflow.
 
 1. Validate the solution.
@@ -350,4 +351,5 @@ Expected output:
    ```bash
    dotnet pack Senlinz.Localization.slnx --configuration Release --output artifacts
    ```
-3. The GitHub Actions workflow publishes both packages to NuGet when the tag build succeeds.
+3. The `Validate` GitHub Actions workflow should pass before you cut a release tag.
+4. The `Publish NuGet packages` workflow publishes both packages to NuGet when the tag build succeeds.

@@ -340,6 +340,7 @@ public sealed class ZhResource : LResource
 
 ## 发布包
 
+- 每次 push 和 pull request 都会触发校验工作流，执行 restore、build、test 与 pack。
 - 创建并推送类似 `v1.0.0` 的版本标签即可触发发布工作流。
 
 1. 先验证解决方案。
@@ -350,4 +351,5 @@ public sealed class ZhResource : LResource
    ```bash
    dotnet pack Senlinz.Localization.slnx --configuration Release --output artifacts
    ```
-3. 标签构建成功后，GitHub Actions 会将两个包一起发布到 NuGet。
+3. 发布前应先确保 `Validate` GitHub Actions 工作流通过。
+4. 标签构建成功后，`Publish NuGet packages` 工作流会将两个包一起发布到 NuGet。
