@@ -21,7 +21,7 @@
 - 如果你的项目需要从 JSON 自动生成本地化代码，请安装这个包。
 
 ```bash
-dotnet add package Senlinz.Localization --prerelease
+dotnet add package Senlinz.Localization
 ```
 
 ### `Senlinz.Localization.Abstractions`
@@ -29,7 +29,7 @@ dotnet add package Senlinz.Localization --prerelease
 - 如果你只需要运行时契约与辅助类型，而不需要源码生成器，请安装这个包。
 
 ```bash
-dotnet add package Senlinz.Localization.Abstractions --prerelease
+dotnet add package Senlinz.Localization.Abstractions
 ```
 
 ## 快速开始

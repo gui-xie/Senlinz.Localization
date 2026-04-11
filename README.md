@@ -21,7 +21,7 @@ Supports .NET 6 and newer consumer projects.
 Use this package in consumer projects that need source generation from JSON.
 
 ```bash
-dotnet add package Senlinz.Localization --prerelease
+dotnet add package Senlinz.Localization
 ```
 
 ### `Senlinz.Localization.Abstractions`
@@ -29,7 +29,7 @@ dotnet add package Senlinz.Localization --prerelease
 Use this package only when you need the shared runtime contracts and helpers without the source generator.
 
 ```bash
-dotnet add package Senlinz.Localization.Abstractions --prerelease
+dotnet add package Senlinz.Localization.Abstractions
 ```
 
 ## Quick start

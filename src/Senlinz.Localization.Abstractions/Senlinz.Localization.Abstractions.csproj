@@ -5,9 +5,12 @@
     <Nullable>enable</Nullable>
     <LangVersion>12</LangVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Deterministic>true</Deterministic>
+    <IncludeSymbols>true</IncludeSymbols>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <PackageProjectUrl>https://github.com/gui-xie/Senlinz.Localization</PackageProjectUrl>
     <PackageId>Senlinz.Localization.Abstractions</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

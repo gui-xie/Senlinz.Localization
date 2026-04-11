@@ -22,9 +22,28 @@ public sealed class ZhResource : LResource
 
     protected override string StatusReady => "就绪";
 
+    protected override string QuotedMessage => "对 {name} 说“你好”！\n完成";
+
     protected override string SampleTextHello => "你好";
 
     protected override string SampleTextReady => "就绪";
+}
+
+public sealed class ZhAlternativeResource : LResource
+{
+    public override string Culture => "zh";
+
+    protected override string Hello => "您好";
+
+    protected override string SayHelloTo => "您好，{name}！";
+
+    protected override string StatusReady => "已就绪";
+
+    protected override string QuotedMessage => "向 {name} 问好！\n已完成";
+
+    protected override string SampleTextHello => "您好";
+
+    protected override string SampleTextReady => "已就绪";
 }
 
 public class LocalizationTests
@@ -55,6 +74,24 @@ public class LocalizationTests
     {
         Assert.Equal("SampleText_Hello", SampleText.Hello.ToLString().Key);
         Assert.Equal("SampleText_Ready", SampleText.Ready.ToLString().Key);
+    }
+
+    [Fact]
+    public void Does_not_share_cached_resources_between_resolver_instances()
+    {
+        var firstResolver = new LStringResolver(() => "zh", new LResourceProvider(new ZhResource()).GetResource);
+        var secondResolver = new LStringResolver(() => "zh", new LResourceProvider(new ZhAlternativeResource()).GetResource);
+
+        Assert.Equal("你好", firstResolver[L.Hello]);
+        Assert.Equal("您好", secondResolver[L.Hello]);
+    }
+
+    [Fact]
+    public void Resolves_escaped_json_content_from_generated_localizations()
+    {
+        var resolver = CreateResolver(() => "en");
+
+        Assert.Equal("Say \"Hello\" to Alice!\nDone", resolver[L.QuotedMessage("Alice")]);
     }
 
     private static LStringResolver CreateResolver(GetCulture getCulture)

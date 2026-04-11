@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -438,66 +439,32 @@ public sealed class LGenerator : IIncrementalGenerator
             return false;
         }
 
-        foreach (Match match in Regex.Matches(
-                     jsonText,
-                     "\"(?<key>(?:\\\\.|[^\"\\\\])*)\"\\s*:\\s*\"(?<value>(?:\\\\.|[^\"\\\\])*)\""))
+        try
         {
-            dictionary[UnescapeJson(match.Groups["key"].Value)] = UnescapeJson(match.Groups["value"].Value);
+            using var document = JsonDocument.Parse(jsonText);
+            if (document.RootElement.ValueKind != JsonValueKind.Object)
+            {
+                return false;
+            }
+
+            foreach (var property in document.RootElement.EnumerateObject())
+            {
+                if (property.Value.ValueKind != JsonValueKind.String)
+                {
+                    dictionary.Clear();
+                    return false;
+                }
+
+                dictionary[property.Name] = property.Value.GetString() ?? string.Empty;
+            }
+        }
+        catch (JsonException)
+        {
+            dictionary.Clear();
+            return false;
         }
 
         return dictionary.Count > 0;
-    }
-
-    private static string UnescapeJson(string value)
-    {
-        var builder = new StringBuilder(value.Length);
-        for (var index = 0; index < value.Length; index++)
-        {
-            var character = value[index];
-            if (character != '\\' || index == value.Length - 1)
-            {
-                builder.Append(character);
-                continue;
-            }
-
-            index++;
-            switch (value[index])
-            {
-                case '"':
-                    builder.Append('"');
-                    break;
-                case '\\':
-                    builder.Append('\\');
-                    break;
-                case '/':
-                    builder.Append('/');
-                    break;
-                case 'b':
-                    builder.Append('\b');
-                    break;
-                case 'f':
-                    builder.Append('\f');
-                    break;
-                case 'n':
-                    builder.Append('\n');
-                    break;
-                case 'r':
-                    builder.Append('\r');
-                    break;
-                case 't':
-                    builder.Append('\t');
-                    break;
-                case 'u' when index + 4 < value.Length:
-                    builder.Append((char)Convert.ToInt32(value.Substring(index + 1, 4), 16));
-                    index += 4;
-                    break;
-                default:
-                    builder.Append(value[index]);
-                    break;
-            }
-        }
-
-        return builder.ToString();
     }
 
     private static string EnsureUniqueParameterName(IEnumerable<LStringParameter> existingParameters, string candidate)
