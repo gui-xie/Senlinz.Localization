@@ -1,0 +1,3 @@
+is_global = true
+
+build_property.Mo.Localization.File = localization.json

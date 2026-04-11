@@ -113,16 +113,21 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 
 If you do not want to use `l.json`, set `Mo.Localization.File`.
 
+```ini
+is_global = true
+
+build_property.Mo.Localization.File = localization.json
+```
+
 ```xml
-<PropertyGroup>
-  <Mo.Localization.File>localization.json</Mo.Localization.File>
-</PropertyGroup>
 <ItemGroup>
-  <CompilerVisibleProperty Include="Mo.Localization.File" />
+  <GlobalAnalyzerConfigFiles Include=".globalconfig" />
   <AdditionalFiles Include="localization.json" />
   <None Update="localization.json" CopyToOutputDirectory="PreserveNewest" />
 </ItemGroup>
 ```
+
+The legacy `MoLocalizationFile` MSBuild property is still supported for compatibility.
 
 ## Generated types
 

@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Senlinz.Localization;
 
@@ -152,7 +153,7 @@ public sealed class LGenerator : IIncrementalGenerator
         });
     }
 
-    private static IncrementalValuesProvider<((AdditionalText Left, string Right) Left, string? Right)> GetLocalizationFileProvider(
+    private static IncrementalValuesProvider<((AdditionalText Left, string Right) Left, string Right)> GetLocalizationFileProvider(
         IncrementalGeneratorInitializationContext context) =>
         context.AdditionalTextsProvider
             .Combine(
