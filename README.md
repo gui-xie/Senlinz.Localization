@@ -340,7 +340,7 @@ Expected output:
 
 ## Release packages
 
-- Every push and pull request runs the validation workflow to restore, build, test, and pack the solution.
+- Every push and pull request runs the validation workflow to restore, build, test, and pack the solution, then uploads the generated package artifacts.
 - Create and push a version tag such as `v1.0.0` to trigger the publish workflow.
 
 1. Validate the solution.
@@ -352,5 +352,5 @@ Expected output:
    dotnet pack Senlinz.Localization.slnx --configuration Release --output artifacts
    ```
 3. The `Validate` GitHub Actions workflow should pass before you cut a release tag.
-4. Local and CI pack operations produce `.nupkg` artifacts and any available `.snupkg` symbol artifacts.
+4. Local and CI pack operations produce `.nupkg` artifacts and any available `.snupkg` symbol artifacts, and the validation workflow uploads them for inspection.
 5. The `Publish NuGet packages` workflow publishes the primary packages and any generated symbol packages when the tag build succeeds.
