@@ -12,7 +12,7 @@
 - 生成 `LResource` 基类，方便实现不同语言资源。
 - 通过 `LString`、`LStringResolver` 和 `LResourceProvider` 解析本地化文本。
 - 通过 `[LString]` 与 `[LStringKey]` 将枚举值转换为本地化键。
-- `Senlinz.Localization` 与 `Senlinz.Localization.Abstractions` 可分别作为 NuGet 包发布。
+- `Senlinz.Localization` 与 `Senlinz.Localization.Abstractions` 可分别作为带共享嵌入图标的 NuGet 包发布。
 
 ## 包选择
 
@@ -21,7 +21,7 @@
 - 如果你的项目需要从 JSON 自动生成本地化代码，请安装这个包。
 
 ```bash
-dotnet add package Senlinz.Localization --prerelease
+dotnet add package Senlinz.Localization
 ```
 
 ### `Senlinz.Localization.Abstractions`
@@ -29,7 +29,7 @@ dotnet add package Senlinz.Localization --prerelease
 - 如果你只需要运行时契约与辅助类型，而不需要源码生成器，请安装这个包。
 
 ```bash
-dotnet add package Senlinz.Localization.Abstractions --prerelease
+dotnet add package Senlinz.Localization.Abstractions
 ```
 
 ## 快速开始
@@ -340,6 +340,7 @@ public sealed class ZhResource : LResource
 
 ## 发布包
 
+- 每次 push 和 pull request 都会触发校验工作流，执行 restore、build、test 与 pack，并上传生成的包制品。
 - 创建并推送类似 `v1.0.0` 的版本标签即可触发发布工作流。
 
 1. 先验证解决方案。
@@ -350,4 +351,6 @@ public sealed class ZhResource : LResource
    ```bash
    dotnet pack Senlinz.Localization.slnx --configuration Release --output artifacts
    ```
-3. 标签构建成功后，GitHub Actions 会将两个包一起发布到 NuGet。
+3. 发布前应先确保 `Validate` GitHub Actions 工作流通过。
+4. 本地与 CI 打包会产出 `.nupkg`，并在可用时产出 `.snupkg` 符号包制品、嵌入共享包图标，校验工作流也会上传这些制品供检查。
+5. 标签构建成功后，`Publish NuGet packages` 工作流会先上传本次发布生成的制品，再将主包以及已生成的符号包一起发布到 NuGet。

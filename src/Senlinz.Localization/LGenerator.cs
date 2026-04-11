@@ -1,4 +1,7 @@
+using System.IO;
 using System.Reflection;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
@@ -184,24 +187,18 @@ public sealed class LGenerator : IIncrementalGenerator
         source.AppendLine("    /// </summary>");
         source.AppendLine("    public abstract class LResource : ILResource");
         source.AppendLine("    {");
-        source.AppendLine("        /// <summary>");
-        source.AppendLine("        /// Gets the culture name.");
-        source.AppendLine("        /// </summary>");
+        AppendSummary(source, "        ", "Gets the culture name.");
         source.AppendLine("        public abstract string Culture { get; }");
 
         foreach (var info in infos)
         {
             source.AppendLine();
-            source.AppendLine("        /// <summary>");
-            source.AppendLine($"        /// {EscapeXml(info.DefaultValue)}");
-            source.AppendLine("        /// </summary>");
+            AppendSummary(source, "        ", info.DefaultValue);
             source.AppendLine($"        protected abstract string {info.KeyProperty} {{ get; }}");
         }
 
         source.AppendLine();
-        source.AppendLine("        /// <summary>");
-        source.AppendLine("        /// Gets the resource dictionary.");
-        source.AppendLine("        /// </summary>");
+        AppendSummary(source, "        ", "Gets the resource dictionary.");
         source.AppendLine("        public Dictionary<string, string> GetResource() => new()");
         source.AppendLine("        {");
         foreach (var info in infos)
@@ -222,9 +219,7 @@ public sealed class LGenerator : IIncrementalGenerator
         source.AppendLine("#nullable enable");
         source.AppendLine("using Senlinz.Localization;");
         AppendNamespaceStart(source, targetNamespace);
-        source.AppendLine("    /// <summary>");
-        source.AppendLine("    /// Auto-generated localization keys.");
-        source.AppendLine("    /// </summary>");
+        AppendSummary(source, "    ", "Auto-generated localization keys.");
         source.AppendLine($"    [System.CodeDom.Compiler.GeneratedCodeAttribute(\"{ExecutingAssembly.Name}\", \"{ExecutingAssembly.Version}\")]");
         source.AppendLine("    public partial class L");
         source.AppendLine("    {");
@@ -238,9 +233,7 @@ public sealed class LGenerator : IIncrementalGenerator
             }
 
             first = false;
-            source.AppendLine("        /// <summary>");
-            source.AppendLine($"        /// {EscapeXml(info.DefaultValue)}");
-            source.AppendLine("        /// </summary>");
+            AppendSummary(source, "        ", info.DefaultValue);
             if (info.Parameters.Count == 0)
             {
                 source.AppendLine($"        public static LString {info.KeyProperty} = new({ToLiteral(info.Key)}, {ToLiteral(info.DefaultValue)});");
@@ -438,66 +431,29 @@ public sealed class LGenerator : IIncrementalGenerator
             return false;
         }
 
-        foreach (Match match in Regex.Matches(
-                     jsonText,
-                     "\"(?<key>(?:\\\\.|[^\"\\\\])*)\"\\s*:\\s*\"(?<value>(?:\\\\.|[^\"\\\\])*)\""))
+        try
         {
-            dictionary[UnescapeJson(match.Groups["key"].Value)] = UnescapeJson(match.Groups["value"].Value);
+            var serializer = new DataContractJsonSerializer(
+                typeof(Dictionary<string, string>),
+                new DataContractJsonSerializerSettings
+                {
+                    UseSimpleDictionaryFormat = true
+                });
+            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonText));
+            if (serializer.ReadObject(stream) is not Dictionary<string, string> parsed)
+            {
+                return false;
+            }
+
+            dictionary = new Dictionary<string, string>(parsed, StringComparer.Ordinal);
+        }
+        catch (SerializationException)
+        {
+            dictionary = new Dictionary<string, string>(StringComparer.Ordinal);
+            return false;
         }
 
         return dictionary.Count > 0;
-    }
-
-    private static string UnescapeJson(string value)
-    {
-        var builder = new StringBuilder(value.Length);
-        for (var index = 0; index < value.Length; index++)
-        {
-            var character = value[index];
-            if (character != '\\' || index == value.Length - 1)
-            {
-                builder.Append(character);
-                continue;
-            }
-
-            index++;
-            switch (value[index])
-            {
-                case '"':
-                    builder.Append('"');
-                    break;
-                case '\\':
-                    builder.Append('\\');
-                    break;
-                case '/':
-                    builder.Append('/');
-                    break;
-                case 'b':
-                    builder.Append('\b');
-                    break;
-                case 'f':
-                    builder.Append('\f');
-                    break;
-                case 'n':
-                    builder.Append('\n');
-                    break;
-                case 'r':
-                    builder.Append('\r');
-                    break;
-                case 't':
-                    builder.Append('\t');
-                    break;
-                case 'u' when index + 4 < value.Length:
-                    builder.Append((char)Convert.ToInt32(value.Substring(index + 1, 4), 16));
-                    index += 4;
-                    break;
-                default:
-                    builder.Append(value[index]);
-                    break;
-            }
-        }
-
-        return builder.ToString();
     }
 
     private static string EnsureUniqueParameterName(IEnumerable<LStringParameter> existingParameters, string candidate)
@@ -556,6 +512,19 @@ public sealed class LGenerator : IIncrementalGenerator
         $"\"{value.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\r", "\\r").Replace("\n", "\\n").Replace("\t", "\\t")}\"";
 
     private static string EscapeXml(string value) => value.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
+
+    private static void AppendSummary(StringBuilder source, string indent, string value)
+    {
+        source.AppendLine($"{indent}/// <summary>");
+        foreach (var line in value.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n'))
+        {
+            source.AppendLine(string.IsNullOrEmpty(line)
+                ? $"{indent}///"
+                : $"{indent}/// {EscapeXml(line)}");
+        }
+
+        source.AppendLine($"{indent}/// </summary>");
+    }
 
     private sealed class LStringInfo
     {

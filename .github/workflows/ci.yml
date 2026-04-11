@@ -1,0 +1,65 @@
+name: Validate
+
+on:
+  push:
+    tags-ignore:
+      - "v*"
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.201
+
+      - name: Setup .NET 6 runtime support
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 6.0.x
+
+      - name: Restore
+        run: dotnet restore Senlinz.Localization.slnx
+
+      - name: Build
+        run: >
+          dotnet build Senlinz.Localization.slnx
+          --configuration Release
+          --no-restore
+          -p:GeneratePackageOnBuild=false
+          -p:ContinuousIntegrationBuild=true
+
+      - name: Test
+        run: >
+          dotnet test Senlinz.Localization.slnx
+          --configuration Release
+          --no-build
+          --verbosity normal
+          -p:GeneratePackageOnBuild=false
+
+      - name: Pack
+        run: >
+          dotnet pack Senlinz.Localization.slnx
+          --configuration Release
+          --no-build
+          --output artifacts
+          -p:ContinuousIntegrationBuild=true
+          -p:GeneratePackageOnBuild=false
+
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: |
+            artifacts/*.nupkg
+            artifacts/*.snupkg
+          if-no-files-found: error

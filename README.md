@@ -12,7 +12,7 @@ Supports .NET 6 and newer consumer projects.
 - Generate `LResource` base classes for culture-specific resource implementations.
 - Resolve localized text through `LString`, `LStringResolver`, and `LResourceProvider`.
 - Convert enum values to localization keys with `[LString]` and `[LStringKey]`.
-- Publish `Senlinz.Localization` and `Senlinz.Localization.Abstractions` as separate NuGet packages.
+- Publish `Senlinz.Localization` and `Senlinz.Localization.Abstractions` as separate NuGet packages with a shared embedded package icon.
 
 ## Package selection
 
@@ -21,7 +21,7 @@ Supports .NET 6 and newer consumer projects.
 Use this package in consumer projects that need source generation from JSON.
 
 ```bash
-dotnet add package Senlinz.Localization --prerelease
+dotnet add package Senlinz.Localization
 ```
 
 ### `Senlinz.Localization.Abstractions`
@@ -29,7 +29,7 @@ dotnet add package Senlinz.Localization --prerelease
 Use this package only when you need the shared runtime contracts and helpers without the source generator.
 
 ```bash
-dotnet add package Senlinz.Localization.Abstractions --prerelease
+dotnet add package Senlinz.Localization.Abstractions
 ```
 
 ## Quick start
@@ -340,6 +340,7 @@ Expected output:
 
 ## Release packages
 
+- Every push and pull request runs the validation workflow to restore, build, test, and pack the solution, then uploads the generated package artifacts.
 - Create and push a version tag such as `v1.0.0` to trigger the publish workflow.
 
 1. Validate the solution.
@@ -350,4 +351,6 @@ Expected output:
    ```bash
    dotnet pack Senlinz.Localization.slnx --configuration Release --output artifacts
    ```
-3. The GitHub Actions workflow publishes both packages to NuGet when the tag build succeeds.
+3. The `Validate` GitHub Actions workflow should pass before you cut a release tag.
+4. Local and CI pack operations produce `.nupkg` artifacts and any available `.snupkg` symbol artifacts, embed the shared package icon, and the validation workflow uploads them for inspection.
+5. The `Publish NuGet packages` workflow uploads the generated release artifacts, then publishes the primary packages and any generated symbol packages when the tag build succeeds.

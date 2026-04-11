@@ -7,14 +7,15 @@ namespace Senlinz.Localization;
 /// </summary>
 public class LStringResolver(GetCulture getCulture, GetCultureResource getCultureResource) : ILStringResolver
 {
-    private static readonly ConcurrentDictionary<string, Lazy<Dictionary<string, string>>> Dictionaries = new();
+    private static readonly IReadOnlyDictionary<string, string> EmptyDictionary = new Dictionary<string, string>();
+    private readonly ConcurrentDictionary<string, Lazy<IReadOnlyDictionary<string, string>>> _dictionaries = new();
 
     private string ResolveCore(string key)
     {
         var culture = getCulture();
-        var dictionary = Dictionaries.GetOrAdd(
+        var dictionary = _dictionaries.GetOrAdd(
             culture,
-            _ => new Lazy<Dictionary<string, string>>(() => getCultureResource(culture)));
+            _ => new Lazy<IReadOnlyDictionary<string, string>>(() => getCultureResource(culture) ?? EmptyDictionary));
 
         if (dictionary.Value.TryGetValue(key, out var value))
         {
