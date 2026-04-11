@@ -124,8 +124,8 @@ public sealed class LGenerator : IIncrementalGenerator
                             continue;
                         }
 
-                        var attributeValue = attribute.ArgumentList?.Arguments.FirstOrDefault()?.Expression.ToString().Trim('"');
-                        if (string.IsNullOrWhiteSpace(attributeValue))
+                        if (attribute.ArgumentList?.Arguments.FirstOrDefault()?.Expression.ToString().Trim('"') is not string attributeValue
+                            || string.IsNullOrWhiteSpace(attributeValue))
                         {
                             continue;
                         }
