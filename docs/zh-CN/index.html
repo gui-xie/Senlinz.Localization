@@ -6,7 +6,7 @@
   <title>Senlinz.Localization 中文文档</title>
   <meta name="description" content="使用 Docsify 展示的 Senlinz.Localization 文档，适合在 GitHub Pages 上阅读与导航。">
   <meta name="theme-color" content="#2563eb">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+  <link rel="stylesheet" href="../assets/vendor/docsify/lib/themes/vue.css">
   <link rel="stylesheet" href="../assets/styles.css">
 </head>
 <body>
@@ -34,10 +34,17 @@
       search: {
         placeholder: '搜索',
         noData: '没有找到结果'
-      }
+      },
+      plugins: [
+        function (hook) {
+          hook.doneEach(function () {
+            document.title = 'Senlinz.Localization 中文文档';
+          });
+        }
+      ]
     };
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
-  <script src="https://cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
+  <script src="../assets/vendor/docsify/lib/docsify.min.js"></script>
+  <script src="../assets/vendor/docsify/lib/plugins/search.min.js"></script>
 </body>
 </html>

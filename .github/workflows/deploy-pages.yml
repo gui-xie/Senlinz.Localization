@@ -41,6 +41,9 @@ jobs:
           test -f docs/zh-CN/README.md
           test -f docs/zh-CN/_sidebar.md
           test -f docs/assets/styles.css
+          test -f docs/assets/vendor/docsify/lib/docsify.min.js
+          test -f docs/assets/vendor/docsify/lib/plugins/search.min.js
+          test -f docs/assets/vendor/docsify/lib/themes/vue.css
 
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v5

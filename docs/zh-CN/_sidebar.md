@@ -1,4 +1,4 @@
-- [概览](/zh-CN/)
+- [概览](README.md)
 - [功能特性](README.md#功能特性)
 - [包选择](README.md#包选择)
 - [快速开始](README.md#快速开始)

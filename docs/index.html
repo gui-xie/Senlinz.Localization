@@ -6,7 +6,7 @@
   <title>Senlinz.Localization Documentation</title>
   <meta name="description" content="Senlinz.Localization documentation powered by Docsify for a cleaner GitHub Pages reading experience.">
   <meta name="theme-color" content="#2563eb">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+  <link rel="stylesheet" href="./assets/vendor/docsify/lib/themes/vue.css">
   <link rel="stylesheet" href="./assets/styles.css">
 </head>
 <body>
@@ -34,10 +34,17 @@
       search: {
         placeholder: 'Search',
         noData: 'No results'
-      }
+      },
+      plugins: [
+        function (hook) {
+          hook.doneEach(function () {
+            document.title = 'Senlinz.Localization Documentation';
+          });
+        }
+      ]
     };
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
-  <script src="https://cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
+  <script src="./assets/vendor/docsify/lib/docsify.min.js"></script>
+  <script src="./assets/vendor/docsify/lib/plugins/search.min.js"></script>
 </body>
 </html>

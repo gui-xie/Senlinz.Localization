@@ -1,4 +1,4 @@
-- [Overview](/)
+- [Overview](README.md)
 - [Features](README.md#features)
 - [Package selection](README.md#package-selection)
 - [Quick start](README.md#quick-start)
