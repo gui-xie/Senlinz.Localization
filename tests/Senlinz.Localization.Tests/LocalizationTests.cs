@@ -17,6 +17,13 @@ public sealed class ZhResource : LResource
     public override string Culture => "zh";
 
     protected override string Hello => "你好";
+}
+
+public sealed class ZhFullResource : LResource
+{
+    public override string Culture => "zh";
+
+    protected override string Hello => "你好";
 
     protected override string SayHelloTo => "你好，{name}！";
 
@@ -44,13 +51,6 @@ public sealed class ZhAlternativeResource : LResource
     protected override string SampleTextHello => "您好";
 
     protected override string SampleTextReady => "已就绪";
-}
-
-public sealed class ZhPartialResource : LResource
-{
-    public override string Culture => "zh";
-
-    protected override string Hello => "你好";
 }
 
 public class LocalizationTests
@@ -86,7 +86,7 @@ public class LocalizationTests
     [Fact]
     public void Does_not_share_cached_resources_between_resolver_instances()
     {
-        var firstResolver = new LStringResolver(() => "zh", new LResourceProvider(new ZhResource()).GetResource);
+        var firstResolver = new LStringResolver(() => "zh", new LResourceProvider(new ZhFullResource()).GetResource);
         var secondResolver = new LStringResolver(() => "zh", new LResourceProvider(new ZhAlternativeResource()).GetResource);
 
         Assert.Equal("你好", firstResolver[L.Hello]);
@@ -98,7 +98,7 @@ public class LocalizationTests
     [Fact]
     public void Uses_generated_default_values_for_members_not_overridden_in_derived_resource()
     {
-        var resolver = new LStringResolver(() => "zh", new LResourceProvider(new ZhPartialResource()).GetResource);
+        var resolver = new LStringResolver(() => "zh", new LResourceProvider(new ZhResource()).GetResource);
 
         Assert.Equal("你好", resolver[L.Hello]);
         Assert.Equal("Hello World!", resolver[L.SayHelloTo("World")]);
@@ -115,7 +115,7 @@ public class LocalizationTests
 
     private static LStringResolver CreateResolver(GetCulture getCulture)
     {
-        var provider = new LResourceProvider(new ZhResource());
+        var provider = new LResourceProvider(new ZhFullResource());
         return new LStringResolver(getCulture, provider.GetResource);
     }
 }
