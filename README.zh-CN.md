@@ -6,6 +6,19 @@
 
 支持 .NET 6 及以上的消费项目。
 
+- 文档站点：<https://gui-xie.github.io/Senlinz.Localization/>
+- 当前包版本：`1.1.0`
+
+## 快速导航
+
+- [功能特性](#功能特性)
+- [快速开始](#快速开始)
+- [生成的类型](#生成的类型)
+- [解析本地化值](#解析本地化值)
+- [枚举本地化](#枚举本地化)
+- [完整示例](#完整示例)
+- [发布与文档站点](#发布与文档站点)
+
 ## 功能特性
 
 - 从 `l.json` 生成 `L` 访问器。
@@ -71,6 +84,24 @@ Console.WriteLine(L.SayHelloTo("World"));
 
 - `hello` 会生成 `L.Hello`。
 - `sayHelloTo` 会生成 `L.SayHelloTo(string name)`。
+
+### 创建资源并解析文本
+
+```csharp
+using Senlinz.Localization;
+
+var currentCulture = "zh";
+var resolver = new LStringResolver(
+    () => currentCulture,
+    new EnResource(),
+    new ZhResource());
+
+Console.WriteLine(resolver[L.Hello]);
+Console.WriteLine(resolver[L.SayHelloTo("世界")]);
+```
+
+- 常见场景下，直接把资源实例传给 `LStringResolver` 即可。
+- 如果你已经维护了 `LResourceProvider`，也仍然可以直接传入该实例。
 
 ## 本地化文件规则
 
@@ -173,17 +204,23 @@ public sealed class FrResource : LResource
 
 ## 解析本地化值
 
-使用 `LResourceProvider` 保存资源，并通过 `LStringResolver` 按当前语言解析文本。
+通过 `LStringResolver` 按当前语言解析文本。对于大多数场景，直接传入资源实例是最简单的方式。
 
 ```csharp
 using Senlinz.Localization;
 
 var currentCulture = "zh";
-var provider = new LResourceProvider(new EnResource(), new ZhResource());
-var resolver = new LStringResolver(() => currentCulture, provider.GetResource);
+var resolver = new LStringResolver(() => currentCulture, new EnResource(), new ZhResource());
 
 Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
+```
+
+如果你已经有 `LResourceProvider` 实例，也可以直接传入：
+
+```csharp
+var provider = new LResourceProvider(new EnResource(), new ZhResource());
+var resolver = new LStringResolver(() => currentCulture, provider);
 ```
 
 也可以使用扩展方法：
@@ -196,6 +233,7 @@ var text = resolver.Resolve(L.Hello);
 
 - 如果当前语言没有对应资源，则会使用 `l.json` 中的默认文本。
 - 如果资源存在但缺少某个键，同样会回退到默认文本。
+- 资源字典会按解析器实例与语言维度分别缓存。
 
 ## 枚举本地化
 
@@ -318,8 +356,7 @@ public enum UserType
 using Senlinz.Localization;
 
 var currentCulture = "zh";
-var provider = new LResourceProvider(new ZhResource());
-var resolver = new LStringResolver(() => currentCulture, provider.GetResource);
+var resolver = new LStringResolver(() => currentCulture, new ZhResource());
 
 Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
@@ -344,10 +381,11 @@ public sealed class ZhResource : LResource
 学生
 ```
 
-## 发布包
+## 发布与文档站点
 
 - 每次 push 和 pull request 都会触发校验工作流，执行 restore、build、test 与 pack，并上传生成的包制品。
-- 创建并推送类似 `v1.0.0` 的版本标签即可触发发布工作流。
+- 创建并推送类似 `v1.1.0` 的版本标签即可触发 NuGet 发布工作流。
+- 向 `main` 分支推送，或手动运行 Pages 工作流，即可把 `/docs` 中的静态站点发布到 GitHub Pages。
 
 1. 先验证解决方案。
    ```bash
@@ -360,3 +398,4 @@ public sealed class ZhResource : LResource
 3. 发布前应先确保 `Validate` GitHub Actions 工作流通过。
 4. 本地与 CI 打包会产出 `.nupkg`，并在可用时产出 `.snupkg` 符号包制品、嵌入共享包图标，校验工作流也会上传这些制品供检查。
 5. 标签构建成功后，`Publish NuGet packages` 工作流会先上传本次发布生成的制品，再将主包以及已生成的符号包一起发布到 NuGet。
+6. `Deploy GitHub Pages` 工作流会发布 `/docs` 目录中的文档站点。
