@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Senlinz.Localization</title>
+  <meta name="description" content="Documentation for Senlinz.Localization, a JSON-driven localization source generator for .NET.">
+  <link rel="stylesheet" href="./assets/styles.css">
+</head>
+<body>
+  <div class="container">
+    <header class="hero">
+      <div class="eyebrow">Senlinz.Localization · v1.1.0</div>
+      <h1>JSON-driven localization for .NET</h1>
+      <p class="lead">
+        Generate strongly typed localization APIs from JSON, implement culture-specific resources,
+        and resolve translated text with a small runtime surface.
+      </p>
+      <div class="actions">
+        <a class="button primary" href="https://github.com/gui-xie/Senlinz.Localization">View repository</a>
+        <a class="button secondary" href="https://github.com/gui-xie/Senlinz.Localization/blob/main/README.md">Read README</a>
+      </div>
+      <div class="lang-switch">
+        <a href="./index.html">English</a>
+        <a href="./zh-CN/index.html">中文</a>
+      </div>
+    </header>
+
+    <main>
+      <section>
+        <div class="grid two-up">
+          <article class="card">
+            <h2 class="section-title">Why this package</h2>
+            <ul>
+              <li>Generate <code>L</code> accessors from <code>l.json</code>.</li>
+              <li>Generate <code>LResource</code> base types for per-culture overrides.</li>
+              <li>Resolve text through <code>LStringResolver</code> with fallback behavior.</li>
+              <li>Map enums to localization keys with <code>[LString]</code> and <code>[LStringKey]</code>.</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h2 class="section-title">Install</h2>
+            <pre><code>dotnet add package Senlinz.Localization</code></pre>
+            <p>
+              Use <code>Senlinz.Localization.Abstractions</code> only if you need the shared runtime contracts
+              without the source generator package.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="section-title">Quick start</h2>
+        <div class="grid two-up">
+          <article class="card">
+            <h3>1. Add <code>l.json</code></h3>
+            <pre><code>{
+  "hello": "Hello",
+  "sayHelloTo": "Hello {name}!",
+  "statusReady": "Ready"
+}</code></pre>
+          </article>
+          <article class="card">
+            <h3>2. Register it in the project</h3>
+            <pre><code>&lt;ItemGroup&gt;
+  &lt;AdditionalFiles Include="l.json" /&gt;
+  &lt;None Update="l.json" CopyToOutputDirectory="PreserveNewest" /&gt;
+&lt;/ItemGroup&gt;</code></pre>
+          </article>
+          <article class="card">
+            <h3>3. Use generated members</h3>
+            <pre><code>Console.WriteLine(L.Hello);
+Console.WriteLine(L.SayHelloTo("World"));</code></pre>
+          </article>
+          <article class="card">
+            <h3>4. Resolve localized text</h3>
+            <pre><code>var currentCulture = "zh";
+var resolver = new LStringResolver(
+    () =&gt; currentCulture,
+    new EnResource(),
+    new ZhResource());
+
+Console.WriteLine(resolver[L.Hello]);</code></pre>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <div class="grid two-up">
+          <article class="card">
+            <h2 class="section-title">Resource resolution</h2>
+            <p>
+              Pass resources directly to <code>LStringResolver</code> for the common case, or pass an existing
+              <code>LResourceProvider</code> if your application already owns one.
+            </p>
+            <pre><code>var provider = new LResourceProvider(
+    new EnResource(),
+    new ZhResource());
+
+var resolver = new LStringResolver(
+    () =&gt; currentCulture,
+    provider);</code></pre>
+            <ul>
+              <li>If a culture resource is missing, the default <code>l.json</code> text is used.</li>
+              <li>If a key is missing in a culture resource, the default text is used.</li>
+              <li>Resources are cached per resolver instance and culture.</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h2 class="section-title">Enum localization</h2>
+            <pre><code>[LString]
+public enum UserType
+{
+    Teacher,
+    Student
+}
+
+var text = UserType.Student.ToLString();
+Console.WriteLine(resolver[text]);</code></pre>
+            <p>
+              Use <code>[LStringKey]</code> when an enum member should map to an existing localization key
+              while preserving the enum prefix behavior.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <div class="grid two-up">
+          <article class="card">
+            <h2 class="section-title">Release workflow</h2>
+            <ol>
+              <li>Run validation and ensure CI passes.</li>
+              <li>Create a version tag such as <code>v1.1.0</code>.</li>
+              <li>The NuGet publish workflow restores, builds, tests, packs, and uploads artifacts.</li>
+              <li>The generated <code>.nupkg</code> and optional <code>.snupkg</code> packages are published to NuGet.</li>
+            </ol>
+          </article>
+          <article class="card">
+            <h2 class="section-title">GitHub Pages</h2>
+            <p>
+              The repository ships with a dedicated Pages workflow that deploys the static documentation
+              from the <code>/docs</code> directory on pushes to <code>main</code> or on manual runs.
+            </p>
+            <p>
+              Enable GitHub Pages in the repository settings with <strong>GitHub Actions</strong> as the source
+              to activate deployment.
+            </p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>
+        Senlinz.Localization documentation ·
+        <a href="https://github.com/gui-xie/Senlinz.Localization">GitHub</a> ·
+        <a href="./zh-CN/index.html">中文</a>
+      </p>
+    </footer>
+  </div>
+</body>
+</html>

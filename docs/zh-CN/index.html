@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Senlinz.Localization</title>
+  <meta name="description" content="Senlinz.Localization 文档站点，一个面向 .NET 的 JSON 本地化源码生成器。">
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+  <div class="container">
+    <header class="hero">
+      <div class="eyebrow">Senlinz.Localization · v1.1.0</div>
+      <h1>.NET 的 JSON 本地化源码生成器</h1>
+      <p class="lead">
+        从 JSON 生成强类型本地化 API，为不同语言实现资源类，并通过极小的运行时抽象完成文本解析。
+      </p>
+      <div class="actions">
+        <a class="button primary" href="https://github.com/gui-xie/Senlinz.Localization">查看仓库</a>
+        <a class="button secondary" href="https://github.com/gui-xie/Senlinz.Localization/blob/main/README.zh-CN.md">阅读中文 README</a>
+      </div>
+      <div class="lang-switch">
+        <a href="../index.html">English</a>
+        <a href="./index.html">中文</a>
+      </div>
+    </header>
+
+    <main>
+      <section>
+        <div class="grid two-up">
+          <article class="card">
+            <h2 class="section-title">它能做什么</h2>
+            <ul>
+              <li>从 <code>l.json</code> 生成 <code>L</code> 访问器。</li>
+              <li>生成适合多语言覆写的 <code>LResource</code> 基类。</li>
+              <li>通过 <code>LStringResolver</code> 与回退机制解析文本。</li>
+              <li>通过 <code>[LString]</code> 和 <code>[LStringKey]</code> 将枚举映射到本地化键。</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h2 class="section-title">安装</h2>
+            <pre><code>dotnet add package Senlinz.Localization</code></pre>
+            <p>
+              如果你只需要运行时契约，不需要源码生成器，可以单独安装
+              <code>Senlinz.Localization.Abstractions</code>。
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="section-title">快速开始</h2>
+        <div class="grid two-up">
+          <article class="card">
+            <h3>1. 添加 <code>l.json</code></h3>
+            <pre><code>{
+  "hello": "Hello",
+  "sayHelloTo": "Hello {name}!",
+  "statusReady": "Ready"
+}</code></pre>
+          </article>
+          <article class="card">
+            <h3>2. 在项目中注册</h3>
+            <pre><code>&lt;ItemGroup&gt;
+  &lt;AdditionalFiles Include="l.json" /&gt;
+  &lt;None Update="l.json" CopyToOutputDirectory="PreserveNewest" /&gt;
+&lt;/ItemGroup&gt;</code></pre>
+          </article>
+          <article class="card">
+            <h3>3. 使用生成代码</h3>
+            <pre><code>Console.WriteLine(L.Hello);
+Console.WriteLine(L.SayHelloTo("World"));</code></pre>
+          </article>
+          <article class="card">
+            <h3>4. 解析本地化文本</h3>
+            <pre><code>var currentCulture = "zh";
+var resolver = new LStringResolver(
+    () =&gt; currentCulture,
+    new EnResource(),
+    new ZhResource());
+
+Console.WriteLine(resolver[L.Hello]);</code></pre>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <div class="grid two-up">
+          <article class="card">
+            <h2 class="section-title">资源解析</h2>
+            <p>
+              常见场景下，直接把资源实例传给 <code>LStringResolver</code> 即可；
+              如果你的应用已经维护了 <code>LResourceProvider</code>，也可以直接复用。
+            </p>
+            <pre><code>var provider = new LResourceProvider(
+    new EnResource(),
+    new ZhResource());
+
+var resolver = new LStringResolver(
+    () =&gt; currentCulture,
+    provider);</code></pre>
+            <ul>
+              <li>语言资源缺失时，会回退到 <code>l.json</code> 中的默认文本。</li>
+              <li>资源中缺少某个键时，也会回退到默认文本。</li>
+              <li>资源字典会按解析器实例和语言分别缓存。</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h2 class="section-title">枚举本地化</h2>
+            <pre><code>[LString]
+public enum UserType
+{
+    Teacher,
+    Student
+}
+
+var text = UserType.Student.ToLString();
+Console.WriteLine(resolver[text]);</code></pre>
+            <p>
+              当枚举成员需要映射到现有键时，请使用 <code>[LStringKey]</code>，
+              这样仍然可以保留默认的枚举前缀规则。
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <div class="grid two-up">
+          <article class="card">
+            <h2 class="section-title">发布流程</h2>
+            <ol>
+              <li>先运行校验并确保 CI 通过。</li>
+              <li>创建类似 <code>v1.1.0</code> 的版本标签。</li>
+              <li>NuGet 发布工作流会自动执行 restore、build、test、pack 并上传制品。</li>
+              <li>生成的 <code>.nupkg</code> 与可选的 <code>.snupkg</code> 会被发布到 NuGet。</li>
+            </ol>
+          </article>
+          <article class="card">
+            <h2 class="section-title">GitHub Pages</h2>
+            <p>
+              仓库现在带有专门的 Pages 工作流，会在推送到 <code>main</code> 或手动触发时，
+              自动发布 <code>/docs</code> 目录中的静态文档站点。
+            </p>
+            <p>
+              只需在仓库设置里将 GitHub Pages 来源切换为 <strong>GitHub Actions</strong> 即可启用。
+            </p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>
+        Senlinz.Localization 文档站点 ·
+        <a href="https://github.com/gui-xie/Senlinz.Localization">GitHub</a> ·
+        <a href="../index.html">English</a>
+      </p>
+    </footer>
+  </div>
+</body>
+</html>
