@@ -151,6 +151,13 @@ public sealed class EnResource : LResource
     protected override string StatusReady => "Ready";
 }
 
+public sealed class ZhResource : LResource
+{
+    public override string Culture => "zh";
+
+    protected override string Hello => "你好";
+}
+
 public sealed class FrResource : LResource
 {
     public override string Culture => "fr";
