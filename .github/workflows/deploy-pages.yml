@@ -35,7 +35,11 @@ jobs:
         shell: bash
         run: |
           test -f docs/index.html
+          test -f docs/README.md
+          test -f docs/_sidebar.md
           test -f docs/zh-CN/index.html
+          test -f docs/zh-CN/README.md
+          test -f docs/zh-CN/_sidebar.md
           test -f docs/assets/styles.css
 
       - name: Setup GitHub Pages
