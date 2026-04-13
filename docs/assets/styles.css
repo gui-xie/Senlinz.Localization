@@ -8,6 +8,7 @@
   --text-color: #0f172a;
   --text-color-secondary: #475569;
   --border-color: #e2e8f0;
+  --mobile-header-height: 96px;
 }
 
 body {
@@ -41,6 +42,8 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
+  position: static;
+  margin: 0;
 }
 
 .site-nav a {
@@ -116,10 +119,6 @@ body {
   border-radius: 6px;
 }
 
-.app-nav {
-  margin-right: 1rem;
-}
-
 .app-name-link,
 .sidebar ul li.active > a {
   color: var(--theme-color);
@@ -137,7 +136,23 @@ body {
 
 @media (max-width: 768px) {
   .site-header {
+    flex-direction: column;
+    align-items: flex-start;
     padding: 0.75rem 1rem;
+  }
+
+  .site-nav {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .site-nav a {
+    flex: 0 0 auto;
+  }
+
+  .sidebar {
+    top: var(--mobile-header-height);
+    height: calc(100vh - var(--mobile-header-height));
   }
 
   .markdown-section {

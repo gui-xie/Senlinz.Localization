@@ -17,7 +17,6 @@ Supports .NET 6 and newer consumer projects.
 - [Resolve localized values](#resolve-localized-values)
 - [Enum localization](#enum-localization)
 - [End-to-end example](#end-to-end-example)
-- [Release and documentation publishing](#release-and-documentation-publishing)
 
 ## Features
 
@@ -380,22 +379,3 @@ Expected output:
 你好，世界！
 学生
 ```
-
-## Release and documentation publishing
-
-- Every push and pull request runs the validation workflow to restore, build, test, and pack the solution, then uploads the generated package artifacts.
-- Create and push a version tag such as `v1.1.0` to trigger the NuGet publish workflow.
-- Push to `main` or run the Pages workflow manually to publish the static documentation site from `/docs`.
-
-1. Validate the solution.
-   ```bash
-   dotnet test Senlinz.Localization.slnx --configuration Release
-   ```
-2. Pack locally if needed.
-   ```bash
-   dotnet pack Senlinz.Localization.slnx --configuration Release --output artifacts
-   ```
-3. The `Validate` GitHub Actions workflow should pass before you cut a release tag.
-4. Local and CI pack operations produce `.nupkg` artifacts and any available `.snupkg` symbol artifacts, embed the shared package icon, and the validation workflow uploads them for inspection.
-5. The `Publish NuGet packages` workflow uploads the generated release artifacts, then publishes the primary packages and any generated symbol packages when the tag build succeeds.
-6. The `Deploy GitHub Pages` workflow publishes the documentation site located in `/docs`.

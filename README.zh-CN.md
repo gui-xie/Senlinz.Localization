@@ -17,7 +17,6 @@
 - [解析本地化值](#解析本地化值)
 - [枚举本地化](#枚举本地化)
 - [完整示例](#完整示例)
-- [发布与文档站点](#发布与文档站点)
 
 ## 功能特性
 
@@ -380,22 +379,3 @@ public sealed class ZhResource : LResource
 你好，世界！
 学生
 ```
-
-## 发布与文档站点
-
-- 每次 push 和 pull request 都会触发校验工作流，执行 restore、build、test 与 pack，并上传生成的包制品。
-- 创建并推送类似 `v1.1.0` 的版本标签即可触发 NuGet 发布工作流。
-- 向 `main` 分支推送，或手动运行 Pages 工作流，即可把 `/docs` 中的静态站点发布到 GitHub Pages。
-
-1. 先验证解决方案。
-   ```bash
-   dotnet test Senlinz.Localization.slnx --configuration Release
-   ```
-2. 如有需要，可在本地打包。
-   ```bash
-   dotnet pack Senlinz.Localization.slnx --configuration Release --output artifacts
-   ```
-3. 发布前应先确保 `Validate` GitHub Actions 工作流通过。
-4. 本地与 CI 打包会产出 `.nupkg`，并在可用时产出 `.snupkg` 符号包制品、嵌入共享包图标，校验工作流也会上传这些制品供检查。
-5. 标签构建成功后，`Publish NuGet packages` 工作流会先上传本次发布生成的制品，再将主包以及已生成的符号包一起发布到 NuGet。
-6. `Deploy GitHub Pages` 工作流会发布 `/docs` 目录中的文档站点。
