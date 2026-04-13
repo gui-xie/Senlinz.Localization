@@ -8,6 +8,7 @@
   --text-color: #0f172a;
   --text-color-secondary: #475569;
   --border-color: #e2e8f0;
+  --mobile-header-height: 96px;
 }
 
 body {
@@ -150,8 +151,8 @@ body {
   }
 
   .sidebar {
-    top: 96px;
-    height: calc(100vh - 96px);
+    top: var(--mobile-header-height);
+    height: calc(100vh - var(--mobile-header-height));
   }
 
   .markdown-section {
