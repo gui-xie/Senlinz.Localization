@@ -59,7 +59,7 @@ public class LocalizationTests
     public void Resolves_generated_localization_strings_with_resources()
     {
         var currentCulture = "zh";
-        var resolver = CreateResolver(() => currentCulture);
+        var resolver = new LStringResolver(() => currentCulture, new ZhFullResource());
 
         Assert.Equal("你好", resolver[L.Hello]);
         Assert.Equal("你好，世界！", resolver[L.SayHelloTo("世界")]);
@@ -69,7 +69,7 @@ public class LocalizationTests
     [Fact]
     public void Falls_back_to_default_values_when_resource_is_missing()
     {
-        var resolver = CreateResolver(() => "en");
+        var resolver = new LStringResolver(() => "en", new ZhFullResource());
 
         Assert.Equal("Hello", resolver[L.Hello]);
         Assert.Equal("Hello World!", resolver[L.SayHelloTo("World")]);
@@ -86,8 +86,8 @@ public class LocalizationTests
     [Fact]
     public void Does_not_share_cached_resources_between_resolver_instances()
     {
-        var firstResolver = new LStringResolver(() => "zh", new LResourceProvider(new ZhFullResource()).GetResource);
-        var secondResolver = new LStringResolver(() => "zh", new LResourceProvider(new ZhAlternativeResource()).GetResource);
+        var firstResolver = new LStringResolver(() => "zh", new ZhFullResource());
+        var secondResolver = new LStringResolver(() => "zh", new ZhAlternativeResource());
 
         Assert.Equal("你好", firstResolver[L.Hello]);
         Assert.Equal("您好", secondResolver[L.Hello]);
@@ -98,7 +98,7 @@ public class LocalizationTests
     [Fact]
     public void Uses_generated_default_values_for_members_not_overridden_in_derived_resource()
     {
-        var resolver = new LStringResolver(() => "zh", new LResourceProvider(new ZhResource()).GetResource);
+        var resolver = new LStringResolver(() => "zh", new ZhResource());
 
         Assert.Equal("你好", resolver[L.Hello]);
         Assert.Equal("Hello World!", resolver[L.SayHelloTo("World")]);
@@ -108,14 +108,19 @@ public class LocalizationTests
     [Fact]
     public void Resolves_escaped_json_content_from_generated_localizations()
     {
-        var resolver = CreateResolver(() => "en");
+        var resolver = new LStringResolver(() => "en", new ZhFullResource());
 
         Assert.Equal("Say \"Hello\" to Alice!\nDone", resolver[L.QuotedMessage("Alice")]);
     }
 
-    private static LStringResolver CreateResolver(GetCulture getCulture)
+    [Fact]
+    public void Accepts_resource_provider_directly()
     {
         var provider = new LResourceProvider(new ZhFullResource());
-        return new LStringResolver(getCulture, provider.GetResource);
+
+        var resolver = new LStringResolver(() => "zh", provider);
+
+        Assert.Equal("你好", resolver[L.Hello]);
+        Assert.Equal("你好，世界！", resolver[L.SayHelloTo("世界")]);
     }
 }

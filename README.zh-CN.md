@@ -179,11 +179,17 @@ public sealed class FrResource : LResource
 using Senlinz.Localization;
 
 var currentCulture = "zh";
-var provider = new LResourceProvider(new EnResource(), new ZhResource());
-var resolver = new LStringResolver(() => currentCulture, provider.GetResource);
+var resolver = new LStringResolver(() => currentCulture, new EnResource(), new ZhResource());
 
 Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
+```
+
+如果你已经有 `LResourceProvider` 实例，也可以直接传入：
+
+```csharp
+var provider = new LResourceProvider(new EnResource(), new ZhResource());
+var resolver = new LStringResolver(() => currentCulture, provider);
 ```
 
 也可以使用扩展方法：

@@ -179,11 +179,17 @@ Use `LResourceProvider` to hold resources and `LStringResolver` to resolve text 
 using Senlinz.Localization;
 
 var currentCulture = "zh";
-var provider = new LResourceProvider(new EnResource(), new ZhResource());
-var resolver = new LStringResolver(() => currentCulture, provider.GetResource);
+var resolver = new LStringResolver(() => currentCulture, new EnResource(), new ZhResource());
 
 Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
+```
+
+If you already have a provider instance, you can pass it directly:
+
+```csharp
+var provider = new LResourceProvider(new EnResource(), new ZhResource());
+var resolver = new LStringResolver(() => currentCulture, provider);
 ```
 
 You can also call the extension method:

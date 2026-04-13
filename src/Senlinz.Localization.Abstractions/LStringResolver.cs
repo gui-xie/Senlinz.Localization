@@ -10,6 +10,22 @@ public class LStringResolver(GetCulture getCulture, GetCultureResource getCultur
     private static readonly IReadOnlyDictionary<string, string> EmptyDictionary = new Dictionary<string, string>();
     private readonly ConcurrentDictionary<string, Lazy<IReadOnlyDictionary<string, string>>> _dictionaries = new();
 
+    /// <summary>
+    /// Resolves <see cref="LString"/> values by using a resource provider.
+    /// </summary>
+    public LStringResolver(GetCulture getCulture, LResourceProvider resourceProvider)
+        : this(getCulture, resourceProvider.GetResource)
+    {
+    }
+
+    /// <summary>
+    /// Resolves <see cref="LString"/> values by using the provided resources directly.
+    /// </summary>
+    public LStringResolver(GetCulture getCulture, params ILResource[] resources)
+        : this(getCulture, new LResourceProvider(resources))
+    {
+    }
+
     private string ResolveCore(string key)
     {
         var culture = getCulture();
@@ -37,4 +53,19 @@ public class LStringResolver(GetCulture getCulture, GetCultureResource getCultur
 public sealed class LStringResolver<T>(GetCulture getCulture, GetCultureResource getCultureResource)
     : LStringResolver(getCulture, getCultureResource), ILStringResolver<T>
 {
+    /// <summary>
+    /// Resolves <see cref="LString"/> values for a specific marker type by using a resource provider.
+    /// </summary>
+    public LStringResolver(GetCulture getCulture, LResourceProvider resourceProvider)
+        : this(getCulture, resourceProvider.GetResource)
+    {
+    }
+
+    /// <summary>
+    /// Resolves <see cref="LString"/> values for a specific marker type by using the provided resources directly.
+    /// </summary>
+    public LStringResolver(GetCulture getCulture, params ILResource[] resources)
+        : this(getCulture, new LResourceProvider(resources))
+    {
+    }
 }
