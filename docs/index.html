@@ -3,260 +3,282 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Senlinz.Localization</title>
-  <meta name="description" content="Senlinz.Localization is a modern JSON-driven localization source generator for .NET with strongly typed APIs, resource fallbacks, and lightweight runtime contracts.">
-  <meta name="theme-color" content="#0b1020">
+  <title>Senlinz.Localization Docs</title>
+  <meta name="description" content="Documentation for Senlinz.Localization with a docs-first GitHub Pages experience inspired by modern developer portals.">
+  <meta name="theme-color" content="#0a0f18">
   <link rel="stylesheet" href="./assets/styles.css">
 </head>
 <body>
-  <div class="page-shell">
-    <header class="site-header">
-      <a class="brand" href="./index.html" aria-label="Senlinz.Localization home">
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="./index.html" aria-label="Senlinz.Localization documentation home">
         <span class="brand-mark">SL</span>
         <span class="brand-copy">
           <strong>Senlinz.Localization</strong>
-          <small>JSON-driven localization for .NET</small>
+          <small>Documentation</small>
         </span>
       </a>
-      <nav class="top-nav" aria-label="Primary">
-        <a href="#features">Features</a>
-        <a href="#quick-start">Quick start</a>
-        <a href="#operations">Operations</a>
-        <a href="https://www.nuget.org/packages/Senlinz.Localization">NuGet</a>
-      </nav>
-      <div class="lang-switch" aria-label="Language switcher">
-        <a class="is-active" href="./index.html">English</a>
-        <a href="./zh-CN/index.html">中文</a>
+      <div class="topbar-meta">
+        <span class="pill"><strong>v1.1.0</strong> Current package</span>
+        <span class="pill">Source generator for .NET</span>
+      </div>
+      <div class="topbar-actions">
+        <a class="meta-link" href="https://www.nuget.org/packages/Senlinz.Localization">NuGet</a>
+        <a class="meta-link" href="https://github.com/gui-xie/Senlinz.Localization">GitHub</a>
+        <div class="lang-switch" aria-label="Language switcher">
+          <a class="is-active" href="./index.html">English</a>
+          <a href="./zh-CN/index.html">中文</a>
+        </div>
       </div>
     </header>
 
-    <main>
-      <section class="hero section">
-        <div class="spotlight" aria-hidden="true"></div>
-        <div class="hero-copy">
-          <div class="eyebrow-row">
-            <span class="eyebrow">v1.1.0</span>
-            <span class="eyebrow muted">.NET projects</span>
-            <span class="eyebrow muted">Source generator</span>
-          </div>
-          <h1>Professional localization workflows without the usual boilerplate.</h1>
-          <p class="lead">
-            Generate strongly typed accessors from JSON, plug in culture-specific resources, and resolve translated
-            strings with predictable fallbacks. Built for teams that want a polished developer experience.
-          </p>
-          <div class="actions">
-            <a class="button primary" href="https://www.nuget.org/packages/Senlinz.Localization">Install package</a>
-            <a class="button secondary" href="https://github.com/gui-xie/Senlinz.Localization">View GitHub</a>
-            <a class="button tertiary" href="https://github.com/gui-xie/Senlinz.Localization/blob/main/README.md">Read README</a>
-          </div>
-          <ul class="hero-points">
-            <li>Strongly typed APIs generated from <code>l.json</code></li>
-            <li>Culture resource overrides with graceful fallback behavior</li>
-            <li>Minimal runtime surface for production applications</li>
-          </ul>
-          <div class="metric-row">
-            <article class="metric-card">
-              <strong>2 packages</strong>
-              <span>Generator and abstractions, kept separate for clean adoption.</span>
-            </article>
-            <article class="metric-card">
-              <strong>Typed by design</strong>
-              <span>Properties and methods are derived directly from localization keys.</span>
-            </article>
-            <article class="metric-card">
-              <strong>Fallback-first</strong>
-              <span>Missing resources automatically return the default JSON text.</span>
-            </article>
-          </div>
+    <div class="docs-layout">
+      <aside class="panel" aria-label="Documentation navigation">
+        <span class="panel-title">Documentation</span>
+        <div class="nav-group">
+          <span class="eyebrow">Getting started</span>
+          <h2>Overview</h2>
+          <nav>
+            <a href="#overview">What it is</a>
+            <a href="#install">Install</a>
+            <a href="#quick-start">Quick start</a>
+          </nav>
         </div>
+        <div class="nav-group">
+          <span class="eyebrow">Core concepts</span>
+          <h2>Generated API</h2>
+          <nav>
+            <a href="#generated-types">Generated types</a>
+            <a href="#resource-resolution">Resource resolution</a>
+            <a href="#enum-localization">Enum localization</a>
+          </nav>
+        </div>
+        <div class="nav-group">
+          <span class="eyebrow">Operations</span>
+          <h2>Delivery</h2>
+          <nav>
+            <a href="#publishing">Release workflow</a>
+            <a href="#pages">GitHub Pages</a>
+          </nav>
+        </div>
+      </aside>
 
-        <aside class="hero-panel glass-card" aria-label="Code preview">
-          <div class="panel-bar">
-            <span></span>
-            <span></span>
-            <span></span>
+      <main class="content-column">
+        <section id="overview" class="hero-card">
+          <span class="eyebrow">Overview</span>
+          <h1>Documentation that feels like a real developer portal.</h1>
+          <p>
+            Senlinz.Localization is a JSON-driven localization source generator for .NET. It turns localization keys
+            into strongly typed APIs, supports culture-specific resources, and keeps fallback behavior predictable.
+          </p>
+          <div class="hero-tags">
+            <span>Strongly typed accessors</span>
+            <span>Culture-aware resources</span>
+            <span>Lightweight runtime contracts</span>
           </div>
-          <p class="panel-label">5-minute setup</p>
-          <pre><code>dotnet add package Senlinz.Localization
+
+          <div class="hero-grid">
+            <div class="note-card">
+              <span class="section-label">Why teams use it</span>
+              <h2>Keep localization close to code</h2>
+              <ul>
+                <li>Generate <code>L</code> members directly from <code>l.json</code>.</li>
+                <li>Override only the culture-specific values that actually change.</li>
+                <li>Fall back to default JSON text when resources or keys are missing.</li>
+              </ul>
+            </div>
+            <div class="note-card">
+              <span class="section-label">5-minute setup</span>
+              <pre><code>dotnet add package Senlinz.Localization
 
 &lt;ItemGroup&gt;
   &lt;AdditionalFiles Include="l.json" /&gt;
   &lt;None Update="l.json" CopyToOutputDirectory="PreserveNewest" /&gt;
 &lt;/ItemGroup&gt;
 
-Console.WriteLine(L.Hello);
-Console.WriteLine(L.SayHelloTo("World"));</code></pre>
-          <div class="mini-grid">
-            <article class="mini-card">
-              <span class="mini-title">Resource resolution</span>
-              <p>Use <code>LStringResolver</code> directly or pass an existing <code>LResourceProvider</code>.</p>
-            </article>
-            <article class="mini-card">
-              <span class="mini-title">Enum helpers</span>
-              <p>Map enums with <code>[LString]</code> and <code>[LStringKey]</code> without extra glue code.</p>
-            </article>
+Console.WriteLine(L.Hello);</code></pre>
+            </div>
           </div>
-        </aside>
-      </section>
+        </section>
 
-      <section id="features" class="section">
-        <div class="section-heading">
-          <span class="section-kicker">Core capabilities</span>
-          <h2>Strongly typed localization APIs with flexible resource management.</h2>
-          <p>
-            Senlinz.Localization focuses on the parts teams care about most: maintainable strings, predictable
-            generated APIs, and a runtime model that stays easy to reason about.
-          </p>
-        </div>
+        <div class="content-stack">
+          <section id="install" class="content-card">
+            <span class="section-label">Install</span>
+            <h2>Choose the package that fits your project.</h2>
+            <div class="two-column">
+              <div class="mini-card">
+                <h3><code>Senlinz.Localization</code></h3>
+                <p>Use this in consumer projects that need source generation from JSON.</p>
+                <pre><code>dotnet add package Senlinz.Localization</code></pre>
+              </div>
+              <div class="mini-card">
+                <h3><code>Senlinz.Localization.Abstractions</code></h3>
+                <p>Use this when you only need the shared runtime contracts without the generator package.</p>
+                <pre><code>dotnet add package Senlinz.Localization.Abstractions</code></pre>
+              </div>
+            </div>
+          </section>
 
-        <div class="bento-grid">
-          <article class="card feature-card feature-card-large">
-            <span class="card-kicker">Generated API surface</span>
-            <h3>Turn JSON keys into discoverable C# members.</h3>
-            <p>
-              Plain values become properties, placeholders become methods, and the generated names stay aligned with
-              your localization source file.
-            </p>
-            <ul class="bullet-list">
-              <li><code>hello</code> → <code>L.Hello</code></li>
-              <li><code>sayHelloTo</code> → <code>L.SayHelloTo(string name)</code></li>
-              <li>Generated types stay small and easy to navigate in IDEs</li>
-            </ul>
-          </article>
-          <article class="card feature-card">
-            <span class="card-kicker">Resources</span>
-            <h3>Culture-specific overrides, only where needed.</h3>
-            <p>Implement one resource per culture and override only the values that differ from the default text.</p>
-          </article>
-          <article class="card feature-card">
-            <span class="card-kicker">Fallback behavior</span>
-            <h3>Safe defaults for missing cultures and keys.</h3>
-            <p>If a culture resource or member is missing, resolution falls back to the default text from JSON.</p>
-          </article>
-          <article class="card feature-card">
-            <span class="card-kicker">Enum localization</span>
-            <h3>Bridge enums and localization keys cleanly.</h3>
-            <p>Use attributes to map enum members into localized strings without repeating conversion logic.</p>
-          </article>
-          <article class="card feature-card">
-            <span class="card-kicker">Runtime contracts</span>
-            <h3>Keep the runtime lightweight.</h3>
-            <p>
-              Use <code>Senlinz.Localization.Abstractions</code> when you only need shared contracts without pulling
-              in the generator package.
-            </p>
-          </article>
-        </div>
-      </section>
-
-      <section id="quick-start" class="section">
-        <div class="section-heading">
-          <span class="section-kicker">Quick start</span>
-          <h2>From JSON file to localized output in a few clear steps.</h2>
-          <p>Use the default <code>l.json</code> convention or customize the file name with project properties.</p>
-        </div>
-
-        <div class="content-grid">
-          <article class="card">
-            <ol class="steps">
-              <li>
-                <h3>Create your localization file</h3>
-                <p>Define the source strings that will drive generated members.</p>
-                <pre><code>{
+          <section id="quick-start" class="content-card">
+            <span class="section-label">Quick start</span>
+            <h2>Go from JSON to localized output in three clear steps.</h2>
+            <h3>1. Create your localization file</h3>
+            <pre><code>{
   "hello": "Hello",
   "sayHelloTo": "Hello {name}!",
   "statusReady": "Ready"
 }</code></pre>
-              </li>
-              <li>
-                <h3>Register it in the project</h3>
-                <p>Expose the file to the source generator and optionally copy it to output.</p>
-                <pre><code>&lt;ItemGroup&gt;
+            <h3>2. Register the file in your project</h3>
+            <pre><code>&lt;ItemGroup&gt;
   &lt;AdditionalFiles Include="l.json" /&gt;
   &lt;None Update="l.json" CopyToOutputDirectory="PreserveNewest" /&gt;
 &lt;/ItemGroup&gt;</code></pre>
-              </li>
-              <li>
-                <h3>Resolve text at runtime</h3>
-                <p>Pass resources directly or through a provider, then resolve using the current culture.</p>
-                <pre><code>var resolver = new LStringResolver(
+            <h3>3. Resolve localized text</h3>
+            <pre><code>var resolver = new LStringResolver(
     () =&gt; currentCulture,
     new EnResource(),
     new ZhResource());
 
-Console.WriteLine(resolver[L.Hello]);</code></pre>
-              </li>
-            </ol>
-          </article>
+Console.WriteLine(resolver[L.Hello]);
+Console.WriteLine(resolver[L.SayHelloTo("World")]);</code></pre>
+            <blockquote>
+              Use <code>SenlinzLocalizationFile</code> in your project file when you want a custom JSON file name instead
+              of <code>l.json</code>.
+            </blockquote>
+          </section>
 
-          <article class="card stack-card">
-            <div class="stack-card-block">
-              <span class="card-kicker">Generated types</span>
-              <h3>What the package creates for you</h3>
-              <ul class="bullet-list">
-                <li><code>L</code> for strongly typed accessors</li>
-                <li><code>LResource</code> as the generated override base type</li>
-                <li><code>LString</code> for key, fallback text, and arguments</li>
-                <li><code>LStringResolver</code> and <code>LResourceProvider</code> for runtime resolution</li>
-              </ul>
+          <section id="generated-types" class="content-card">
+            <span class="section-label">Generated API</span>
+            <h2>Understand what the generator creates for you.</h2>
+            <div class="two-column">
+              <div class="mini-card">
+                <h3><code>L</code></h3>
+                <p>Contains strongly typed accessors for each localization key.</p>
+              </div>
+              <div class="mini-card">
+                <h3><code>LResource</code></h3>
+                <p>Provides the generated base class for culture-specific overrides.</p>
+              </div>
+              <div class="mini-card">
+                <h3><code>LString</code></h3>
+                <p>Carries the key, fallback text, and runtime arguments.</p>
+              </div>
+              <div class="mini-card">
+                <h3><code>LStringResolver</code></h3>
+                <p>Resolves translated text from resources or an existing provider.</p>
+              </div>
             </div>
-            <div class="stack-card-block">
-              <span class="card-kicker">Project fit</span>
-              <h3>Use it where it matters</h3>
-              <p>
-                Best suited for teams that want localization keys to stay close to code, prefer compile-time discoverability,
-                and need multilingual resources without a large framework footprint.
-              </p>
-            </div>
-          </article>
-        </div>
-      </section>
+            <h3>Placeholder parameters become method parameters</h3>
+            <pre><code>{
+  "welcomeUser": "Welcome {userName}",
+  "orderSummary": "Order {orderId} for {customerName}"
+}</code></pre>
+            <pre><code>var message1 = L.WelcomeUser("Alice");
+var message2 = L.OrderSummary("SO-001", "Alice");</code></pre>
+          </section>
 
-      <section id="operations" class="section">
-        <div class="section-heading">
-          <span class="section-kicker">Operations</span>
-          <h2>Release and documentation workflows that stay simple.</h2>
-          <p>The repository already includes CI, package publishing, and Pages deployment flows for repeatable delivery.</p>
-        </div>
-
-        <div class="content-grid">
-          <article class="card">
-            <span class="card-kicker">Release workflow</span>
-            <h3>NuGet publishing</h3>
-            <ol class="number-list">
-              <li>Validate changes and ensure CI passes.</li>
-              <li>Create a version tag such as <code>v1.1.0</code>.</li>
-              <li>The workflow restores, builds, tests, packs, and uploads artifacts.</li>
-              <li>The resulting <code>.nupkg</code> and optional <code>.snupkg</code> packages are published to NuGet.</li>
-            </ol>
-          </article>
-          <article class="card">
-            <span class="card-kicker">GitHub Pages</span>
-            <h3>Static docs deployment</h3>
+          <section id="resource-resolution" class="content-card">
+            <span class="section-label">Resource resolution</span>
+            <h2>Use simple culture classes with predictable fallback behavior.</h2>
             <p>
-              The Pages workflow deploys the content from <code>/docs</code> on pushes to <code>main</code> or manual
-              runs. Enable GitHub Pages with <strong>GitHub Actions</strong> as the source to publish the site.
+              <code>LResource</code> gives each culture a generated base class. Override only the members that differ
+              from the default JSON text.
             </p>
-            <div class="inline-links">
-              <a href="https://github.com/gui-xie/Senlinz.Localization/blob/main/.github/workflows/deploy-pages.yml">View workflow</a>
-              <a href="https://github.com/gui-xie/Senlinz.Localization/blob/main/README.md">Read full docs</a>
-            </div>
-          </article>
-        </div>
-      </section>
-    </main>
+            <pre><code>public sealed class EnResource : LResource
+{
+    public override string Culture =&gt; "en";
 
-    <footer class="site-footer">
-      <div>
-        <strong>Senlinz.Localization</strong>
-        <p>Modern localization tooling for .NET with a clean, static documentation experience.</p>
-      </div>
-      <div class="footer-links">
-        <a href="https://github.com/gui-xie/Senlinz.Localization">GitHub</a>
-        <a href="https://www.nuget.org/packages/Senlinz.Localization">NuGet</a>
-        <a href="./zh-CN/index.html">中文</a>
-      </div>
-    </footer>
+    protected override string Hello =&gt; "Hello";
+}
+
+public sealed class ZhResource : LResource
+{
+    public override string Culture =&gt; "zh";
+
+    protected override string Hello =&gt; "你好";
+}</code></pre>
+            <ul>
+              <li>If no culture resource exists, the JSON fallback text is returned.</li>
+              <li>If a resource exists but does not override a member, the JSON fallback text is returned.</li>
+              <li>Resources can be passed directly or through <code>LResourceProvider</code>.</li>
+            </ul>
+          </section>
+
+          <section id="enum-localization" class="content-card">
+            <span class="section-label">Enum localization</span>
+            <h2>Map enums to localization keys without extra conversion glue.</h2>
+            <h3>Generate a <code>ToLString()</code> extension with <code>[LString]</code></h3>
+            <pre><code>[LString]
+public enum UserType
+{
+    Teacher,
+    Student
+}</code></pre>
+            <p>The default key pattern is <code>&lt;EnumName&gt;_&lt;MemberName&gt;</code>.</p>
+            <h3>Customize enum member keys with <code>[LStringKey]</code></h3>
+            <pre><code>[LString]
+public enum UserType
+{
+    [LStringKey("teacher")]
+    Teacher,
+
+    [LStringKey("student")]
+    Student
+}</code></pre>
+            <p>Use <code>LStringAttribute</code> when you also want to customize the separator.</p>
+          </section>
+
+          <section id="publishing" class="content-card">
+            <span class="section-label">Release workflow</span>
+            <h2>Ship packages with the same workflow used in CI.</h2>
+            <ol>
+              <li>Restore, build, test, and pack the solution.</li>
+              <li>Create a version tag such as <code>v1.1.0</code>.</li>
+              <li>The publish workflow uploads the generated <code>.nupkg</code> and optional <code>.snupkg</code>.</li>
+            </ol>
+            <pre><code>dotnet test Senlinz.Localization.slnx --configuration Release
+dotnet pack Senlinz.Localization.slnx --configuration Release --output artifacts</code></pre>
+          </section>
+
+          <section id="pages" class="content-card">
+            <span class="section-label">GitHub Pages</span>
+            <h2>Publish the static site directly from <code>/docs</code>.</h2>
+            <p>
+              The repository includes a Pages workflow that deploys the content under <code>docs/</code> on pushes to
+              <code>main</code> or manual runs.
+            </p>
+            <ul>
+              <li>Enable GitHub Pages with <strong>GitHub Actions</strong> as the source.</li>
+              <li>Keep <code>docs/index.html</code>, <code>docs/zh-CN/index.html</code>, and <code>docs/assets/styles.css</code> committed.</li>
+              <li>Use the language switcher at the top of this page to keep both versions aligned.</li>
+            </ul>
+          </section>
+        </div>
+
+        <footer class="site-footer">
+          <div>
+            <strong>Senlinz.Localization</strong>
+            <span class="footer-copy">Static docs experience for package usage, release flow, and GitHub Pages delivery.</span>
+          </div>
+          <div class="footer-copy">English documentation · GitHub Pages</div>
+        </footer>
+      </main>
+
+      <aside class="page-toc" aria-label="On this page">
+        <span class="toc-title">On this page</span>
+        <nav>
+          <a class="is-current" href="#overview">Overview</a>
+          <a href="#install">Install</a>
+          <a href="#quick-start">Quick start</a>
+          <a href="#generated-types">Generated types</a>
+          <a href="#resource-resolution">Resource resolution</a>
+          <a href="#enum-localization">Enum localization</a>
+          <a href="#publishing">Release workflow</a>
+          <a href="#pages">GitHub Pages</a>
+        </nav>
+        <span class="page-meta">Inspired by modern docs layouts with persistent navigation, dense content sections, and a documentation-first reading flow.</span>
+      </aside>
+    </div>
   </div>
 </body>
 </html>
