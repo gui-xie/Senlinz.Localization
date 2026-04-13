@@ -133,8 +133,9 @@ If you do not want to use `l.json`, set `SenlinzLocalizationFile` in your projec
 
 ### `LResource`
 
-- `LResource` is a generated abstract base class with one protected abstract member per localization key.
-- Implement one derived class per culture.
+- `LResource` is a generated abstract base class with one protected virtual member per localization key.
+- Each generated member returns the default value from the localization JSON unless a derived resource overrides it.
+- Implement one derived class per culture and override only the values that differ.
 
 Example:
 
@@ -155,8 +156,13 @@ public sealed class ZhResource : LResource
     public override string Culture => "zh";
 
     protected override string Hello => "你好";
-    protected override string SayHelloTo => "你好，{name}！";
-    protected override string StatusReady => "就绪";
+}
+
+public sealed class FrResource : LResource
+{
+    public override string Culture => "fr";
+
+    protected override string Hello => "Bonjour";
 }
 ```
 

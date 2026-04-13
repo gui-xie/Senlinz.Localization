@@ -133,8 +133,9 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 
 ### `LResource`
 
-- `LResource` 是自动生成的抽象基类，每个本地化键都会对应一个受保护的抽象成员。
-- 通常为每种语言实现一个派生类。
+- `LResource` 是自动生成的抽象基类，每个本地化键都会对应一个受保护的虚成员。
+- 每个生成成员默认返回本地化 JSON 中的默认值，派生类可以按需重写。
+- 通常为每种语言实现一个派生类，只重写有差异的值即可。
 
 示例：
 
@@ -155,8 +156,13 @@ public sealed class ZhResource : LResource
     public override string Culture => "zh";
 
     protected override string Hello => "你好";
-    protected override string SayHelloTo => "你好，{name}！";
-    protected override string StatusReady => "就绪";
+}
+
+public sealed class FrResource : LResource
+{
+    public override string Culture => "fr";
+
+    protected override string Hello => "Bonjour";
 }
 ```
 
