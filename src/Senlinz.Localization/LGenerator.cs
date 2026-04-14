@@ -189,7 +189,7 @@ public sealed class LGenerator : IIncrementalGenerator
         AppendSummary(source, "        ", "Gets the culture name.");
         source.AppendLine("        public abstract string Culture { get; }");
 
-        foreach (var info in infos)
+        foreach (var info in infos.Where(static item => item.PathSegments.Count == 1))
         {
             source.AppendLine();
             AppendSummary(source, "        ", info.DefaultValue);
@@ -198,9 +198,9 @@ public sealed class LGenerator : IIncrementalGenerator
 
         source.AppendLine();
         AppendSummary(source, "        ", "Gets the resource dictionary.");
-        source.AppendLine("        public Dictionary<string, string> GetResource() => new()");
+        source.AppendLine("        public virtual Dictionary<string, string> GetResource() => new()");
         source.AppendLine("        {");
-        foreach (var info in infos)
+        foreach (var info in infos.Where(static item => item.PathSegments.Count == 1))
         {
             source.AppendLine($"            {{ {ToLiteral(info.Key)}, {info.KeyProperty} }},");
         }
@@ -224,7 +224,7 @@ public sealed class LGenerator : IIncrementalGenerator
         source.AppendLine("    {");
 
         var first = true;
-        foreach (var info in infos)
+        foreach (var info in infos.Where(static item => item.PathSegments.Count == 1))
         {
             if (!first)
             {
@@ -325,13 +325,26 @@ public sealed class LGenerator : IIncrementalGenerator
             AppendSummary(source, indent, leaf.Info.DefaultValue);
             if (leaf.Info.Parameters.Count == 0)
             {
-                source.AppendLine($"{indent}public LString {leaf.Identifier} => L.{leaf.Info.KeyProperty};");
+                source.AppendLine($"{indent}public LString {leaf.Identifier} => new({ToLiteral(leaf.Info.Key)}, {ToLiteral(leaf.Info.DefaultValue)});");
                 continue;
             }
 
             source.Append($"{indent}public LString {leaf.Identifier}(");
             source.Append(string.Join(", ", leaf.Info.Parameters.Select(parameter => $"string {parameter.ParameterName}")));
-            source.AppendLine($") => L.{leaf.Info.KeyProperty}({string.Join(", ", leaf.Info.Parameters.Select(parameter => parameter.ParameterName))});");
+            source.AppendLine(")");
+            source.AppendLine($"{indent}{{");
+            source.AppendLine($"{indent}    return new LString(");
+            source.AppendLine($"{indent}        {ToLiteral(leaf.Info.Key)},");
+            source.AppendLine($"{indent}        {ToLiteral(leaf.Info.DefaultValue)},");
+            source.AppendLine($"{indent}        new[]");
+            source.AppendLine($"{indent}        {{");
+            foreach (var parameter in leaf.Info.Parameters)
+            {
+                source.AppendLine($"{indent}            new KeyValuePair<string, string>({ToLiteral(parameter.Token)}, {parameter.ParameterName}),");
+            }
+
+            source.AppendLine($"{indent}        }});");
+            source.AppendLine($"{indent}}}");
         }
 
         foreach (var child in node.Children.Values)
@@ -556,7 +569,7 @@ public sealed class LGenerator : IIncrementalGenerator
             return pathSegments[0];
         }
 
-        return string.Join("_", pathSegments.Select(JsonKeyToIdentifier));
+        return string.Join(".", pathSegments);
     }
 
     private static string EnsureUniqueParameterName(IEnumerable<LStringParameter> existingParameters, string candidate)

@@ -1,4 +1,5 @@
 using Senlinz.Localization;
+using System.Reflection;
 
 namespace Senlinz.Localization.Tests;
 
@@ -21,6 +22,8 @@ public sealed class ZhResource : LResource
 
 public sealed class ZhFullResource : LResource
 {
+    private const string ExceptionUserNotFoundKey = "exception.user.notFound";
+
     public override string Culture => "zh";
 
     protected override string Hello => "你好";
@@ -31,15 +34,22 @@ public sealed class ZhFullResource : LResource
 
     protected override string QuotedMessage => "对 {name} 说“你好”！\n完成";
 
-    protected override string Exception_User_NotFound => "未找到用户 {userId}。";
-
     protected override string SampleText_Hello => "你好";
 
     protected override string SampleText_Ready => "就绪";
+
+    public override Dictionary<string, string> GetResource()
+    {
+        var resource = base.GetResource();
+        resource[ExceptionUserNotFoundKey] = "未找到用户 {userId}。";
+        return resource;
+    }
 }
 
 public sealed class ZhAlternativeResource : LResource
 {
+    private const string ExceptionUserNotFoundKey = "exception.user.notFound";
+
     public override string Culture => "zh";
 
     protected override string Hello => "您好";
@@ -50,11 +60,16 @@ public sealed class ZhAlternativeResource : LResource
 
     protected override string QuotedMessage => "向 {name} 问好！\n已完成";
 
-    protected override string Exception_User_NotFound => "找不到 ID 为 {userId} 的用户。";
-
     protected override string SampleText_Hello => "您好";
 
     protected override string SampleText_Ready => "已就绪";
+
+    public override Dictionary<string, string> GetResource()
+    {
+        var resource = base.GetResource();
+        resource[ExceptionUserNotFoundKey] = "找不到 ID 为 {userId} 的用户。";
+        return resource;
+    }
 }
 
 public class LocalizationTests
@@ -118,19 +133,15 @@ public class LocalizationTests
     }
 
     [Fact]
-    public void Preserves_underscores_in_generated_member_names()
+    public void Uses_dotted_keys_for_nested_json_objects()
     {
-        var resolver = new LStringResolver(() => "zh", new ZhFullResource());
-
-        Assert.Equal("未找到用户 42。", resolver[L.Exception_User_NotFound("42")]);
+        Assert.Equal("exception.user.notFound", L.Exception.User.NotFound("42").Key);
     }
 
     [Fact]
-    public void Supports_resource_overrides_with_the_same_underscore_name_as_the_json_key()
+    public void Does_not_generate_flat_members_for_nested_json_objects()
     {
-        var resolver = new LStringResolver(() => "zh", new ZhAlternativeResource());
-
-        Assert.Equal("找不到 ID 为 42 的用户。", resolver[L.Exception_User_NotFound("42")]);
+        Assert.Null(typeof(L).GetMethod("Exception_User_NotFound", BindingFlags.Public | BindingFlags.Static));
     }
 
     [Fact]
