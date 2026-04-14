@@ -7,11 +7,13 @@
     "teacher": "Teacher",
     "student": "Student"
   },
+  "sampleText": {
+    "hello": "Hello",
+    "ready": "Ready"
+  },
   "exception": {
     "user": {
       "notFound": "User '{userId}' does not exist."
     }
-  },
-  "SampleText_Hello": "Hello",
-  "SampleText_Ready": "Ready"
+  }
 }

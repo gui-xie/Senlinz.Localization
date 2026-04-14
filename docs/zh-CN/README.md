@@ -114,7 +114,7 @@ Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 - 生成的成员名会尽量保持 JSON 原样，只把首字母变成大写以贴近 Pascal 风格，因此 `user_status` 会生成 `L.User_status`。
 - 嵌套 JSON 对象会生成嵌套访问器，因此 `exception -> user -> notFound` 会生成 `L.Exception.User.NotFound(...)`。
 - 这些嵌套路径在内部会使用点号连接的键，因此上面的示例会解析为 `exception.user.notFound`。
-- 枚举也可以绑定到匹配的嵌套成员，因此当 JSON 包含 `userType.teacher` 时，`UserType.Teacher` 会解析为 `L.UserType.Teacher`。
+- 枚举键固定使用由枚举名和成员名组成的嵌套路径，因此 `UserType.Teacher` 会解析为 `userType.teacher`，对应 `L.UserType.Teacher`。
 
 ### 占位符参数
 
@@ -257,8 +257,8 @@ public enum UserType
 ```
 
 - 这会生成 `UserTypeExtensions.ToLString(this UserType value)`。
-- 如果本地化文件里存在匹配的嵌套成员，枚举值会直接复用这层结构，因此 `UserType.Teacher` 会通过 `L.UserType.Teacher` 解析。
-- 否则会回退到 `<枚举名>_<成员名>` 这种键模式。
+- 枚举值固定使用 `<枚举名CamelCase>.<成员名CamelCase>` 这种嵌套键模式。
+- 例如 `UserType.Teacher` 生成的键就是 `userType.teacher`，对应访问器 `L.UserType.Teacher`。
 
 对于上面的枚举，通常对应的本地化键是：
 
@@ -273,7 +273,7 @@ public enum UserType
 
 ### `[LStringKey]`
 
-如果你希望枚举成员映射到现有键，请在成员上使用 `[LStringKey]`。
+如果你希望只改枚举成员这一段的键名，请在成员上使用 `[LStringKey]`。
 
 ```csharp
 [LString]
@@ -287,7 +287,7 @@ public enum UserType
 }
 ```
 
-- `[LStringKey]` 会替换生成键中的枚举成员部分。相对键值仍会保留枚举前缀，而匹配到的嵌套成员会走生成出来的嵌套 API。
+- `[LStringKey]` 只会替换最后一段枚举成员键名，枚举前缀段仍然始终由枚举名决定。
 
 对应的 JSON：
 
@@ -300,7 +300,7 @@ public enum UserType
 }
 ```
 
-如果你直接传入完整键名，则会按原样使用。
+即使你传入点号路径或旧的完整键名，也只会取最后一段作为成员键名：
 
 ```csharp
 [LString]
@@ -309,7 +309,7 @@ public enum UserType
     [LStringKey("userType.teacher")]
     Teacher,
 
-    [LStringKey("userType.student")]
+    [LStringKey("legacy.student")]
     Student
 }
 ```
@@ -320,22 +320,6 @@ public enum UserType
 var text = UserType.Student.ToLString();
 Console.WriteLine(resolver[text]);
 ```
-
-### 自定义分隔符
-
-`LStringAttribute` 支持可选的分隔符参数。
-
-```csharp
-[LString("_")]
-public enum OrderStatus
-{
-    Pending,
-    Completed
-}
-```
-
-- 请使用能保证生成成员名仍然是合法 C# 标识符的分隔符，例如 `_`。
-- 如果你想自定义枚举成员对应的键名片段，同时保留枚举前缀，建议使用 `[LStringKey]`。
 
 ## 完整示例
 

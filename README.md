@@ -113,7 +113,7 @@ Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 - Generated member names follow the JSON shape directly and only capitalize the leading letter to fit Pascal-style naming, so `user_status` becomes `L.User_status`.
 - Nested JSON objects generate nested accessors, so `exception -> user -> notFound` becomes `L.Exception.User.NotFound(...)`.
 - Nested JSON paths use dotted keys internally, so the example above resolves as `exception.user.notFound`.
-- Enums can bind to matching nested members too, so `UserType.Teacher` can resolve to `L.UserType.Teacher` when the JSON contains `userType.teacher`.
+- Enum keys use a nested path based on the enum name and member name, so `UserType.Teacher` resolves to `userType.teacher` and `L.UserType.Teacher`.
 
 ### Placeholder parameters
 
@@ -256,8 +256,8 @@ public enum UserType
 ```
 
 - This generates `UserTypeExtensions.ToLString(this UserType value)`.
-- When the localization file contains matching nested members, enum values reuse that shape, so `UserType.Teacher` resolves through `L.UserType.Teacher`.
-- Otherwise, the fallback key pattern is `<EnumName>_<MemberName>`.
+- Enum values always use the nested key pattern `<enumNameCamelCase>.<memberNameCamelCase>`.
+- For `UserType.Teacher`, the generated key is `userType.teacher`, so the accessor is `L.UserType.Teacher`.
 
 For the enum above, the expected localization keys are typically:
 
@@ -272,7 +272,7 @@ For the enum above, the expected localization keys are typically:
 
 ### `[LStringKey]`
 
-Use `[LStringKey]` on enum members when you want to map to an existing localization key.
+Use `[LStringKey]` on enum members when you want to override only the enum member segment of the key.
 
 ```csharp
 [LString]
@@ -286,7 +286,7 @@ public enum UserType
 }
 ```
 
-`[LStringKey]` replaces the enum member portion of the generated key. Relative values still keep the enum prefix, and matching nested members are resolved through the generated nested API.
+`[LStringKey]` only replaces the final enum member segment. The enum prefix segment stays derived from the enum name.
 
 Matching JSON:
 
@@ -299,7 +299,7 @@ Matching JSON:
 }
 ```
 
-If you pass the full key explicitly, it is used as-is:
+Passing a dotted or legacy full key still only changes the final member segment:
 
 ```csharp
 [LString]
@@ -308,7 +308,7 @@ public enum UserType
     [LStringKey("userType.teacher")]
     Teacher,
 
-    [LStringKey("userType.student")]
+    [LStringKey("legacy.student")]
     Student
 }
 ```
@@ -319,22 +319,6 @@ Usage:
 var text = UserType.Student.ToLString();
 Console.WriteLine(resolver[text]);
 ```
-
-### Custom separator
-
-`LStringAttribute` accepts an optional separator value.
-
-```csharp
-[LString("_")]
-public enum OrderStatus
-{
-    Pending,
-    Completed
-}
-```
-
-- Choose a separator that keeps the generated member name valid in C#, such as `_`.
-- Use `[LStringKey]` when you want to customize the enum member segment while keeping the enum prefix.
 
 ## End-to-end example
 
