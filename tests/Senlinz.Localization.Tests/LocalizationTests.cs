@@ -12,6 +12,13 @@ public enum SampleText
     Ready
 }
 
+[LString]
+public enum UserType
+{
+    Teacher,
+    Student
+}
+
 public sealed class ZhResource : LResource
 {
     public override string Culture => "zh";
@@ -22,6 +29,8 @@ public sealed class ZhResource : LResource
 public sealed class ZhFullResource : LResource
 {
     private const string ExceptionUserNotFoundKey = "exception.user.notFound";
+    private const string UserTypeTeacherKey = "userType.teacher";
+    private const string UserTypeStudentKey = "userType.student";
 
     public override string Culture => "zh";
 
@@ -41,6 +50,8 @@ public sealed class ZhFullResource : LResource
     {
         var resource = base.GetResource();
         resource[ExceptionUserNotFoundKey] = "未找到用户 {userId}。";
+        resource[UserTypeTeacherKey] = "老师";
+        resource[UserTypeStudentKey] = "学生";
         return resource;
     }
 }
@@ -48,6 +59,8 @@ public sealed class ZhFullResource : LResource
 public sealed class ZhAlternativeResource : LResource
 {
     private const string ExceptionUserNotFoundKey = "exception.user.notFound";
+    private const string UserTypeTeacherKey = "userType.teacher";
+    private const string UserTypeStudentKey = "userType.student";
 
     public override string Culture => "zh";
 
@@ -67,6 +80,8 @@ public sealed class ZhAlternativeResource : LResource
     {
         var resource = base.GetResource();
         resource[ExceptionUserNotFoundKey] = "找不到 ID 为 {userId} 的用户。";
+        resource[UserTypeTeacherKey] = "讲师";
+        resource[UserTypeStudentKey] = "学员";
         return resource;
     }
 }
@@ -99,6 +114,17 @@ public class LocalizationTests
     {
         Assert.Equal("SampleText_Hello", SampleText.Hello.ToLString().Key);
         Assert.Equal("SampleText_Ready", SampleText.Ready.ToLString().Key);
+    }
+
+    [Fact]
+    public void Maps_enum_values_to_matching_nested_localization_members()
+    {
+        var resolver = new LStringResolver(() => "zh", new ZhFullResource());
+
+        Assert.Equal("userType.teacher", UserType.Teacher.ToLString().Key);
+        Assert.Equal("Teacher", UserType.Teacher.ToLString().DefaultValue);
+        Assert.Equal("老师", resolver[UserType.Teacher.ToLString()]);
+        Assert.Equal("学生", resolver[UserType.Student.ToLString()]);
     }
 
     [Fact]

@@ -55,8 +55,10 @@ Create `l.json` in your project root.
   "hello": "Hello",
   "sayHelloTo": "Hello {name}!",
   "statusReady": "Ready",
-  "UserType_Teacher": "Teacher",
-  "UserType_Student": "Student"
+  "userType": {
+    "teacher": "Teacher",
+    "student": "Student"
+  }
 }
 ```
 
@@ -111,6 +113,7 @@ Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 - Generated member names follow the JSON shape directly and only capitalize the leading letter to fit Pascal-style naming, so `user_status` becomes `L.User_status`.
 - Nested JSON objects generate nested accessors, so `exception -> user -> notFound` becomes `L.Exception.User.NotFound(...)`.
 - Nested JSON paths use dotted keys internally, so the example above resolves as `exception.user.notFound`.
+- Enums can bind to matching nested members too, so `UserType.Teacher` can resolve to `L.UserType.Teacher` when the JSON contains `userType.teacher`.
 
 ### Placeholder parameters
 
@@ -253,14 +256,17 @@ public enum UserType
 ```
 
 - This generates `UserTypeExtensions.ToLString(this UserType value)`.
-- By default, the generated key pattern is `<EnumName>_<MemberName>`.
+- When the localization file contains matching nested members, enum values reuse that shape, so `UserType.Teacher` resolves through `L.UserType.Teacher`.
+- Otherwise, the fallback key pattern is `<EnumName>_<MemberName>`.
 
 For the enum above, the expected localization keys are typically:
 
 ```json
 {
-  "UserType_Teacher": "Teacher",
-  "UserType_Student": "Student"
+  "userType": {
+    "teacher": "Teacher",
+    "student": "Student"
+  }
 }
 ```
 
@@ -280,27 +286,29 @@ public enum UserType
 }
 ```
 
-`[LStringKey]` replaces only the enum member portion of the generated key. The enum prefix and separator are still kept.
+`[LStringKey]` replaces the enum member portion of the generated key. Relative values still keep the enum prefix, and matching nested members are resolved through the generated nested API.
 
 Matching JSON:
 
 ```json
 {
-  "UserType_teacher": "Teacher",
-  "UserType_student": "Student"
+  "userType": {
+    "teacher": "Teacher",
+    "student": "Student"
+  }
 }
 ```
 
-If you pass the full key explicitly, it is used as-is and the prefix is not duplicated:
+If you pass the full key explicitly, it is used as-is:
 
 ```csharp
 [LString]
 public enum UserType
 {
-    [LStringKey("UserType_Teacher")]
+    [LStringKey("userType.teacher")]
     Teacher,
 
-    [LStringKey("UserType_Student")]
+    [LStringKey("userType.student")]
     Student
 }
 ```
@@ -336,8 +344,10 @@ public enum OrderStatus
 {
   "hello": "Hello",
   "sayHelloTo": "Hello {name}!",
-  "UserType_Teacher": "Teacher",
-  "UserType_Student": "Student"
+  "userType": {
+    "teacher": "Teacher",
+    "student": "Student"
+  }
 }
 ```
 
@@ -366,12 +376,21 @@ Console.WriteLine(resolver[UserType.Student.ToLString()]);
 
 public sealed class ZhResource : LResource
 {
+    private const string UserTypeTeacherKey = "userType.teacher";
+    private const string UserTypeStudentKey = "userType.student";
+
     public override string Culture => "zh";
 
     protected override string Hello => "你好";
     protected override string SayHelloTo => "你好，{name}！";
-    protected override string UserTypeTeacher => "老师";
-    protected override string UserTypeStudent => "学生";
+
+    public override Dictionary<string, string> GetResource()
+    {
+        var resource = base.GetResource();
+        resource[UserTypeTeacherKey] = "老师";
+        resource[UserTypeStudentKey] = "学生";
+        return resource;
+    }
 }
 ```
 

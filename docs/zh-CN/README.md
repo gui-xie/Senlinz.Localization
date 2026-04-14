@@ -56,8 +56,10 @@ dotnet add package Senlinz.Localization.Abstractions
   "hello": "Hello",
   "sayHelloTo": "Hello {name}!",
   "statusReady": "Ready",
-  "UserType_Teacher": "Teacher",
-  "UserType_Student": "Student"
+  "userType": {
+    "teacher": "Teacher",
+    "student": "Student"
+  }
 }
 ```
 
@@ -109,6 +111,10 @@ Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 
 - JSON 键会被转换为生成的 C# 成员名。
 - 请保持键名稳定，因为生成的 API 名称依赖这些键。
+- 生成的成员名会尽量保持 JSON 原样，只把首字母变成大写以贴近 Pascal 风格，因此 `user_status` 会生成 `L.User_status`。
+- 嵌套 JSON 对象会生成嵌套访问器，因此 `exception -> user -> notFound` 会生成 `L.Exception.User.NotFound(...)`。
+- 这些嵌套路径在内部会使用点号连接的键，因此上面的示例会解析为 `exception.user.notFound`。
+- 枚举也可以绑定到匹配的嵌套成员，因此当 JSON 包含 `userType.teacher` 时，`UserType.Teacher` 会解析为 `L.UserType.Teacher`。
 
 ### 占位符参数
 
@@ -251,14 +257,17 @@ public enum UserType
 ```
 
 - 这会生成 `UserTypeExtensions.ToLString(this UserType value)`。
-- 默认生成的键模式为 `<枚举名>_<成员名>`。
+- 如果本地化文件里存在匹配的嵌套成员，枚举值会直接复用这层结构，因此 `UserType.Teacher` 会通过 `L.UserType.Teacher` 解析。
+- 否则会回退到 `<枚举名>_<成员名>` 这种键模式。
 
 对于上面的枚举，通常对应的本地化键是：
 
 ```json
 {
-  "UserType_Teacher": "Teacher",
-  "UserType_Student": "Student"
+  "userType": {
+    "teacher": "Teacher",
+    "student": "Student"
+  }
 }
 ```
 
@@ -278,27 +287,29 @@ public enum UserType
 }
 ```
 
-- `[LStringKey]` 只会替换生成键中的枚举成员部分，仍然会保留默认的枚举前缀和分隔符。
+- `[LStringKey]` 会替换生成键中的枚举成员部分。相对键值仍会保留枚举前缀，而匹配到的嵌套成员会走生成出来的嵌套 API。
 
 对应的 JSON：
 
 ```json
 {
-  "UserType_teacher": "Teacher",
-  "UserType_student": "Student"
+  "userType": {
+    "teacher": "Teacher",
+    "student": "Student"
+  }
 }
 ```
 
-如果你直接传入完整键名，则会按原样使用，不会重复追加前缀。
+如果你直接传入完整键名，则会按原样使用。
 
 ```csharp
 [LString]
 public enum UserType
 {
-    [LStringKey("UserType_Teacher")]
+    [LStringKey("userType.teacher")]
     Teacher,
 
-    [LStringKey("UserType_Student")]
+    [LStringKey("userType.student")]
     Student
 }
 ```
@@ -334,8 +345,10 @@ public enum OrderStatus
 {
   "hello": "Hello",
   "sayHelloTo": "Hello {name}!",
-  "UserType_Teacher": "Teacher",
-  "UserType_Student": "Student"
+  "userType": {
+    "teacher": "Teacher",
+    "student": "Student"
+  }
 }
 ```
 
@@ -364,12 +377,21 @@ Console.WriteLine(resolver[UserType.Student.ToLString()]);
 
 public sealed class ZhResource : LResource
 {
+    private const string UserTypeTeacherKey = "userType.teacher";
+    private const string UserTypeStudentKey = "userType.student";
+
     public override string Culture => "zh";
 
     protected override string Hello => "你好";
     protected override string SayHelloTo => "你好，{name}！";
-    protected override string UserTypeTeacher => "老师";
-    protected override string UserTypeStudent => "学生";
+
+    public override Dictionary<string, string> GetResource()
+    {
+        var resource = base.GetResource();
+        resource[UserTypeTeacherKey] = "老师";
+        resource[UserTypeStudentKey] = "学生";
+        return resource;
+    }
 }
 ```
 
