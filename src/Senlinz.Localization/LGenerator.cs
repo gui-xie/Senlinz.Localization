@@ -209,21 +209,22 @@ public sealed class LGenerator : IIncrementalGenerator
 
     private static string NormalizeEnumMemberSegment(string value, string enumName, string enumSegment)
     {
+        const int UnderscoreLength = 1;
         var trimmed = value.Trim();
         if (string.IsNullOrWhiteSpace(trimmed))
         {
             return string.Empty;
         }
 
-        var dottedSegments = trimmed.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+        var dottedSegments = trimmed.Split('.', StringSplitOptions.RemoveEmptyEntries);
         var candidate = dottedSegments[dottedSegments.Length - 1];
         if (candidate.StartsWith($"{enumName}_", StringComparison.Ordinal))
         {
-            candidate = candidate.Substring(enumName.Length + 1);
+            candidate = candidate.Substring(enumName.Length + UnderscoreLength);
         }
         else if (candidate.StartsWith($"{enumSegment}_", StringComparison.OrdinalIgnoreCase))
         {
-            candidate = candidate.Substring(enumSegment.Length + 1);
+            candidate = candidate.Substring(enumSegment.Length + UnderscoreLength);
         }
 
         return candidate;
