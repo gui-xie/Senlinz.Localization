@@ -108,7 +108,7 @@ Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 
 - JSON 键会被转换为生成的 C# 成员名。
 - 请保持键名稳定，因为生成的 API 名称依赖这些键。
-- 生成的成员名会尽量保持 JSON 原样，只把首字母变成大写以贴近 Pascal 风格，因此 `exception_user_notFound` 会生成 `L.Exception_user_notFound`。
+- 生成的成员名会尽量保持 JSON 原样，只把首字母变成大写以贴近 Pascal 风格，因此 `user_status` 会生成 `L.User_status`。
 - 嵌套 JSON 对象会生成嵌套访问器，因此 `exception -> user -> notFound` 会生成 `L.Exception.User.NotFound(...)`。
 - 这些嵌套路径在内部会被展平成以下划线连接的资源键，因此上面的示例仍然对应 `Exception_User_NotFound` 这一组生成的资源成员。
 

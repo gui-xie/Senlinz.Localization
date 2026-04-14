@@ -108,7 +108,7 @@ Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 
 - JSON keys are converted into generated C# member names.
 - Keep keys stable because generated API names depend on them.
-- Generated member names follow the JSON shape directly and only capitalize the leading letter to fit Pascal-style naming, so `exception_user_notFound` becomes `L.Exception_user_notFound`.
+- Generated member names follow the JSON shape directly and only capitalize the leading letter to fit Pascal-style naming, so `user_status` becomes `L.User_status`.
 - Nested JSON objects generate nested accessors, so `exception -> user -> notFound` becomes `L.Exception.User.NotFound(...)`.
 - Nested paths are flattened into underscore-joined resource keys internally, so the example above still maps to the generated resource members for `Exception_User_NotFound`.
 
