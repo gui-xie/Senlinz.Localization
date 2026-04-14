@@ -23,7 +23,7 @@ Supports .NET 6 and newer consumer projects.
 
 - Generate `L` accessors from `l.json`.
 - Generate `LResource` base classes for culture-specific resource implementations.
-- Resolve localized text through `LString`, `LStringResolver`, and `LResourceProvider`.
+- Resolve localized text through `LString`, `LStringResolver`, and generated `LResource` types.
 - Convert enum values to localization keys with `[LString]` and `[LStringKey]`.
 - Publish `Senlinz.Localization` and `Senlinz.Localization.Abstractions` as separate NuGet packages with a shared embedded package icon.
 
@@ -93,7 +93,7 @@ Console.WriteLine(L.SayHelloTo("World"));
 using Senlinz.Localization;
 
 var currentCulture = "zh";
-var resolver = new LStringResolver(
+var resolver = LStringResolver.Create(
     () => currentCulture,
     new EnResource(),
     new ZhResource());
@@ -102,8 +102,8 @@ Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 ```
 
-- Pass resources directly to `LStringResolver` for the common case.
-- If you already manage resources elsewhere, you can still pass an existing `LResourceProvider`.
+- Pass resources directly to `LStringResolver.Create(...)` for the common case.
+- If you only want to use the default text from `l.json`, call `LStringResolver.Create(() => currentCulture)`.
 
 ## Localization file rules
 
@@ -170,9 +170,9 @@ If you do not want to use `l.json`, set `SenlinzLocalizationFile` in your projec
 
 ### `LResource`
 
-- `LResource` is a generated abstract base class with one protected virtual member per localization key.
-- Each generated member returns the default value from the localization JSON unless a derived resource overrides it.
-- Implement one derived class per culture and override only the values that differ.
+- `LResource` is a generated abstract base class with one protected abstract member per localization key.
+- `LDefaultResource` is generated alongside it and provides the default values from `l.json`.
+- Implement one derived class per culture and fill in each generated member, which makes IDE override completion straightforward.
 
 Example:
 
@@ -193,6 +193,8 @@ public sealed class ZhResource : LResource
     public override string Culture => "zh";
 
     protected override string Hello => "你好";
+    protected override string SayHelloTo => "你好 {name}！";
+    protected override string StatusReady => "就绪";
 }
 
 public sealed class FrResource : LResource
@@ -200,6 +202,8 @@ public sealed class FrResource : LResource
     public override string Culture => "fr";
 
     protected override string Hello => "Bonjour";
+    protected override string SayHelloTo => "Bonjour {name} !";
+    protected override string StatusReady => "Prêt";
 }
 ```
 
@@ -210,23 +214,22 @@ public sealed class FrResource : LResource
 
 ## Resolve localized values
 
-Use `LStringResolver` to resolve text for the current culture. For most applications, passing resources directly is the simplest setup.
+Use `LStringResolver` to resolve text for the current culture. For most applications, `LStringResolver.Create(...)` is the simplest setup.
 
 ```csharp
 using Senlinz.Localization;
 
 var currentCulture = "zh";
-var resolver = new LStringResolver(() => currentCulture, new EnResource(), new ZhResource());
+var resolver = LStringResolver.Create(() => currentCulture, new EnResource(), new ZhResource());
 
 Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 ```
 
-If you already have a provider instance, you can pass it directly:
+If you want to resolve only the default `l.json` values, use the generated default resource factory:
 
 ```csharp
-var provider = new LResourceProvider(new EnResource(), new ZhResource());
-var resolver = new LStringResolver(() => currentCulture, provider);
+var resolver = LStringResolver.Create(() => currentCulture);
 ```
 
 You can also call the extension method:
@@ -353,7 +356,7 @@ public enum UserType
 using Senlinz.Localization;
 
 var currentCulture = "zh";
-var resolver = new LStringResolver(() => currentCulture, new ZhResource());
+var resolver = LStringResolver.Create(() => currentCulture, new ZhResource());
 
 Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);

@@ -24,6 +24,12 @@ public sealed class ZhResource : LResource
     public override string Culture => "zh";
 
     protected override string Hello => "你好";
+
+    protected override string SayHelloTo => "Hello {name}!";
+
+    protected override string StatusReady => "Ready";
+
+    protected override string QuotedMessage => "Say \"Hello\" to {name}!\nDone";
 }
 
 public sealed class ZhFullResource : LResource
@@ -92,7 +98,7 @@ public class LocalizationTests
     public void Resolves_generated_localization_strings_with_resources()
     {
         var currentCulture = "zh";
-        var resolver = new LStringResolver(() => currentCulture, new ZhFullResource());
+        var resolver = LStringResolver.Create(() => currentCulture, new ZhFullResource());
 
         Assert.Equal("你好", resolver[L.Hello]);
         Assert.Equal("你好，世界！", resolver[L.SayHelloTo("世界")]);
@@ -102,7 +108,7 @@ public class LocalizationTests
     [Fact]
     public void Falls_back_to_default_values_when_resource_is_missing()
     {
-        var resolver = new LStringResolver(() => "en", new ZhFullResource());
+        var resolver = LStringResolver.Create(() => "en", new ZhFullResource());
 
         Assert.Equal("Hello", resolver[L.Hello]);
         Assert.Equal("Hello World!", resolver[L.SayHelloTo("World")]);
@@ -119,7 +125,7 @@ public class LocalizationTests
     [Fact]
     public void Maps_enum_values_to_matching_nested_localization_members()
     {
-        var resolver = new LStringResolver(() => "zh", new ZhFullResource());
+        var resolver = LStringResolver.Create(() => "zh", new ZhFullResource());
 
         Assert.Equal("userType.teacher", UserType.Teacher.ToLString().Key);
         Assert.Equal("Teacher", UserType.Teacher.ToLString().DefaultValue);
@@ -130,8 +136,8 @@ public class LocalizationTests
     [Fact]
     public void Does_not_share_cached_resources_between_resolver_instances()
     {
-        var firstResolver = new LStringResolver(() => "zh", new ZhFullResource());
-        var secondResolver = new LStringResolver(() => "zh", new ZhAlternativeResource());
+        var firstResolver = LStringResolver.Create(() => "zh", new ZhFullResource());
+        var secondResolver = LStringResolver.Create(() => "zh", new ZhAlternativeResource());
 
         Assert.Equal("你好", firstResolver[L.Hello]);
         Assert.Equal("您好", secondResolver[L.Hello]);
@@ -142,7 +148,7 @@ public class LocalizationTests
     [Fact]
     public void Uses_generated_default_values_for_members_not_overridden_in_derived_resource()
     {
-        var resolver = new LStringResolver(() => "zh", new ZhResource());
+        var resolver = LStringResolver.Create(() => "zh", new ZhResource());
 
         Assert.Equal("你好", resolver[L.Hello]);
         Assert.Equal("Hello World!", resolver[L.SayHelloTo("World")]);
@@ -152,7 +158,7 @@ public class LocalizationTests
     [Fact]
     public void Resolves_escaped_json_content_from_generated_localizations()
     {
-        var resolver = new LStringResolver(() => "en", new ZhFullResource());
+        var resolver = LStringResolver.Create(() => "en", new ZhFullResource());
 
         Assert.Equal("Say \"Hello\" to Alice!\nDone", resolver[L.QuotedMessage("Alice")]);
     }
@@ -166,7 +172,7 @@ public class LocalizationTests
     [Fact]
     public void Generates_nested_api_for_nested_json_objects()
     {
-        var resolver = new LStringResolver(() => "zh", new ZhFullResource());
+        var resolver = LStringResolver.Create(() => "zh", new ZhFullResource());
 
         Assert.Equal("未找到用户 42。", resolver[L.Exception.User.NotFound("42")]);
     }
@@ -174,19 +180,27 @@ public class LocalizationTests
     [Fact]
     public void Falls_back_to_default_values_for_nested_json_objects()
     {
-        var resolver = new LStringResolver(() => "en", new ZhFullResource());
+        var resolver = LStringResolver.Create(() => "en", new ZhFullResource());
 
         Assert.Equal("User '42' does not exist.", resolver[L.Exception.User.NotFound("42")]);
     }
 
     [Fact]
-    public void Accepts_resource_provider_directly()
+    public void Creates_resolver_from_resource_array()
     {
-        var provider = new LResourceProvider(new ZhFullResource());
-
-        var resolver = new LStringResolver(() => "zh", provider);
+        var resolver = LStringResolver.Create(() => "zh", new ZhFullResource());
 
         Assert.Equal("你好", resolver[L.Hello]);
         Assert.Equal("你好，世界！", resolver[L.SayHelloTo("世界")]);
+    }
+
+    [Fact]
+    public void Creates_default_resolver_from_generated_resource()
+    {
+        var resolver = LStringResolver.Create(() => "en");
+
+        Assert.Equal("Hello", resolver[L.Hello]);
+        Assert.Equal("Hello Alice!", resolver[L.SayHelloTo("Alice")]);
+        Assert.Equal("User '42' does not exist.", resolver[L.Exception.User.NotFound("42")]);
     }
 }

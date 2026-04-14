@@ -23,7 +23,7 @@
 
 - 从 `l.json` 生成 `L` 访问器。
 - 生成 `LResource` 基类，方便实现不同语言资源。
-- 通过 `LString`、`LStringResolver` 和 `LResourceProvider` 解析本地化文本。
+- 通过 `LString`、`LStringResolver` 和生成的 `LResource` 类型解析本地化文本。
 - 通过 `[LString]` 与 `[LStringKey]` 将枚举值转换为本地化键。
 - `Senlinz.Localization` 与 `Senlinz.Localization.Abstractions` 可分别作为带共享嵌入图标的 NuGet 包发布。
 
@@ -93,7 +93,7 @@ Console.WriteLine(L.SayHelloTo("World"));
 using Senlinz.Localization;
 
 var currentCulture = "zh";
-var resolver = new LStringResolver(
+var resolver = LStringResolver.Create(
     () => currentCulture,
     new EnResource(),
     new ZhResource());
@@ -102,8 +102,8 @@ Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 ```
 
-- 常见场景下，直接把资源实例传给 `LStringResolver` 即可。
-- 如果你已经维护了 `LResourceProvider`，也仍然可以直接传入该实例。
+- 常见场景下，直接把资源实例传给 `LStringResolver.Create(...)` 即可。
+- 如果你只想直接使用 `l.json` 里的默认文本，可以调用 `LStringResolver.Create(() => currentCulture)`。
 
 ## 本地化文件规则
 
@@ -170,9 +170,9 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 
 ### `LResource`
 
-- `LResource` 是自动生成的抽象基类，每个本地化键都会对应一个受保护的虚成员。
-- 每个生成成员默认返回本地化 JSON 中的默认值，派生类可以按需重写。
-- 通常为每种语言实现一个派生类，只重写有差异的值即可。
+- `LResource` 是自动生成的抽象基类，每个本地化键都会对应一个受保护的抽象成员。
+- 同时还会生成 `LDefaultResource`，用于提供 `l.json` 中的默认值。
+- 通常为每种语言实现一个派生类并补全所有生成成员，这样 IDE 也更容易直接生成重写代码。
 
 示例：
 
@@ -193,6 +193,8 @@ public sealed class ZhResource : LResource
     public override string Culture => "zh";
 
     protected override string Hello => "你好";
+    protected override string SayHelloTo => "你好 {name}！";
+    protected override string StatusReady => "就绪";
 }
 
 public sealed class FrResource : LResource
@@ -200,6 +202,8 @@ public sealed class FrResource : LResource
     public override string Culture => "fr";
 
     protected override string Hello => "Bonjour";
+    protected override string SayHelloTo => "Bonjour {name} !";
+    protected override string StatusReady => "Prêt";
 }
 ```
 
@@ -210,23 +214,22 @@ public sealed class FrResource : LResource
 
 ## 解析本地化值
 
-通过 `LStringResolver` 按当前语言解析文本。对于大多数场景，直接传入资源实例是最简单的方式。
+通过 `LStringResolver` 按当前语言解析文本。对于大多数场景，`LStringResolver.Create(...)` 是最简单的方式。
 
 ```csharp
 using Senlinz.Localization;
 
 var currentCulture = "zh";
-var resolver = new LStringResolver(() => currentCulture, new EnResource(), new ZhResource());
+var resolver = LStringResolver.Create(() => currentCulture, new EnResource(), new ZhResource());
 
 Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 ```
 
-如果你已经有 `LResourceProvider` 实例，也可以直接传入：
+如果你只想解析 `l.json` 默认值，可以直接使用生成的默认资源工厂：
 
 ```csharp
-var provider = new LResourceProvider(new EnResource(), new ZhResource());
-var resolver = new LStringResolver(() => currentCulture, provider);
+var resolver = LStringResolver.Create(() => currentCulture);
 ```
 
 也可以使用扩展方法：
@@ -353,7 +356,7 @@ public enum UserType
 using Senlinz.Localization;
 
 var currentCulture = "zh";
-var resolver = new LStringResolver(() => currentCulture, new ZhResource());
+var resolver = LStringResolver.Create(() => currentCulture, new ZhResource());
 
 Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
