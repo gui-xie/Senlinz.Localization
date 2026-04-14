@@ -84,7 +84,7 @@ public sealed class LStringResolver<T>(GetCulture getCulture, GetCultureResource
     /// <summary>
     /// Creates a resolver for a specific marker type that uses the provided resources directly.
     /// </summary>
-    public static LStringResolver<T> Create(GetCulture getCulture, params ILResource[] resources) =>
+    public static new LStringResolver<T> Create(GetCulture getCulture, params ILResource[] resources) =>
         new(getCulture, CreateCultureResource(resources));
 
     /// <summary>
