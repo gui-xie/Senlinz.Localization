@@ -17,12 +17,12 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageDescription>Shared localization contracts and runtime helpers for Senlinz.Localization.</PackageDescription>
     <PackageTags>Localization JSON SourceGenerator NuGet</PackageTags>
-    <VersionPrefix>1.1.0</VersionPrefix>
-    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <VersionPrefix>1.1.1</VersionPrefix>
+    <AssemblyVersion>1.1.1.0</AssemblyVersion>
     <Authors>gui-xie</Authors>
     <Title>Senlinz.Localization.Abstractions</Title>
     <Description>Shared localization contracts and runtime helpers for Senlinz.Localization.</Description>
-    <PackageReleaseNotes>Adds simpler LStringResolver resource constructors, refreshed docs, and GitHub Pages documentation publishing.</PackageReleaseNotes>
+    <PackageReleaseNotes>Refreshes release documentation and prepares package metadata for the next NuGet publish.</PackageReleaseNotes>
     <Copyright>Copyright (c) gui-xie 2026</Copyright>
     <RepositoryUrl>https://github.com/gui-xie/Senlinz.Localization</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
