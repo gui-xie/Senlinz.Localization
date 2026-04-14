@@ -7,7 +7,7 @@
 支持 .NET 6 及以上的消费项目。
 
 - 文档站点：<https://gui-xie.github.io/Senlinz.Localization/>
-- 当前包版本：`1.1.1`
+- 当前包版本：`2.0.0`
 
 ## 快速导航
 
