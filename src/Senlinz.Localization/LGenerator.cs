@@ -216,7 +216,7 @@ public sealed class LGenerator : IIncrementalGenerator
             return string.Empty;
         }
 
-        var dottedSegments = trimmed.Split('.', StringSplitOptions.RemoveEmptyEntries);
+        var dottedSegments = trimmed.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
         var candidate = dottedSegments[dottedSegments.Length - 1];
         if (candidate.StartsWith($"{enumName}_", StringComparison.Ordinal))
         {
