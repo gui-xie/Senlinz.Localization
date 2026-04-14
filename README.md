@@ -108,6 +108,7 @@ Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 
 - JSON keys are converted into generated C# member names.
 - Keep keys stable because generated API names depend on them.
+- Keys that already contain underscores also get compatibility aliases that preserve those underscores, so `Exception_User_NotFound` can be accessed through both `L.ExceptionUserNotFound(...)` and `L.Exception_User_NotFound(...)`.
 
 ### Placeholder parameters
 

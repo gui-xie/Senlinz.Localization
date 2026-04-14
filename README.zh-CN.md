@@ -108,6 +108,7 @@ Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 
 - JSON 键会被转换为生成的 C# 成员名。
 - 请保持键名稳定，因为生成的 API 名称依赖这些键。
+- 已经包含下划线的键还会生成保留下划线的兼容别名，因此 `Exception_User_NotFound` 既可以通过 `L.ExceptionUserNotFound(...)` 访问，也可以通过 `L.Exception_User_NotFound(...)` 访问。
 
 ### 占位符参数
 

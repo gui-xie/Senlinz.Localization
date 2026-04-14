@@ -554,7 +554,7 @@ public sealed class LGenerator : IIncrementalGenerator
                 continue;
             }
 
-            if (builder.Length == 0 || builder[^1] == '_')
+            if (builder.Length == 0 || builder[builder.Length - 1] == '_')
             {
                 continue;
             }
