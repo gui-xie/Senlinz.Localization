@@ -114,9 +114,6 @@ Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 - 嵌套 JSON 对象会生成嵌套访问器，因此 `exception -> user -> notFound` 会生成 `L.Exception.User.NotFound(...)`。
 - 这些嵌套路径在内部会使用点号连接的键，因此上面的示例会解析为 `exception.user.notFound`。
 - 枚举也可以绑定到匹配的嵌套成员，因此当 JSON 包含 `userType.teacher` 时，`UserType.Teacher` 会解析为 `L.UserType.Teacher`。
-- 生成的成员名会尽量保持 JSON 原样，只把首字母变成大写以贴近 Pascal 风格，因此 `user_status` 会生成 `L.User_status`。
-- 嵌套 JSON 对象会生成嵌套访问器，因此 `exception -> user -> notFound` 会生成 `L.Exception.User.NotFound(...)`。
-- 这些嵌套路径在内部会使用点号连接的键，因此上面的示例会解析为 `exception.user.notFound`。
 
 ### 占位符参数
 
