@@ -12,22 +12,6 @@ public class LStringResolver(GetCulture getCulture, GetCultureResource getCultur
     private static readonly IReadOnlyDictionary<string, string> EmptyDictionary = new Dictionary<string, string>();
     private readonly ConcurrentDictionary<string, Lazy<IReadOnlyDictionary<string, string>>> _dictionaries = new();
 
-    /// <summary>
-    /// Resolves <see cref="LString"/> values by using a resource provider.
-    /// </summary>
-    public LStringResolver(GetCulture getCulture, LResourceProvider resourceProvider)
-        : this(getCulture, resourceProvider.GetResource)
-    {
-    }
-
-    /// <summary>
-    /// Resolves <see cref="LString"/> values by using the provided resources directly.
-    /// </summary>
-    public LStringResolver(GetCulture getCulture, params ILResource[] resources)
-        : this(getCulture, new LResourceProvider(resources))
-    {
-    }
-
     private string ResolveCore(string key)
     {
         var culture = getCulture();
@@ -47,6 +31,12 @@ public class LStringResolver(GetCulture getCulture, GetCultureResource getCultur
     /// Resolves a localizable string.
     /// </summary>
     public string this[LString lString] => lString.Resolve(ResolveCore);
+
+    /// <summary>
+    /// Creates a resolver that uses the provided resources directly.
+    /// </summary>
+    public static LStringResolver Create(GetCulture getCulture, params ILResource[] resources) =>
+        new(getCulture, CreateCultureResource(resources));
 
     /// <summary>
     /// Creates a resolver that uses the generated default resource discovered from loaded assemblies.
@@ -73,6 +63,16 @@ public class LStringResolver(GetCulture getCulture, GetCultureResource getCultur
         var resource = DefaultResourceFactory.Create(assembly);
         return new LStringResolver(getCulture, _ => resource.GetResource());
     }
+
+    internal static GetCultureResource CreateCultureResource(params ILResource[] resources)
+    {
+        var resourceMap = resources.ToDictionary(resource => resource.Culture);
+        return culture =>
+        {
+            resourceMap.TryGetValue(culture, out var resource);
+            return resource?.GetResource() ?? new Dictionary<string, string>();
+        };
+    }
 }
 
 /// <summary>
@@ -82,20 +82,10 @@ public sealed class LStringResolver<T>(GetCulture getCulture, GetCultureResource
     : LStringResolver(getCulture, getCultureResource), ILStringResolver<T>
 {
     /// <summary>
-    /// Resolves <see cref="LString"/> values for a specific marker type by using a resource provider.
+    /// Creates a resolver for a specific marker type that uses the provided resources directly.
     /// </summary>
-    public LStringResolver(GetCulture getCulture, LResourceProvider resourceProvider)
-        : this(getCulture, resourceProvider.GetResource)
-    {
-    }
-
-    /// <summary>
-    /// Resolves <see cref="LString"/> values for a specific marker type by using the provided resources directly.
-    /// </summary>
-    public LStringResolver(GetCulture getCulture, params ILResource[] resources)
-        : this(getCulture, new LResourceProvider(resources))
-    {
-    }
+    public static LStringResolver<T> Create(GetCulture getCulture, params ILResource[] resources) =>
+        new(getCulture, CreateCultureResource(resources));
 
     /// <summary>
     /// Creates a resolver that uses the generated default resource from the marker type assembly.

@@ -23,7 +23,7 @@ Supports .NET 6 and newer consumer projects.
 
 - Generate `L` accessors from `l.json`.
 - Generate `LResource` base classes for culture-specific resource implementations.
-- Resolve localized text through `LString`, `LStringResolver`, and `LResourceProvider`.
+- Resolve localized text through `LString`, `LStringResolver`, and generated `LResource` types.
 - Convert enum values to localization keys with `[LString]` and `[LStringKey]`.
 - Publish `Senlinz.Localization` and `Senlinz.Localization.Abstractions` as separate NuGet packages with a shared embedded package icon.
 
@@ -93,7 +93,7 @@ Console.WriteLine(L.SayHelloTo("World"));
 using Senlinz.Localization;
 
 var currentCulture = "zh";
-var resolver = new LStringResolver(
+var resolver = LStringResolver.Create(
     () => currentCulture,
     new EnResource(),
     new ZhResource());
@@ -102,9 +102,8 @@ Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 ```
 
-- Pass resources directly to `LStringResolver` for the common case.
+- Pass resources directly to `LStringResolver.Create(...)` for the common case.
 - If you only want to use the default text from `l.json`, call `LStringResolver.CreateDefault(() => currentCulture)`.
-- If you already manage resources elsewhere, you can still pass an existing `LResourceProvider`.
 
 ## Localization file rules
 
@@ -215,23 +214,16 @@ public sealed class FrResource : LResource
 
 ## Resolve localized values
 
-Use `LStringResolver` to resolve text for the current culture. For most applications, passing resources directly is the simplest setup.
+Use `LStringResolver` to resolve text for the current culture. For most applications, `LStringResolver.Create(...)` is the simplest setup.
 
 ```csharp
 using Senlinz.Localization;
 
 var currentCulture = "zh";
-var resolver = new LStringResolver(() => currentCulture, new EnResource(), new ZhResource());
+var resolver = LStringResolver.Create(() => currentCulture, new EnResource(), new ZhResource());
 
 Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
-```
-
-If you already have a provider instance, you can pass it directly:
-
-```csharp
-var provider = new LResourceProvider(new EnResource(), new ZhResource());
-var resolver = new LStringResolver(() => currentCulture, provider);
 ```
 
 If you want to resolve only the default `l.json` values, use the generated default resource factory:
@@ -364,7 +356,7 @@ public enum UserType
 using Senlinz.Localization;
 
 var currentCulture = "zh";
-var resolver = new LStringResolver(() => currentCulture, new ZhResource());
+var resolver = LStringResolver.Create(() => currentCulture, new ZhResource());
 
 Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);

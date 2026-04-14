@@ -23,7 +23,7 @@
 
 - 从 `l.json` 生成 `L` 访问器。
 - 生成 `LResource` 基类，方便实现不同语言资源。
-- 通过 `LString`、`LStringResolver` 和 `LResourceProvider` 解析本地化文本。
+- 通过 `LString`、`LStringResolver` 和生成的 `LResource` 类型解析本地化文本。
 - 通过 `[LString]` 与 `[LStringKey]` 将枚举值转换为本地化键。
 - `Senlinz.Localization` 与 `Senlinz.Localization.Abstractions` 可分别作为带共享嵌入图标的 NuGet 包发布。
 
@@ -93,7 +93,7 @@ Console.WriteLine(L.SayHelloTo("World"));
 using Senlinz.Localization;
 
 var currentCulture = "zh";
-var resolver = new LStringResolver(
+var resolver = LStringResolver.Create(
     () => currentCulture,
     new EnResource(),
     new ZhResource());
@@ -102,9 +102,8 @@ Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 ```
 
-- 常见场景下，直接把资源实例传给 `LStringResolver` 即可。
+- 常见场景下，直接把资源实例传给 `LStringResolver.Create(...)` 即可。
 - 如果你只想直接使用 `l.json` 里的默认文本，可以调用 `LStringResolver.CreateDefault(() => currentCulture)`。
-- 如果你已经维护了 `LResourceProvider`，也仍然可以直接传入该实例。
 
 ## 本地化文件规则
 
@@ -215,23 +214,16 @@ public sealed class FrResource : LResource
 
 ## 解析本地化值
 
-通过 `LStringResolver` 按当前语言解析文本。对于大多数场景，直接传入资源实例是最简单的方式。
+通过 `LStringResolver` 按当前语言解析文本。对于大多数场景，`LStringResolver.Create(...)` 是最简单的方式。
 
 ```csharp
 using Senlinz.Localization;
 
 var currentCulture = "zh";
-var resolver = new LStringResolver(() => currentCulture, new EnResource(), new ZhResource());
+var resolver = LStringResolver.Create(() => currentCulture, new EnResource(), new ZhResource());
 
 Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
-```
-
-如果你已经有 `LResourceProvider` 实例，也可以直接传入：
-
-```csharp
-var provider = new LResourceProvider(new EnResource(), new ZhResource());
-var resolver = new LStringResolver(() => currentCulture, provider);
 ```
 
 如果你只想解析 `l.json` 默认值，可以直接使用生成的默认资源工厂：
@@ -364,7 +356,7 @@ public enum UserType
 using Senlinz.Localization;
 
 var currentCulture = "zh";
-var resolver = new LStringResolver(() => currentCulture, new ZhResource());
+var resolver = LStringResolver.Create(() => currentCulture, new ZhResource());
 
 Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
