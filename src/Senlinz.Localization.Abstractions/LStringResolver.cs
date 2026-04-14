@@ -66,16 +66,21 @@ public class LStringResolver(GetCulture getCulture, GetCultureResource getCultur
 
     internal static GetCultureResource CreateCultureResource(params ILResource[] resources)
     {
-        ArgumentNullException.ThrowIfNull(resources);
+        if (resources is null)
+        {
+            throw new ArgumentNullException(nameof(resources));
+        }
 
         var resourceMap = new Dictionary<string, ILResource>(resources.Length);
         for (var index = 0; index < resources.Length; index++)
         {
             var resource = resources[index] ?? throw new ArgumentNullException(nameof(resources), $"Resource at index {index} is null.");
-            if (!resourceMap.TryAdd(resource.Culture, resource))
+            if (resourceMap.ContainsKey(resource.Culture))
             {
                 throw new ArgumentException($"Duplicate resource culture '{resource.Culture}' was provided.", nameof(resources));
             }
+
+            resourceMap.Add(resource.Culture, resource);
         }
 
         return culture =>
