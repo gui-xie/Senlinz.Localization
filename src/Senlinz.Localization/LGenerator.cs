@@ -195,6 +195,15 @@ public sealed class LGenerator : IIncrementalGenerator
             source.AppendLine();
             AppendSummary(source, "        ", info.DefaultValue);
             source.AppendLine($"        protected virtual string {info.KeyProperty} => {ToLiteral(info.DefaultValue)};");
+
+            if (info.CompatibilityKeyProperty is null)
+            {
+                continue;
+            }
+
+            source.AppendLine();
+            AppendSummary(source, "        ", info.DefaultValue);
+            source.AppendLine($"        protected virtual string {info.CompatibilityKeyProperty} => {info.KeyProperty};");
         }
 
         source.AppendLine();
@@ -203,7 +212,7 @@ public sealed class LGenerator : IIncrementalGenerator
         source.AppendLine("        {");
         foreach (var info in infos)
         {
-            source.AppendLine($"            {{ {ToLiteral(info.Key)}, {info.KeyProperty} }},");
+            source.AppendLine($"            {{ {ToLiteral(info.Key)}, {info.ResourceKeyProperty} }},");
         }
 
         source.AppendLine("        };");
@@ -237,6 +246,14 @@ public sealed class LGenerator : IIncrementalGenerator
             if (info.Parameters.Count == 0)
             {
                 source.AppendLine($"        public static LString {info.KeyProperty} = new({ToLiteral(info.Key)}, {ToLiteral(info.DefaultValue)});");
+
+                if (info.CompatibilityKeyProperty is not null)
+                {
+                    source.AppendLine();
+                    AppendSummary(source, "        ", info.DefaultValue);
+                    source.AppendLine($"        public static LString {info.CompatibilityKeyProperty} => {info.KeyProperty};");
+                }
+
                 continue;
             }
 
@@ -256,6 +273,17 @@ public sealed class LGenerator : IIncrementalGenerator
 
             source.AppendLine("                });");
             source.AppendLine("        }");
+
+            if (info.CompatibilityKeyProperty is null)
+            {
+                continue;
+            }
+
+            source.AppendLine();
+            AppendSummary(source, "        ", info.DefaultValue);
+            source.Append($"        public static LString {info.CompatibilityKeyProperty}(");
+            source.Append(string.Join(", ", info.Parameters.Select(parameter => $"string {parameter.ParameterName}")));
+            source.AppendLine($") => {info.KeyProperty}({string.Join(", ", info.Parameters.Select(parameter => parameter.ParameterName))});");
         }
 
         source.AppendLine("    }");
@@ -417,7 +445,14 @@ public sealed class LGenerator : IIncrementalGenerator
                 parameters.Add(new LStringParameter(match.Value, EnsureUniqueParameterName(parameters, ToCamelCase(JsonKeyToIdentifier(match.Value)))));
             }
 
-            result.Add(new LStringInfo(pair.Key, value, JsonKeyToIdentifier(pair.Key), parameters));
+            var keyProperty = JsonKeyToIdentifier(pair.Key);
+            var compatibilityKeyProperty = JsonKeyToCompatibilityIdentifier(pair.Key);
+            result.Add(new LStringInfo(
+                pair.Key,
+                value,
+                keyProperty,
+                compatibilityKeyProperty != keyProperty ? compatibilityKeyProperty : null,
+                parameters));
         }
 
         return result;
@@ -498,6 +533,44 @@ public sealed class LGenerator : IIncrementalGenerator
         return builder.Length == 0 ? "_" : builder.ToString();
     }
 
+    private static string JsonKeyToCompatibilityIdentifier(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return "_";
+        }
+
+        var builder = new StringBuilder();
+        foreach (var character in value)
+        {
+            if (char.IsLetterOrDigit(character) || character == '_')
+            {
+                if (builder.Length == 0 && char.IsDigit(character))
+                {
+                    builder.Append('_');
+                }
+
+                builder.Append(character);
+                continue;
+            }
+
+            if (builder.Length == 0 || builder[^1] == '_')
+            {
+                continue;
+            }
+
+            builder.Append('_');
+        }
+
+        if (builder.Length == 0)
+        {
+            return "_";
+        }
+
+        var identifier = builder.ToString();
+        return SyntaxFacts.IsValidIdentifier(identifier) ? identifier : $"_{identifier}";
+    }
+
     private static string ToCamelCase(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -528,11 +601,17 @@ public sealed class LGenerator : IIncrementalGenerator
 
     private sealed class LStringInfo
     {
-        public LStringInfo(string key, string defaultValue, string keyProperty, IReadOnlyList<LStringParameter> parameters)
+        public LStringInfo(
+            string key,
+            string defaultValue,
+            string keyProperty,
+            string? compatibilityKeyProperty,
+            IReadOnlyList<LStringParameter> parameters)
         {
             Key = key;
             DefaultValue = defaultValue;
             KeyProperty = keyProperty;
+            CompatibilityKeyProperty = compatibilityKeyProperty;
             Parameters = parameters;
         }
 
@@ -541,6 +620,10 @@ public sealed class LGenerator : IIncrementalGenerator
         public string DefaultValue { get; }
 
         public string KeyProperty { get; }
+
+        public string? CompatibilityKeyProperty { get; }
+
+        public string ResourceKeyProperty => CompatibilityKeyProperty ?? KeyProperty;
 
         public IReadOnlyList<LStringParameter> Parameters { get; }
     }
