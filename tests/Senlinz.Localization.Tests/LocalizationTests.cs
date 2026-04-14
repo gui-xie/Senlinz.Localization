@@ -33,9 +33,9 @@ public sealed class ZhFullResource : LResource
 
     protected override string Exception_User_NotFound => "未找到用户 {userId}。";
 
-    protected override string SampleTextHello => "你好";
+    protected override string SampleText_Hello => "你好";
 
-    protected override string SampleTextReady => "就绪";
+    protected override string SampleText_Ready => "就绪";
 }
 
 public sealed class ZhAlternativeResource : LResource
@@ -52,9 +52,9 @@ public sealed class ZhAlternativeResource : LResource
 
     protected override string Exception_User_NotFound => "找不到 ID 为 {userId} 的用户。";
 
-    protected override string SampleTextHello => "您好";
+    protected override string SampleText_Hello => "您好";
 
-    protected override string SampleTextReady => "已就绪";
+    protected override string SampleText_Ready => "已就绪";
 }
 
 public class LocalizationTests
