@@ -212,7 +212,7 @@ public sealed class LGenerator : IIncrementalGenerator
         source.AppendLine("        {");
         foreach (var info in infos)
         {
-            source.AppendLine($"            {{ {ToLiteral(info.Key)}, {info.ResourceKeyProperty} }},");
+            source.AppendLine($"            {{ {ToLiteral(info.Key)}, {info.ResourceLookupProperty} }},");
         }
 
         source.AppendLine("        };");
@@ -446,7 +446,7 @@ public sealed class LGenerator : IIncrementalGenerator
             }
 
             var keyProperty = JsonKeyToIdentifier(pair.Key);
-            var compatibilityKeyProperty = JsonKeyToCompatibilityIdentifier(pair.Key);
+            var compatibilityKeyProperty = JsonKeyToUnderscorePreservingIdentifier(pair.Key);
             result.Add(new LStringInfo(
                 pair.Key,
                 value,
@@ -533,7 +533,7 @@ public sealed class LGenerator : IIncrementalGenerator
         return builder.Length == 0 ? "_" : builder.ToString();
     }
 
-    private static string JsonKeyToCompatibilityIdentifier(string value)
+    private static string JsonKeyToUnderscorePreservingIdentifier(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
         {
@@ -623,7 +623,7 @@ public sealed class LGenerator : IIncrementalGenerator
 
         public string? CompatibilityKeyProperty { get; }
 
-        public string ResourceKeyProperty => CompatibilityKeyProperty ?? KeyProperty;
+        public string ResourceLookupProperty => CompatibilityKeyProperty ?? KeyProperty;
 
         public IReadOnlyList<LStringParameter> Parameters { get; }
     }
