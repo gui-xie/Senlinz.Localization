@@ -216,7 +216,7 @@ public sealed class LGenerator : IIncrementalGenerator
         }
 
         var dottedSegments = trimmed.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
-        var candidate = dottedSegments.Length > 0 ? dottedSegments[dottedSegments.Length - 1] : trimmed;
+        var candidate = dottedSegments[dottedSegments.Length - 1];
         if (candidate.StartsWith($"{enumName}_", StringComparison.Ordinal))
         {
             candidate = candidate.Substring(enumName.Length + 1);

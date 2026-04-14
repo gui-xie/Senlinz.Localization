@@ -5,7 +5,7 @@ namespace Senlinz.Localization.Tests;
 [LString]
 public enum SampleText
 {
-    [LStringKey("legacy.hello")]
+    [LStringKey("hello")]
     Hello,
 
     Ready
