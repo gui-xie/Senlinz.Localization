@@ -197,7 +197,7 @@ public class LocalizationTests
     [Fact]
     public void Creates_default_resolver_from_generated_resource()
     {
-        var resolver = LStringResolver.CreateDefault(() => "en");
+        var resolver = LStringResolver.Create(() => "en");
 
         Assert.Equal("Hello", resolver[L.Hello]);
         Assert.Equal("Hello Alice!", resolver[L.SayHelloTo("Alice")]);

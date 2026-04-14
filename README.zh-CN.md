@@ -102,7 +102,7 @@ Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 ```
 
 - 常见场景下，直接把资源实例传给 `LStringResolver.Create(...)` 即可。
-- 如果你只想直接使用 `l.json` 里的默认文本，可以调用 `LStringResolver.CreateDefault(() => currentCulture)`。
+- 如果你只想直接使用 `l.json` 里的默认文本，可以调用 `LStringResolver.Create(() => currentCulture)`。
 
 ## 本地化文件规则
 
@@ -228,7 +228,7 @@ Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 如果你只想解析 `l.json` 默认值，可以直接使用生成的默认资源工厂：
 
 ```csharp
-var resolver = LStringResolver.CreateDefault(() => currentCulture);
+var resolver = LStringResolver.Create(() => currentCulture);
 ```
 
 也可以使用扩展方法：

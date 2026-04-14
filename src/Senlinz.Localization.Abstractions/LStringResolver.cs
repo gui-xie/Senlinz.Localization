@@ -42,13 +42,13 @@ public class LStringResolver(GetCulture getCulture, GetCultureResource getCultur
     /// Creates a resolver that uses the generated default resource discovered from loaded assemblies.
     /// </summary>
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static LStringResolver CreateDefault(GetCulture getCulture) =>
-        CreateDefault(getCulture, DefaultResourceFactory.GetDefaultAssembly());
+    public static LStringResolver Create(GetCulture getCulture) =>
+        Create(getCulture, DefaultResourceFactory.GetDefaultAssembly());
 
     /// <summary>
     /// Creates a resolver that uses the generated default resource from the provided assembly.
     /// </summary>
-    public static LStringResolver CreateDefault(GetCulture getCulture, Assembly assembly)
+    public static LStringResolver Create(GetCulture getCulture, Assembly assembly)
     {
         if (getCulture is null)
         {
@@ -106,7 +106,7 @@ public sealed class LStringResolver<T>(GetCulture getCulture, GetCultureResource
     /// <summary>
     /// Creates a resolver that uses the generated default resource from the marker type assembly.
     /// </summary>
-    public static new LStringResolver<T> CreateDefault(GetCulture getCulture)
+    public static new LStringResolver<T> Create(GetCulture getCulture)
     {
         if (getCulture is null)
         {
@@ -132,7 +132,7 @@ internal static class DefaultResourceFactory
         {
             1 => candidates[0],
             0 => throw new InvalidOperationException("No generated LDefaultResource was found in the current application domain."),
-            _ => throw new InvalidOperationException("Multiple generated LDefaultResource types were found. Use LStringResolver<T>.CreateDefault with a marker type from the desired localization namespace."),
+            _ => throw new InvalidOperationException("Multiple generated LDefaultResource types were found. Use LStringResolver<T>.Create with a marker type from the desired localization namespace."),
         };
     }
 
@@ -144,7 +144,7 @@ internal static class DefaultResourceFactory
         {
             1 => CreateInstance(candidates[0]),
             0 => throw new InvalidOperationException($"No generated LDefaultResource was found in assembly '{assembly.FullName}'."),
-            _ => throw new InvalidOperationException($"Multiple generated LDefaultResource types were found in assembly '{assembly.FullName}'. Use LStringResolver<T>.CreateDefault with a marker type from the desired localization namespace."),
+            _ => throw new InvalidOperationException($"Multiple generated LDefaultResource types were found in assembly '{assembly.FullName}'. Use LStringResolver<T>.Create with a marker type from the desired localization namespace."),
         };
     }
 

@@ -103,7 +103,7 @@ Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 ```
 
 - Pass resources directly to `LStringResolver.Create(...)` for the common case.
-- If you only want to use the default text from `l.json`, call `LStringResolver.CreateDefault(() => currentCulture)`.
+- If you only want to use the default text from `l.json`, call `LStringResolver.Create(() => currentCulture)`.
 
 ## Localization file rules
 
@@ -229,7 +229,7 @@ Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 If you want to resolve only the default `l.json` values, use the generated default resource factory:
 
 ```csharp
-var resolver = LStringResolver.CreateDefault(() => currentCulture);
+var resolver = LStringResolver.Create(() => currentCulture);
 ```
 
 You can also call the extension method:
