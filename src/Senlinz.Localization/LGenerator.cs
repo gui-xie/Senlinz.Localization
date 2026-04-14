@@ -272,7 +272,7 @@ public sealed class LGenerator : IIncrementalGenerator
         {
             source.AppendLine();
             AppendSummary(source, "        ", info.DefaultValue);
-            source.AppendLine($"        protected virtual string {info.KeyProperty} => {ToLiteral(info.DefaultValue)};");
+            source.AppendLine($"        protected abstract string {info.KeyProperty} {{ get; }}");
         }
 
         source.AppendLine();
@@ -282,6 +282,34 @@ public sealed class LGenerator : IIncrementalGenerator
         foreach (var info in infos.Where(static item => item.PathSegments.Count == 1))
         {
             source.AppendLine($"            {{ {ToLiteral(info.Key)}, {info.KeyProperty} }},");
+        }
+
+        source.AppendLine("        };");
+        source.AppendLine("    }");
+        source.AppendLine();
+        source.AppendLine("    /// <summary>");
+        source.AppendLine("    /// Default generated resource backed by l.json values.");
+        source.AppendLine("    /// </summary>");
+        source.AppendLine("    public sealed class LDefaultResource : LResource");
+        source.AppendLine("    {");
+        AppendSummary(source, "        ", "Gets the default culture marker.");
+        source.AppendLine("        public override string Culture => string.Empty;");
+
+        foreach (var info in infos.Where(static item => item.PathSegments.Count == 1))
+        {
+            source.AppendLine();
+            AppendSummary(source, "        ", info.DefaultValue);
+            source.AppendLine($"        protected override string {info.KeyProperty} => {ToLiteral(info.DefaultValue)};");
+        }
+
+        source.AppendLine();
+        AppendSummary(source, "        ", "Gets the default resource dictionary.");
+        source.AppendLine("        public override Dictionary<string, string> GetResource() => new()");
+        source.AppendLine("        {");
+        foreach (var info in infos)
+        {
+            var valueExpression = info.PathSegments.Count == 1 ? info.KeyProperty : ToLiteral(info.DefaultValue);
+            source.AppendLine($"            {{ {ToLiteral(info.Key)}, {valueExpression} }},");
         }
 
         source.AppendLine("        };");
@@ -356,6 +384,7 @@ public sealed class LGenerator : IIncrementalGenerator
         source.AppendLine();
         source.AppendLine($"global using L = {targetNamespace}.L;");
         source.AppendLine($"global using LResource = {targetNamespace}.LResource;");
+        source.AppendLine($"global using LDefaultResource = {targetNamespace}.LDefaultResource;");
         source.AppendLine($"global using IL = {targetNamespace}.IL;");
         source.Append("#nullable restore");
         context.AddSource("LAliases.g.cs", source.ToString());

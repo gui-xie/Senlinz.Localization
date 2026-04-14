@@ -102,6 +102,7 @@ Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 ```
 
 - Pass resources directly to `LStringResolver` for the common case.
+- If you only want to use the default text from `l.json`, call `LStringResolver.CreateDefault(() => currentCulture)`.
 - If you already manage resources elsewhere, you can still pass an existing `LResourceProvider`.
 
 ## Localization file rules
@@ -169,9 +170,9 @@ If you do not want to use `l.json`, set `SenlinzLocalizationFile` in your projec
 
 ### `LResource`
 
-- `LResource` is a generated abstract base class with one protected virtual member per top-level localization key.
-- Each generated member returns the default value from the localization JSON unless a derived resource overrides it.
-- Implement one derived class per culture and override only the values that differ.
+- `LResource` is a generated abstract base class with one protected abstract member per top-level localization key.
+- `LDefaultResource` is generated alongside it and provides the default values from `l.json`.
+- Implement one derived class per culture and fill in each generated member, which makes IDE override completion straightforward.
 
 Example:
 
@@ -192,6 +193,8 @@ public sealed class ZhResource : LResource
     public override string Culture => "zh";
 
     protected override string Hello => "你好";
+    protected override string SayHelloTo => "你好 {name}！";
+    protected override string StatusReady => "就绪";
 }
 
 public sealed class FrResource : LResource
@@ -199,6 +202,8 @@ public sealed class FrResource : LResource
     public override string Culture => "fr";
 
     protected override string Hello => "Bonjour";
+    protected override string SayHelloTo => "Bonjour {name} !";
+    protected override string StatusReady => "Prêt";
 }
 ```
 
@@ -226,6 +231,12 @@ If you already have a provider instance, you can pass it directly:
 ```csharp
 var provider = new LResourceProvider(new EnResource(), new ZhResource());
 var resolver = new LStringResolver(() => currentCulture, provider);
+```
+
+If you want to resolve only the default `l.json` values, use the generated default resource factory:
+
+```csharp
+var resolver = LStringResolver.CreateDefault(() => currentCulture);
 ```
 
 You can also call the extension method:

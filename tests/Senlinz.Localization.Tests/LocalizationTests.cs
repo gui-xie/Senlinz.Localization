@@ -24,6 +24,12 @@ public sealed class ZhResource : LResource
     public override string Culture => "zh";
 
     protected override string Hello => "你好";
+
+    protected override string SayHelloTo => "Hello {name}!";
+
+    protected override string StatusReady => "Ready";
+
+    protected override string QuotedMessage => "Say \"Hello\" to {name}!\nDone";
 }
 
 public sealed class ZhFullResource : LResource
@@ -188,5 +194,15 @@ public class LocalizationTests
 
         Assert.Equal("你好", resolver[L.Hello]);
         Assert.Equal("你好，世界！", resolver[L.SayHelloTo("世界")]);
+    }
+
+    [Fact]
+    public void Creates_default_resolver_from_generated_resource()
+    {
+        var resolver = LStringResolver.CreateDefault(() => "en");
+
+        Assert.Equal("Hello", resolver[L.Hello]);
+        Assert.Equal("Hello Alice!", resolver[L.SayHelloTo("Alice")]);
+        Assert.Equal("User '42' does not exist.", resolver[L.Exception.User.NotFound("42")]);
     }
 }

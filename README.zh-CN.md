@@ -102,6 +102,7 @@ Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 ```
 
 - 常见场景下，直接把资源实例传给 `LStringResolver` 即可。
+- 如果你只想直接使用 `l.json` 里的默认文本，可以调用 `LStringResolver.CreateDefault(() => currentCulture)`。
 - 如果你已经维护了 `LResourceProvider`，也仍然可以直接传入该实例。
 
 ## 本地化文件规则
@@ -169,9 +170,9 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 
 ### `LResource`
 
-- `LResource` 是自动生成的抽象基类，每个顶层本地化键都会对应一个受保护的虚成员。
-- 每个生成成员默认返回本地化 JSON 中的默认值，派生类可以按需重写。
-- 通常为每种语言实现一个派生类，只重写有差异的值即可。
+- `LResource` 是自动生成的抽象基类，每个顶层本地化键都会对应一个受保护的抽象成员。
+- 同时还会生成 `LDefaultResource`，用于提供 `l.json` 中的默认值。
+- 通常为每种语言实现一个派生类并补全所有生成成员，这样 IDE 也更容易直接生成重写代码。
 
 示例：
 
@@ -192,6 +193,8 @@ public sealed class ZhResource : LResource
     public override string Culture => "zh";
 
     protected override string Hello => "你好";
+    protected override string SayHelloTo => "你好 {name}！";
+    protected override string StatusReady => "就绪";
 }
 
 public sealed class FrResource : LResource
@@ -199,6 +202,8 @@ public sealed class FrResource : LResource
     public override string Culture => "fr";
 
     protected override string Hello => "Bonjour";
+    protected override string SayHelloTo => "Bonjour {name} !";
+    protected override string StatusReady => "Prêt";
 }
 ```
 
@@ -226,6 +231,12 @@ Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 ```csharp
 var provider = new LResourceProvider(new EnResource(), new ZhResource());
 var resolver = new LStringResolver(() => currentCulture, provider);
+```
+
+如果你只想解析 `l.json` 默认值，可以直接使用生成的默认资源工厂：
+
+```csharp
+var resolver = LStringResolver.CreateDefault(() => currentCulture);
 ```
 
 也可以使用扩展方法：
