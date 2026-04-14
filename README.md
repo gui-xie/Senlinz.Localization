@@ -108,6 +108,9 @@ Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 
 - JSON keys are converted into generated C# member names.
 - Keep keys stable because generated API names depend on them.
+- Generated member names follow the JSON shape directly and only capitalize the leading letter to fit Pascal-style naming, so `user_status` becomes `L.User_status`.
+- Nested JSON objects generate nested accessors, so `exception -> user -> notFound` becomes `L.Exception.User.NotFound(...)`.
+- Nested JSON paths use dotted keys internally, so the example above resolves as `exception.user.notFound`.
 
 ### Placeholder parameters
 
@@ -163,7 +166,7 @@ If you do not want to use `l.json`, set `SenlinzLocalizationFile` in your projec
 
 ### `LResource`
 
-- `LResource` is a generated abstract base class with one protected virtual member per localization key.
+- `LResource` is a generated abstract base class with one protected virtual member per top-level localization key.
 - Each generated member returns the default value from the localization JSON unless a derived resource overrides it.
 - Implement one derived class per culture and override only the values that differ.
 

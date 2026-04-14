@@ -1,8 +1,7 @@
 using System.IO;
 using System.Reflection;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -45,12 +44,12 @@ public sealed class LGenerator : IIncrementalGenerator
             }
 
             var jsonText = file.GetText()?.ToString() ?? string.Empty;
-            if (!TryParseLocalizationDictionary(jsonText, out var dictionary))
+            if (!TryParseLocalizationEntries(jsonText, out var entries))
             {
                 return;
             }
 
-            var infos = GetLStringInfos(dictionary);
+            var infos = GetLStringInfos(entries);
             CreateLSource(sourceContext, targetNamespace, infos);
             CreateLResourceSource(sourceContext, targetNamespace, infos);
             CreateDynamicResolverInterface(sourceContext, targetNamespace);
@@ -190,7 +189,7 @@ public sealed class LGenerator : IIncrementalGenerator
         AppendSummary(source, "        ", "Gets the culture name.");
         source.AppendLine("        public abstract string Culture { get; }");
 
-        foreach (var info in infos)
+        foreach (var info in infos.Where(static item => item.PathSegments.Count == 1))
         {
             source.AppendLine();
             AppendSummary(source, "        ", info.DefaultValue);
@@ -199,9 +198,9 @@ public sealed class LGenerator : IIncrementalGenerator
 
         source.AppendLine();
         AppendSummary(source, "        ", "Gets the resource dictionary.");
-        source.AppendLine("        public Dictionary<string, string> GetResource() => new()");
+        source.AppendLine("        public virtual Dictionary<string, string> GetResource() => new()");
         source.AppendLine("        {");
-        foreach (var info in infos)
+        foreach (var info in infos.Where(static item => item.PathSegments.Count == 1))
         {
             source.AppendLine($"            {{ {ToLiteral(info.Key)}, {info.KeyProperty} }},");
         }
@@ -225,7 +224,7 @@ public sealed class LGenerator : IIncrementalGenerator
         source.AppendLine("    {");
 
         var first = true;
-        foreach (var info in infos)
+        foreach (var info in infos.Where(static item => item.PathSegments.Count == 1))
         {
             if (!first)
             {
@@ -258,6 +257,8 @@ public sealed class LGenerator : IIncrementalGenerator
             source.AppendLine("        }");
         }
 
+        AppendNestedLApi(source, infos);
+
         source.AppendLine("    }");
         AppendNamespaceEnd(source, targetNamespace);
         source.Append("#nullable restore");
@@ -279,6 +280,82 @@ public sealed class LGenerator : IIncrementalGenerator
         source.AppendLine($"global using IL = {targetNamespace}.IL;");
         source.Append("#nullable restore");
         context.AddSource("LAliases.g.cs", source.ToString());
+    }
+
+    private static void AppendNestedLApi(StringBuilder source, IReadOnlyCollection<LStringInfo> infos)
+    {
+        var root = BuildNestedLApiTree(infos);
+        if (root.Children.Count == 0)
+        {
+            return;
+        }
+
+        source.AppendLine();
+        AppendNestedLApiMembers(source, "        ", root);
+    }
+
+    private static NestedLApiNode BuildNestedLApiTree(IEnumerable<LStringInfo> infos)
+    {
+        var root = new NestedLApiNode(string.Empty, string.Empty);
+        foreach (var info in infos.Where(static item => item.PathSegments.Count > 1))
+        {
+            var current = root;
+            for (var index = 0; index < info.PathSegments.Count - 1; index++)
+            {
+                var identifier = JsonKeyToIdentifier(info.PathSegments[index]);
+                current = current.GetOrAddChild(identifier);
+            }
+
+            current.Leaves.Add(new NestedLApiLeaf(JsonKeyToIdentifier(info.PathSegments[info.PathSegments.Count - 1]), info));
+        }
+
+        return root;
+    }
+
+    private static void AppendNestedLApiMembers(StringBuilder source, string indent, NestedLApiNode node)
+    {
+        foreach (var child in node.Children.Values)
+        {
+            source.AppendLine($"{indent}public {(node.IsRoot ? "static " : string.Empty)}{child.TypeName} {child.Identifier} {{ get; }} = new();");
+        }
+
+        foreach (var leaf in node.Leaves)
+        {
+            source.AppendLine();
+            AppendSummary(source, indent, leaf.Info.DefaultValue);
+            if (leaf.Info.Parameters.Count == 0)
+            {
+                source.AppendLine($"{indent}public LString {leaf.Identifier} => new({ToLiteral(leaf.Info.Key)}, {ToLiteral(leaf.Info.DefaultValue)});");
+                continue;
+            }
+
+            source.Append($"{indent}public LString {leaf.Identifier}(");
+            source.Append(string.Join(", ", leaf.Info.Parameters.Select(parameter => $"string {parameter.ParameterName}")));
+            source.AppendLine(")");
+            source.AppendLine($"{indent}{{");
+            source.AppendLine($"{indent}    return new LString(");
+            source.AppendLine($"{indent}        {ToLiteral(leaf.Info.Key)},");
+            source.AppendLine($"{indent}        {ToLiteral(leaf.Info.DefaultValue)},");
+            source.AppendLine($"{indent}        new[]");
+            source.AppendLine($"{indent}        {{");
+            foreach (var parameter in leaf.Info.Parameters)
+            {
+                source.AppendLine($"{indent}            new KeyValuePair<string, string>({ToLiteral(parameter.Token)}, {parameter.ParameterName}),");
+            }
+
+            source.AppendLine($"{indent}        }});");
+            source.AppendLine($"{indent}}}");
+        }
+
+        foreach (var child in node.Children.Values)
+        {
+            source.AppendLine();
+            source.AppendLine($"{indent}public sealed class {child.TypeName}");
+            source.AppendLine($"{indent}{{");
+            source.AppendLine($"{indent}    internal {child.TypeName}() {{ }}");
+            AppendNestedLApiMembers(source, $"{indent}    ", child);
+            source.AppendLine($"{indent}}}");
+        }
     }
 
     private static void AppendNamespaceStart(StringBuilder source, string targetNamespace)
@@ -388,19 +465,19 @@ public sealed class LGenerator : IIncrementalGenerator
         return "_";
     }
 
-    private static List<LStringInfo> GetLStringInfos(Dictionary<string, string> dictionary)
+    private static List<LStringInfo> GetLStringInfos(IReadOnlyCollection<LocalizationEntry> entries)
     {
         var result = new List<LStringInfo>();
-        foreach (var pair in dictionary)
+        foreach (var entry in entries)
         {
-            if (pair.Key is null || pair.Value is null)
+            if (entry.Key is null || entry.Value is null)
             {
                 continue;
             }
 
             var parameters = new List<LStringParameter>();
             const string pattern = "(?<={)[^{}]+(?=})";
-            var value = pair.Value;
+            var value = entry.Value;
             foreach (Match match in Regex.Matches(value, pattern))
             {
                 if (match.Value.StartsWith("$", StringComparison.Ordinal))
@@ -417,15 +494,21 @@ public sealed class LGenerator : IIncrementalGenerator
                 parameters.Add(new LStringParameter(match.Value, EnsureUniqueParameterName(parameters, ToCamelCase(JsonKeyToIdentifier(match.Value)))));
             }
 
-            result.Add(new LStringInfo(pair.Key, value, JsonKeyToIdentifier(pair.Key), parameters));
+            var keyProperty = JsonKeyToIdentifier(entry.Key);
+            result.Add(new LStringInfo(
+                entry.Key,
+                value,
+                keyProperty,
+                entry.PathSegments,
+                parameters));
         }
 
         return result;
     }
 
-    private static bool TryParseLocalizationDictionary(string jsonText, out Dictionary<string, string> dictionary)
+    private static bool TryParseLocalizationEntries(string jsonText, out List<LocalizationEntry> entries)
     {
-        dictionary = new Dictionary<string, string>(StringComparer.Ordinal);
+        entries = new List<LocalizationEntry>();
         if (string.IsNullOrWhiteSpace(jsonText))
         {
             return false;
@@ -433,27 +516,60 @@ public sealed class LGenerator : IIncrementalGenerator
 
         try
         {
-            var serializer = new DataContractJsonSerializer(
-                typeof(Dictionary<string, string>),
-                new DataContractJsonSerializerSettings
-                {
-                    UseSimpleDictionaryFormat = true
-                });
-            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonText));
-            if (serializer.ReadObject(stream) is not Dictionary<string, string> parsed)
+            using var document = JsonDocument.Parse(jsonText);
+            if (document.RootElement.ValueKind != JsonValueKind.Object)
             {
                 return false;
             }
 
-            dictionary = new Dictionary<string, string>(parsed, StringComparer.Ordinal);
+            FlattenLocalizationEntries(document.RootElement, new List<string>(), entries);
         }
-        catch (SerializationException)
+        catch (JsonException)
         {
-            dictionary = new Dictionary<string, string>(StringComparer.Ordinal);
+            entries = new List<LocalizationEntry>();
             return false;
         }
 
-        return dictionary.Count > 0;
+        return entries.Count > 0;
+    }
+
+    private static void FlattenLocalizationEntries(JsonElement element, List<string> pathSegments, List<LocalizationEntry> entries)
+    {
+        foreach (var property in element.EnumerateObject())
+        {
+            pathSegments.Add(property.Name);
+            if (property.Value.ValueKind == JsonValueKind.Object)
+            {
+                FlattenLocalizationEntries(property.Value, pathSegments, entries);
+                pathSegments.RemoveAt(pathSegments.Count - 1);
+                continue;
+            }
+
+            if (property.Value.ValueKind == JsonValueKind.String)
+            {
+                entries.Add(new LocalizationEntry(
+                    GetFlattenedLocalizationKey(pathSegments),
+                    property.Value.GetString() ?? string.Empty,
+                    pathSegments.ToArray()));
+            }
+
+            pathSegments.RemoveAt(pathSegments.Count - 1);
+        }
+    }
+
+    private static string GetFlattenedLocalizationKey(IReadOnlyList<string> pathSegments)
+    {
+        if (pathSegments.Count == 0)
+        {
+            return "_";
+        }
+
+        if (pathSegments.Count == 1)
+        {
+            return pathSegments[0];
+        }
+
+        return string.Join(".", pathSegments);
     }
 
     private static string EnsureUniqueParameterName(IEnumerable<LStringParameter> existingParameters, string candidate)
@@ -477,22 +593,28 @@ public sealed class LGenerator : IIncrementalGenerator
         }
 
         var builder = new StringBuilder();
-        var capitalizeNext = true;
         foreach (var character in value)
         {
-            if (!char.IsLetterOrDigit(character))
+            if (builder.Length == 0)
             {
-                capitalizeNext = true;
+                if (character == '_' || char.IsLetter(character))
+                {
+                    builder.Append(char.ToUpperInvariant(character));
+                    continue;
+                }
+
+                if (char.IsDigit(character))
+                {
+                    builder.Append('_');
+                    builder.Append(character);
+                    continue;
+                }
+
+                builder.Append('_');
                 continue;
             }
 
-            if (builder.Length == 0 && char.IsDigit(character))
-            {
-                builder.Append('_');
-            }
-
-            builder.Append(capitalizeNext ? char.ToUpperInvariant(character) : character);
-            capitalizeNext = false;
+            builder.Append(character == '_' || char.IsLetterOrDigit(character) ? character : '_');
         }
 
         return builder.Length == 0 ? "_" : builder.ToString();
@@ -528,11 +650,17 @@ public sealed class LGenerator : IIncrementalGenerator
 
     private sealed class LStringInfo
     {
-        public LStringInfo(string key, string defaultValue, string keyProperty, IReadOnlyList<LStringParameter> parameters)
+        public LStringInfo(
+            string key,
+            string defaultValue,
+            string keyProperty,
+            IReadOnlyList<string> pathSegments,
+            IReadOnlyList<LStringParameter> parameters)
         {
             Key = key;
             DefaultValue = defaultValue;
             KeyProperty = keyProperty;
+            PathSegments = pathSegments;
             Parameters = parameters;
         }
 
@@ -542,7 +670,69 @@ public sealed class LGenerator : IIncrementalGenerator
 
         public string KeyProperty { get; }
 
+        public IReadOnlyList<string> PathSegments { get; }
+
         public IReadOnlyList<LStringParameter> Parameters { get; }
+    }
+
+    private sealed class LocalizationEntry
+    {
+        public LocalizationEntry(string key, string value, IReadOnlyList<string> pathSegments)
+        {
+            Key = key;
+            Value = value;
+            PathSegments = pathSegments;
+        }
+
+        public string Key { get; }
+
+        public string Value { get; }
+
+        public IReadOnlyList<string> PathSegments { get; }
+    }
+
+    private sealed class NestedLApiNode
+    {
+        public NestedLApiNode(string identifier, string typeName)
+        {
+            Identifier = identifier;
+            TypeName = typeName;
+        }
+
+        public string Identifier { get; }
+
+        public string TypeName { get; }
+
+        public bool IsRoot => Identifier.Length == 0;
+
+        public Dictionary<string, NestedLApiNode> Children { get; } = new(StringComparer.Ordinal);
+
+        public List<NestedLApiLeaf> Leaves { get; } = new();
+
+        public NestedLApiNode GetOrAddChild(string identifier)
+        {
+            if (Children.TryGetValue(identifier, out var child))
+            {
+                return child;
+            }
+
+            child = new NestedLApiNode(identifier, $"{identifier}Node");
+            Children.Add(identifier, child);
+            return child;
+        }
+    }
+
+    private sealed class NestedLApiLeaf
+    {
+        public NestedLApiLeaf(string identifier, LStringInfo info)
+        {
+            Identifier = identifier;
+            Info = info;
+        }
+
+        public string Identifier { get; }
+
+        public LStringInfo Info { get; }
     }
 
     private sealed class LStringParameter

@@ -108,6 +108,9 @@ Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 
 - JSON 键会被转换为生成的 C# 成员名。
 - 请保持键名稳定，因为生成的 API 名称依赖这些键。
+- 生成的成员名会尽量保持 JSON 原样，只把首字母变成大写以贴近 Pascal 风格，因此 `user_status` 会生成 `L.User_status`。
+- 嵌套 JSON 对象会生成嵌套访问器，因此 `exception -> user -> notFound` 会生成 `L.Exception.User.NotFound(...)`。
+- 这些嵌套路径在内部会使用点号连接的键，因此上面的示例会解析为 `exception.user.notFound`。
 
 ### 占位符参数
 
@@ -163,7 +166,7 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 
 ### `LResource`
 
-- `LResource` 是自动生成的抽象基类，每个本地化键都会对应一个受保护的虚成员。
+- `LResource` 是自动生成的抽象基类，每个顶层本地化键都会对应一个受保护的虚成员。
 - 每个生成成员默认返回本地化 JSON 中的默认值，派生类可以按需重写。
 - 通常为每种语言实现一个派生类，只重写有差异的值即可。
 

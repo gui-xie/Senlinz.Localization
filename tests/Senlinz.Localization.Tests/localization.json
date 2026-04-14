@@ -3,6 +3,11 @@
   "sayHelloTo": "Hello {name}!",
   "statusReady": "Ready",
   "quotedMessage": "Say \"Hello\" to {name}!\nDone",
+  "exception": {
+    "user": {
+      "notFound": "User '{userId}' does not exist."
+    }
+  },
   "SampleText_Hello": "Hello",
   "SampleText_Ready": "Ready"
 }
