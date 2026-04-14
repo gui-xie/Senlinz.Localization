@@ -35,7 +35,7 @@ jobs:
 
       - name: Test
         run: >
-          dotnet test Senlinz.Localization.slnx
+          dotnet test tests/Senlinz.Localization.Tests/Senlinz.Localization.Tests.csproj
           --configuration Release
           --no-build
           --verbosity normal
