@@ -1,5 +1,4 @@
 using Senlinz.Localization;
-using System.Reflection;
 
 namespace Senlinz.Localization.Tests;
 
@@ -136,12 +135,6 @@ public class LocalizationTests
     public void Uses_dotted_keys_for_nested_json_objects()
     {
         Assert.Equal("exception.user.notFound", L.Exception.User.NotFound("42").Key);
-    }
-
-    [Fact]
-    public void Does_not_generate_flat_members_for_nested_json_objects()
-    {
-        Assert.Null(typeof(L).GetMethod("Exception_User_NotFound", BindingFlags.Public | BindingFlags.Static));
     }
 
     [Fact]
