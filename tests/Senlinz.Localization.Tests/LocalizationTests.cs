@@ -50,7 +50,7 @@ public sealed class ZhAlternativeResource : LResource
 
     protected override string QuotedMessage => "向 {name} 问好！\n已完成";
 
-    protected override string ExceptionUserNotFound => "找不到 ID 为 {userId} 的用户。";
+    protected override string Exception_User_NotFound => "找不到 ID 为 {userId} 的用户。";
 
     protected override string SampleTextHello => "您好";
 
@@ -118,21 +118,19 @@ public class LocalizationTests
     }
 
     [Fact]
-    public void Preserves_underscore_member_aliases_for_existing_call_sites()
+    public void Preserves_underscores_in_generated_member_names()
     {
         var resolver = new LStringResolver(() => "zh", new ZhFullResource());
 
         Assert.Equal("未找到用户 42。", resolver[L.Exception_User_NotFound("42")]);
-        Assert.Equal("未找到用户 42。", resolver[L.ExceptionUserNotFound("42")]);
     }
 
     [Fact]
-    public void Supports_resource_overrides_through_normalized_members_when_underscore_aliases_exist()
+    public void Supports_resource_overrides_with_the_same_underscore_name_as_the_json_key()
     {
         var resolver = new LStringResolver(() => "zh", new ZhAlternativeResource());
 
         Assert.Equal("找不到 ID 为 42 的用户。", resolver[L.Exception_User_NotFound("42")]);
-        Assert.Equal("找不到 ID 为 42 的用户。", resolver[L.ExceptionUserNotFound("42")]);
     }
 
     [Fact]

@@ -194,15 +194,6 @@ public sealed class LGenerator : IIncrementalGenerator
             source.AppendLine();
             AppendSummary(source, "        ", info.DefaultValue);
             source.AppendLine($"        protected virtual string {info.KeyProperty} => {ToLiteral(info.DefaultValue)};");
-
-            if (info.CompatibilityKeyProperty is null)
-            {
-                continue;
-            }
-
-            source.AppendLine();
-            AppendSummary(source, "        ", info.DefaultValue);
-            source.AppendLine($"        protected virtual string {info.CompatibilityKeyProperty} => {info.KeyProperty};");
         }
 
         source.AppendLine();
@@ -211,7 +202,7 @@ public sealed class LGenerator : IIncrementalGenerator
         source.AppendLine("        {");
         foreach (var info in infos)
         {
-            source.AppendLine($"            {{ {ToLiteral(info.Key)}, {info.ResourceLookupProperty} }},");
+            source.AppendLine($"            {{ {ToLiteral(info.Key)}, {info.KeyProperty} }},");
         }
 
         source.AppendLine("        };");
@@ -245,14 +236,6 @@ public sealed class LGenerator : IIncrementalGenerator
             if (info.Parameters.Count == 0)
             {
                 source.AppendLine($"        public static LString {info.KeyProperty} = new({ToLiteral(info.Key)}, {ToLiteral(info.DefaultValue)});");
-
-                if (info.CompatibilityKeyProperty is not null)
-                {
-                    source.AppendLine();
-                    AppendSummary(source, "        ", info.DefaultValue);
-                    source.AppendLine($"        public static LString {info.CompatibilityKeyProperty} => {info.KeyProperty};");
-                }
-
                 continue;
             }
 
@@ -272,17 +255,6 @@ public sealed class LGenerator : IIncrementalGenerator
 
             source.AppendLine("                });");
             source.AppendLine("        }");
-
-            if (info.CompatibilityKeyProperty is null)
-            {
-                continue;
-            }
-
-            source.AppendLine();
-            AppendSummary(source, "        ", info.DefaultValue);
-            source.Append($"        public static LString {info.CompatibilityKeyProperty}(");
-            source.Append(string.Join(", ", info.Parameters.Select(parameter => $"string {parameter.ParameterName}")));
-            source.AppendLine($") => {info.KeyProperty}({string.Join(", ", info.Parameters.Select(parameter => parameter.ParameterName))});");
         }
 
         AppendNestedLApi(source, infos);
@@ -510,12 +482,10 @@ public sealed class LGenerator : IIncrementalGenerator
             }
 
             var keyProperty = JsonKeyToIdentifier(entry.Key);
-            var compatibilityKeyProperty = JsonKeyToUnderscorePreservingIdentifier(entry.Key);
             result.Add(new LStringInfo(
                 entry.Key,
                 value,
                 keyProperty,
-                compatibilityKeyProperty != keyProperty ? compatibilityKeyProperty : null,
                 entry.PathSegments,
                 parameters));
         }
@@ -586,47 +556,7 @@ public sealed class LGenerator : IIncrementalGenerator
             return pathSegments[0];
         }
 
-        return string.Join("_", pathSegments.Select(ToResourceKeySegment));
-    }
-
-    private static string ToResourceKeySegment(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return "_";
-        }
-
-        var builder = new StringBuilder();
-        var capitalizeNext = true;
-        foreach (var character in value)
-        {
-            if (character == '_')
-            {
-                if (builder.Length > 0 && builder[builder.Length - 1] != '_')
-                {
-                    builder.Append(character);
-                }
-
-                capitalizeNext = true;
-                continue;
-            }
-
-            if (!char.IsLetterOrDigit(character))
-            {
-                capitalizeNext = true;
-                continue;
-            }
-
-            if (builder.Length == 0 && char.IsDigit(character))
-            {
-                builder.Append('_');
-            }
-
-            builder.Append(capitalizeNext ? char.ToUpperInvariant(character) : character);
-            capitalizeNext = false;
-        }
-
-        return builder.Length == 0 ? "_" : builder.ToString();
+        return string.Join("_", pathSegments.Select(JsonKeyToIdentifier));
     }
 
     private static string EnsureUniqueParameterName(IEnumerable<LStringParameter> existingParameters, string candidate)
@@ -650,63 +580,31 @@ public sealed class LGenerator : IIncrementalGenerator
         }
 
         var builder = new StringBuilder();
-        var capitalizeNext = true;
         foreach (var character in value)
         {
-            if (!char.IsLetterOrDigit(character))
+            if (builder.Length == 0)
             {
-                capitalizeNext = true;
+                if (character == '_' || char.IsLetter(character))
+                {
+                    builder.Append(char.ToUpperInvariant(character));
+                    continue;
+                }
+
+                if (char.IsDigit(character))
+                {
+                    builder.Append('_');
+                    builder.Append(character);
+                    continue;
+                }
+
+                builder.Append('_');
                 continue;
             }
 
-            if (builder.Length == 0 && char.IsDigit(character))
-            {
-                builder.Append('_');
-            }
-
-            builder.Append(capitalizeNext ? char.ToUpperInvariant(character) : character);
-            capitalizeNext = false;
+            builder.Append(character == '_' || char.IsLetterOrDigit(character) ? character : '_');
         }
 
         return builder.Length == 0 ? "_" : builder.ToString();
-    }
-
-    private static string JsonKeyToUnderscorePreservingIdentifier(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return "_";
-        }
-
-        var builder = new StringBuilder();
-        foreach (var character in value)
-        {
-            if (char.IsLetterOrDigit(character) || character == '_')
-            {
-                if (builder.Length == 0 && char.IsDigit(character))
-                {
-                    builder.Append('_');
-                }
-
-                builder.Append(character);
-                continue;
-            }
-
-            if (builder.Length == 0 || builder[builder.Length - 1] == '_')
-            {
-                continue;
-            }
-
-            builder.Append('_');
-        }
-
-        if (builder.Length == 0)
-        {
-            return "_";
-        }
-
-        var identifier = builder.ToString();
-        return SyntaxFacts.IsValidIdentifier(identifier) ? identifier : $"_{identifier}";
     }
 
     private static string ToCamelCase(string value)
@@ -743,14 +641,12 @@ public sealed class LGenerator : IIncrementalGenerator
             string key,
             string defaultValue,
             string keyProperty,
-            string? compatibilityKeyProperty,
             IReadOnlyList<string> pathSegments,
             IReadOnlyList<LStringParameter> parameters)
         {
             Key = key;
             DefaultValue = defaultValue;
             KeyProperty = keyProperty;
-            CompatibilityKeyProperty = compatibilityKeyProperty;
             PathSegments = pathSegments;
             Parameters = parameters;
         }
@@ -760,10 +656,6 @@ public sealed class LGenerator : IIncrementalGenerator
         public string DefaultValue { get; }
 
         public string KeyProperty { get; }
-
-        public string? CompatibilityKeyProperty { get; }
-
-        public string ResourceLookupProperty => CompatibilityKeyProperty ?? KeyProperty;
 
         public IReadOnlyList<string> PathSegments { get; }
 
