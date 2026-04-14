@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -21,7 +22,6 @@ public sealed class LGenerator : IIncrementalGenerator
     private const string RootNamespaceProperty = "build_property.RootNamespace";
     private const string LStringAttributeName = "Senlinz.Localization.LStringAttribute";
     private const string LStringKeyAttributeSuffix = "LStringKey";
-    private const string LStringAttributePrefix = "LString";
 
     /// <inheritdoc />
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -76,16 +76,36 @@ public sealed class LGenerator : IIncrementalGenerator
 
     private static void AddEnumAttributeSource(IncrementalGeneratorInitializationContext context)
     {
+        var localizationInfosProvider = GetLocalizationFileProvider(context)
+            .Select(static (pair, _) =>
+            {
+                var file = pair.Source.File;
+                var targetNamespace = pair.Source.TargetNamespace;
+                var configuredFileName = pair.FileName;
+
+                if (targetNamespace is null || !file.Path.EndsWith(configuredFileName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return ImmutableArray<LStringInfo>.Empty;
+                }
+
+                var jsonText = file.GetText()?.ToString() ?? string.Empty;
+                return TryParseLocalizationEntries(jsonText, out var entries)
+                    ? GetLStringInfos(entries).ToImmutableArray()
+                    : ImmutableArray<LStringInfo>.Empty;
+            });
+
         var enumProviders = context.SyntaxProvider.ForAttributeWithMetadataName(
                 LStringAttributeName,
                 static (node, _) => node is EnumDeclarationSyntax,
                 static (syntaxContext, _) => (Symbol: (INamedTypeSymbol)syntaxContext.TargetSymbol, Syntax: (EnumDeclarationSyntax)syntaxContext.TargetNode));
 
-        context.RegisterSourceOutput(enumProviders, (sourceContext, enumInfo) =>
+        context.RegisterSourceOutput(enumProviders.Combine(localizationInfosProvider.Collect()), (sourceContext, pair) =>
         {
+            var enumInfo = pair.Left;
             var enumSymbol = enumInfo.Symbol;
             var enumSyntax = enumInfo.Syntax;
             var enumFields = enumSyntax.Members;
+            var infos = pair.Right.SelectMany(static item => item).ToArray();
             if (enumFields.Count == 0)
             {
                 return;
@@ -94,7 +114,6 @@ public sealed class LGenerator : IIncrementalGenerator
             var enumName = enumSymbol.Name;
             var enumNamespace = GetNamespace(enumSyntax);
             var enumParameterName = ToCamelCase(enumName);
-            var separator = GetSeparator(enumSyntax);
             var className = $"{enumName}Extensions";
             var source = new StringBuilder();
             source.AppendLine("#nullable enable");
@@ -115,30 +134,8 @@ public sealed class LGenerator : IIncrementalGenerator
             source.AppendLine("            {");
             foreach (var enumField in enumFields)
             {
-                var generatedKey = $"{enumName}{separator}{enumField.Identifier.Text}";
-                var enumKeyPrefix = $"{enumName}{separator}";
-                var lKeyProperty = JsonKeyToIdentifier(generatedKey);
-                foreach (var attributeList in enumField.AttributeLists)
-                {
-                    foreach (var attribute in attributeList.Attributes)
-                    {
-                        if (!attribute.Name.ToString().EndsWith(LStringKeyAttributeSuffix, StringComparison.Ordinal))
-                        {
-                            continue;
-                        }
-
-                        if (attribute.ArgumentList?.Arguments.FirstOrDefault()?.Expression.ToString().Trim('"') is string attributeValue
-                            && !string.IsNullOrWhiteSpace(attributeValue))
-                        {
-                            var resolvedKey = attributeValue.StartsWith(enumKeyPrefix, StringComparison.Ordinal)
-                                ? attributeValue
-                                : $"{enumKeyPrefix}{attributeValue}";
-                            lKeyProperty = JsonKeyToIdentifier(resolvedKey);
-                        }
-                    }
-                }
-
-                source.AppendLine($"                {enumName}.{enumField.Identifier.Text} => L.{lKeyProperty},");
+                var lAccessExpression = ResolveEnumLAccessExpression(enumName, enumField, infos);
+                source.AppendLine($"                {enumName}.{enumField.Identifier.Text} => {lAccessExpression},");
             }
 
             source.AppendLine("                _ => LString.Empty");
@@ -149,6 +146,88 @@ public sealed class LGenerator : IIncrementalGenerator
             source.Append("#nullable restore");
             sourceContext.AddSource($"{className}.g.cs", source.ToString());
         });
+    }
+
+    private static string ResolveEnumLAccessExpression(
+        string enumName,
+        EnumMemberDeclarationSyntax enumField,
+        IReadOnlyCollection<LStringInfo> infos)
+    {
+        var enumSegment = ToCamelCase(JsonKeyToIdentifier(enumName));
+        var memberSegment = ToCamelCase(JsonKeyToIdentifier(enumField.Identifier.Text));
+        foreach (var attributeList in enumField.AttributeLists)
+        {
+            foreach (var attribute in attributeList.Attributes)
+            {
+                if (!attribute.Name.ToString().EndsWith(LStringKeyAttributeSuffix, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                if (attribute.ArgumentList?.Arguments.FirstOrDefault()?.Expression.ToString().Trim('"') is string attributeValue
+                    && !string.IsNullOrWhiteSpace(attributeValue))
+                {
+                    memberSegment = NormalizeEnumMemberSegment(attributeValue, enumName, enumSegment);
+                }
+            }
+        }
+
+        var generatedKey = $"{enumSegment}.{memberSegment}";
+        if (TryGetLAccessExpressionForKey(infos, generatedKey, out var expression))
+        {
+            return expression;
+        }
+
+        return $"L.{JsonKeyToIdentifier(enumSegment)}.{JsonKeyToIdentifier(memberSegment)}";
+    }
+
+    private static bool TryGetLAccessExpressionForKey(
+        IEnumerable<LStringInfo> infos,
+        string? key,
+        out string expression)
+    {
+        expression = string.Empty;
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return false;
+        }
+
+        var info = infos.FirstOrDefault(item => string.Equals(item.Key, key, StringComparison.Ordinal));
+        if (info is null)
+        {
+            return false;
+        }
+
+        expression = $"L.{GetLAccessPath(info)}";
+        return true;
+    }
+
+    private static string GetLAccessPath(LStringInfo info) =>
+        info.PathSegments.Count == 1
+            ? info.KeyProperty
+            : string.Join(".", info.PathSegments.Select(JsonKeyToIdentifier));
+
+    private static string NormalizeEnumMemberSegment(string value, string enumName, string enumSegment)
+    {
+        const int UnderscoreLength = 1;
+        var trimmed = value.Trim();
+        if (string.IsNullOrWhiteSpace(trimmed))
+        {
+            return string.Empty;
+        }
+
+        var dottedSegments = trimmed.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+        var candidate = dottedSegments[dottedSegments.Length - 1];
+        if (candidate.StartsWith($"{enumName}_", StringComparison.Ordinal))
+        {
+            candidate = candidate.Substring(enumName.Length + UnderscoreLength);
+        }
+        else if (candidate.StartsWith($"{enumSegment}_", StringComparison.OrdinalIgnoreCase))
+        {
+            candidate = candidate.Substring(enumSegment.Length + UnderscoreLength);
+        }
+
+        return ToCamelCase(JsonKeyToIdentifier(candidate));
     }
 
     private static IncrementalValuesProvider<((AdditionalText File, string TargetNamespace) Source, string FileName)> GetLocalizationFileProvider(
@@ -447,22 +526,6 @@ public sealed class LGenerator : IIncrementalGenerator
         return parent is BaseNamespaceDeclarationSyntax namespaceSyntax
             ? namespaceSyntax.Name.ToString()
             : string.Empty;
-    }
-
-    private static string GetSeparator(EnumDeclarationSyntax enumSyntax)
-    {
-        foreach (var separatorArg in from attributeList in enumSyntax.AttributeLists
-                 from attribute in attributeList.Attributes
-                 where attribute.Name.ToString().StartsWith(LStringAttributePrefix, StringComparison.Ordinal)
-                 select attribute.ArgumentList?.Arguments.FirstOrDefault())
-        {
-            if (separatorArg is not null)
-            {
-                return separatorArg.Expression.ToString().Trim('"');
-            }
-        }
-
-        return "_";
     }
 
     private static List<LStringInfo> GetLStringInfos(IReadOnlyCollection<LocalizationEntry> entries)

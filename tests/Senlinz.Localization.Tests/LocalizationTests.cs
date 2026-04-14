@@ -8,8 +8,15 @@ public enum SampleText
     [LStringKey("SampleText_Hello")]
     Hello,
 
-    [LStringKey("Ready")]
+    [LStringKey("sampleText_ready")]
     Ready
+}
+
+[LString]
+public enum UserType
+{
+    Teacher,
+    Student
 }
 
 public sealed class ZhResource : LResource
@@ -22,6 +29,10 @@ public sealed class ZhResource : LResource
 public sealed class ZhFullResource : LResource
 {
     private const string ExceptionUserNotFoundKey = "exception.user.notFound";
+    private const string SampleTextHelloKey = "sampleText.hello";
+    private const string SampleTextReadyKey = "sampleText.ready";
+    private const string UserTypeTeacherKey = "userType.teacher";
+    private const string UserTypeStudentKey = "userType.student";
 
     public override string Culture => "zh";
 
@@ -33,14 +44,14 @@ public sealed class ZhFullResource : LResource
 
     protected override string QuotedMessage => "对 {name} 说“你好”！\n完成";
 
-    protected override string SampleText_Hello => "你好";
-
-    protected override string SampleText_Ready => "就绪";
-
     public override Dictionary<string, string> GetResource()
     {
         var resource = base.GetResource();
         resource[ExceptionUserNotFoundKey] = "未找到用户 {userId}。";
+        resource[SampleTextHelloKey] = "你好";
+        resource[SampleTextReadyKey] = "就绪";
+        resource[UserTypeTeacherKey] = "老师";
+        resource[UserTypeStudentKey] = "学生";
         return resource;
     }
 }
@@ -48,6 +59,10 @@ public sealed class ZhFullResource : LResource
 public sealed class ZhAlternativeResource : LResource
 {
     private const string ExceptionUserNotFoundKey = "exception.user.notFound";
+    private const string SampleTextHelloKey = "sampleText.hello";
+    private const string SampleTextReadyKey = "sampleText.ready";
+    private const string UserTypeTeacherKey = "userType.teacher";
+    private const string UserTypeStudentKey = "userType.student";
 
     public override string Culture => "zh";
 
@@ -59,14 +74,14 @@ public sealed class ZhAlternativeResource : LResource
 
     protected override string QuotedMessage => "向 {name} 问好！\n已完成";
 
-    protected override string SampleText_Hello => "您好";
-
-    protected override string SampleText_Ready => "已就绪";
-
     public override Dictionary<string, string> GetResource()
     {
         var resource = base.GetResource();
         resource[ExceptionUserNotFoundKey] = "找不到 ID 为 {userId} 的用户。";
+        resource[SampleTextHelloKey] = "您好";
+        resource[SampleTextReadyKey] = "已就绪";
+        resource[UserTypeTeacherKey] = "讲师";
+        resource[UserTypeStudentKey] = "学员";
         return resource;
     }
 }
@@ -95,10 +110,21 @@ public class LocalizationTests
     }
 
     [Fact]
-    public void Keeps_enum_prefix_for_lstringkey_mappings()
+    public void Applies_lstringkey_override_to_member_segment()
     {
-        Assert.Equal("SampleText_Hello", SampleText.Hello.ToLString().Key);
-        Assert.Equal("SampleText_Ready", SampleText.Ready.ToLString().Key);
+        Assert.Equal("sampleText.hello", SampleText.Hello.ToLString().Key);
+        Assert.Equal("sampleText.ready", SampleText.Ready.ToLString().Key);
+    }
+
+    [Fact]
+    public void Maps_enum_values_to_matching_nested_localization_members()
+    {
+        var resolver = new LStringResolver(() => "zh", new ZhFullResource());
+
+        Assert.Equal("userType.teacher", UserType.Teacher.ToLString().Key);
+        Assert.Equal("Teacher", UserType.Teacher.ToLString().DefaultValue);
+        Assert.Equal("老师", resolver[UserType.Teacher.ToLString()]);
+        Assert.Equal("学生", resolver[UserType.Student.ToLString()]);
     }
 
     [Fact]

@@ -56,8 +56,10 @@ dotnet add package Senlinz.Localization.Abstractions
   "hello": "Hello",
   "sayHelloTo": "Hello {name}!",
   "statusReady": "Ready",
-  "UserType_Teacher": "Teacher",
-  "UserType_Student": "Student"
+  "userType": {
+    "teacher": "Teacher",
+    "student": "Student"
+  }
 }
 ```
 
@@ -109,6 +111,10 @@ Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 
 - JSON 键会被转换为生成的 C# 成员名。
 - 请保持键名稳定，因为生成的 API 名称依赖这些键。
+- 生成的成员名会尽量保持 JSON 原样，只把首字母变成大写以贴近 Pascal 风格，因此 `user_status` 会生成 `L.User_status`。
+- 嵌套 JSON 对象会生成嵌套访问器，因此 `exception -> user -> notFound` 会生成 `L.Exception.User.NotFound(...)`。
+- 这些嵌套路径在内部会使用点号连接的键，因此上面的示例会解析为 `exception.user.notFound`。
+- 枚举键固定使用由枚举名和成员名组成的嵌套路径，因此 `UserType.Teacher` 会解析为 `userType.teacher`，对应 `L.UserType.Teacher`。
 
 ### 占位符参数
 
@@ -251,20 +257,23 @@ public enum UserType
 ```
 
 - 这会生成 `UserTypeExtensions.ToLString(this UserType value)`。
-- 默认生成的键模式为 `<枚举名>_<成员名>`。
+- 枚举值固定使用 `<枚举名CamelCase>.<成员名CamelCase>` 这种嵌套键模式。
+- 例如 `UserType.Teacher` 生成的键就是 `userType.teacher`，对应访问器 `L.UserType.Teacher`。
 
 对于上面的枚举，通常对应的本地化键是：
 
 ```json
 {
-  "UserType_Teacher": "Teacher",
-  "UserType_Student": "Student"
+  "userType": {
+    "teacher": "Teacher",
+    "student": "Student"
+  }
 }
 ```
 
 ### `[LStringKey]`
 
-如果你希望枚举成员映射到现有键，请在成员上使用 `[LStringKey]`。
+如果你希望只改枚举成员这一段的键名，请在成员上使用 `[LStringKey]`。
 
 ```csharp
 [LString]
@@ -278,27 +287,29 @@ public enum UserType
 }
 ```
 
-- `[LStringKey]` 只会替换生成键中的枚举成员部分，仍然会保留默认的枚举前缀和分隔符。
+- `[LStringKey]` 只会替换最后一段枚举成员键名，枚举前缀段仍然始终由枚举名决定。
 
 对应的 JSON：
 
 ```json
 {
-  "UserType_teacher": "Teacher",
-  "UserType_student": "Student"
+  "userType": {
+    "teacher": "Teacher",
+    "student": "Student"
+  }
 }
 ```
 
-如果你直接传入完整键名，则会按原样使用，不会重复追加前缀。
+即使你传入点号路径或旧的完整键名，也只会取最后一段作为成员键名：
 
 ```csharp
 [LString]
 public enum UserType
 {
-    [LStringKey("UserType_Teacher")]
+    [LStringKey("userType.teacher")]
     Teacher,
 
-    [LStringKey("UserType_Student")]
+    [LStringKey("legacy.student")]
     Student
 }
 ```
@@ -310,22 +321,6 @@ var text = UserType.Student.ToLString();
 Console.WriteLine(resolver[text]);
 ```
 
-### 自定义分隔符
-
-`LStringAttribute` 支持可选的分隔符参数。
-
-```csharp
-[LString("_")]
-public enum OrderStatus
-{
-    Pending,
-    Completed
-}
-```
-
-- 请使用能保证生成成员名仍然是合法 C# 标识符的分隔符，例如 `_`。
-- 如果你想自定义枚举成员对应的键名片段，同时保留枚举前缀，建议使用 `[LStringKey]`。
-
 ## 完整示例
 
 ### `l.json`
@@ -334,8 +329,10 @@ public enum OrderStatus
 {
   "hello": "Hello",
   "sayHelloTo": "Hello {name}!",
-  "UserType_Teacher": "Teacher",
-  "UserType_Student": "Student"
+  "userType": {
+    "teacher": "Teacher",
+    "student": "Student"
+  }
 }
 ```
 
@@ -364,12 +361,21 @@ Console.WriteLine(resolver[UserType.Student.ToLString()]);
 
 public sealed class ZhResource : LResource
 {
+    private const string UserTypeTeacherKey = "userType.teacher";
+    private const string UserTypeStudentKey = "userType.student";
+
     public override string Culture => "zh";
 
     protected override string Hello => "你好";
     protected override string SayHelloTo => "你好，{name}！";
-    protected override string UserTypeTeacher => "老师";
-    protected override string UserTypeStudent => "学生";
+
+    public override Dictionary<string, string> GetResource()
+    {
+        var resource = base.GetResource();
+        resource[UserTypeTeacherKey] = "老师";
+        resource[UserTypeStudentKey] = "学生";
+        return resource;
+    }
 }
 ```
 

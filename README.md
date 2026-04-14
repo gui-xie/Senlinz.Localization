@@ -55,8 +55,10 @@ Create `l.json` in your project root.
   "hello": "Hello",
   "sayHelloTo": "Hello {name}!",
   "statusReady": "Ready",
-  "UserType_Teacher": "Teacher",
-  "UserType_Student": "Student"
+  "userType": {
+    "teacher": "Teacher",
+    "student": "Student"
+  }
 }
 ```
 
@@ -111,6 +113,7 @@ Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 - Generated member names follow the JSON shape directly and only capitalize the leading letter to fit Pascal-style naming, so `user_status` becomes `L.User_status`.
 - Nested JSON objects generate nested accessors, so `exception -> user -> notFound` becomes `L.Exception.User.NotFound(...)`.
 - Nested JSON paths use dotted keys internally, so the example above resolves as `exception.user.notFound`.
+- Enum keys use a nested path based on the enum name and member name, so `UserType.Teacher` resolves to `userType.teacher` and `L.UserType.Teacher`.
 
 ### Placeholder parameters
 
@@ -253,20 +256,23 @@ public enum UserType
 ```
 
 - This generates `UserTypeExtensions.ToLString(this UserType value)`.
-- By default, the generated key pattern is `<EnumName>_<MemberName>`.
+- Enum values always use the nested key pattern `<enumNameCamelCase>.<memberNameCamelCase>`.
+- For `UserType.Teacher`, the generated key is `userType.teacher`, so the accessor is `L.UserType.Teacher`.
 
 For the enum above, the expected localization keys are typically:
 
 ```json
 {
-  "UserType_Teacher": "Teacher",
-  "UserType_Student": "Student"
+  "userType": {
+    "teacher": "Teacher",
+    "student": "Student"
+  }
 }
 ```
 
 ### `[LStringKey]`
 
-Use `[LStringKey]` on enum members when you want to map to an existing localization key.
+Use `[LStringKey]` on enum members when you want to override only the enum member segment of the key.
 
 ```csharp
 [LString]
@@ -280,27 +286,29 @@ public enum UserType
 }
 ```
 
-`[LStringKey]` replaces only the enum member portion of the generated key. The enum prefix and separator are still kept.
+`[LStringKey]` only replaces the final enum member segment. The enum prefix segment stays derived from the enum name.
 
 Matching JSON:
 
 ```json
 {
-  "UserType_teacher": "Teacher",
-  "UserType_student": "Student"
+  "userType": {
+    "teacher": "Teacher",
+    "student": "Student"
+  }
 }
 ```
 
-If you pass the full key explicitly, it is used as-is and the prefix is not duplicated:
+Passing a dotted or legacy full key still only changes the final member segment:
 
 ```csharp
 [LString]
 public enum UserType
 {
-    [LStringKey("UserType_Teacher")]
+    [LStringKey("userType.teacher")]
     Teacher,
 
-    [LStringKey("UserType_Student")]
+    [LStringKey("legacy.student")]
     Student
 }
 ```
@@ -312,22 +320,6 @@ var text = UserType.Student.ToLString();
 Console.WriteLine(resolver[text]);
 ```
 
-### Custom separator
-
-`LStringAttribute` accepts an optional separator value.
-
-```csharp
-[LString("_")]
-public enum OrderStatus
-{
-    Pending,
-    Completed
-}
-```
-
-- Choose a separator that keeps the generated member name valid in C#, such as `_`.
-- Use `[LStringKey]` when you want to customize the enum member segment while keeping the enum prefix.
-
 ## End-to-end example
 
 ### `l.json`
@@ -336,8 +328,10 @@ public enum OrderStatus
 {
   "hello": "Hello",
   "sayHelloTo": "Hello {name}!",
-  "UserType_Teacher": "Teacher",
-  "UserType_Student": "Student"
+  "userType": {
+    "teacher": "Teacher",
+    "student": "Student"
+  }
 }
 ```
 
@@ -366,12 +360,21 @@ Console.WriteLine(resolver[UserType.Student.ToLString()]);
 
 public sealed class ZhResource : LResource
 {
+    private const string UserTypeTeacherKey = "userType.teacher";
+    private const string UserTypeStudentKey = "userType.student";
+
     public override string Culture => "zh";
 
     protected override string Hello => "你好";
     protected override string SayHelloTo => "你好，{name}！";
-    protected override string UserTypeTeacher => "老师";
-    protected override string UserTypeStudent => "学生";
+
+    public override Dictionary<string, string> GetResource()
+    {
+        var resource = base.GetResource();
+        resource[UserTypeTeacherKey] = "老师";
+        resource[UserTypeStudentKey] = "学生";
+        return resource;
+    }
 }
 ```
 
