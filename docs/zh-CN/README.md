@@ -7,7 +7,7 @@
 支持 .NET 6 及以上的消费项目。
 
 - 文档站点：<https://gui-xie.github.io/Senlinz.Localization/>
-- 当前包版本：`1.1.0`
+- 当前包版本：`1.1.1`
 
 ## 快速导航
 
@@ -384,7 +384,7 @@ public sealed class ZhResource : LResource
 ## 发布与文档站点
 
 - 每次 push 和 pull request 都会触发校验工作流，执行 restore、build、test 与 pack，并上传生成的包制品。
-- 创建并推送类似 `v1.1.0` 的版本标签即可触发 NuGet 发布工作流。
+- 创建并推送类似 `v1.1.1` 的版本标签即可触发 NuGet 发布工作流。
 - 向 `main` 分支推送，或手动运行 Pages 工作流，即可把 `/docs` 中的静态站点发布到 GitHub Pages。
 
 1. 先验证解决方案。

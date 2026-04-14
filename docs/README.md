@@ -7,7 +7,7 @@ A JSON-driven localization source generator for .NET that generates strongly typ
 Supports .NET 6 and newer consumer projects.
 
 - Documentation site: <https://gui-xie.github.io/Senlinz.Localization/>
-- Current package version: `1.1.0`
+- Current package version: `1.1.1`
 
 ## Quick navigation
 
@@ -384,7 +384,7 @@ Expected output:
 ## Release and documentation publishing
 
 - Every push and pull request runs the validation workflow to restore, build, test, and pack the solution, then uploads the generated package artifacts.
-- Create and push a version tag such as `v1.1.0` to trigger the NuGet publish workflow.
+- Create and push a version tag such as `v1.1.1` to trigger the NuGet publish workflow.
 - Push to `main` or run the Pages workflow manually to publish the static documentation site from `/docs`.
 
 1. Validate the solution.
