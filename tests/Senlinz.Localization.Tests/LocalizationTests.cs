@@ -5,9 +5,10 @@ namespace Senlinz.Localization.Tests;
 [LString]
 public enum SampleText
 {
-    [LStringKey("hello")]
+    [LStringKey("SampleText_Hello")]
     Hello,
 
+    [LStringKey("sampleText_ready")]
     Ready
 }
 
@@ -109,7 +110,7 @@ public class LocalizationTests
     }
 
     [Fact]
-    public void Keeps_enum_prefix_for_lstringkey_mappings()
+    public void Applies_lstringkey_override_to_member_segment()
     {
         Assert.Equal("sampleText.hello", SampleText.Hello.ToLString().Key);
         Assert.Equal("sampleText.ready", SampleText.Ready.ToLString().Key);

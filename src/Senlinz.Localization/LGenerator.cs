@@ -227,7 +227,7 @@ public sealed class LGenerator : IIncrementalGenerator
             candidate = candidate.Substring(enumSegment.Length + UnderscoreLength);
         }
 
-        return candidate;
+        return ToCamelCase(JsonKeyToIdentifier(candidate));
     }
 
     private static IncrementalValuesProvider<((AdditionalText File, string TargetNamespace) Source, string FileName)> GetLocalizationFileProvider(
