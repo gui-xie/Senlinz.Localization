@@ -136,6 +136,22 @@ public class LocalizationTests
     }
 
     [Fact]
+    public void Generates_nested_api_for_nested_json_objects()
+    {
+        var resolver = new LStringResolver(() => "zh", new ZhFullResource());
+
+        Assert.Equal("未找到用户 42。", resolver[L.Exception.User.NotFound("42")]);
+    }
+
+    [Fact]
+    public void Falls_back_to_default_values_for_nested_json_objects()
+    {
+        var resolver = new LStringResolver(() => "en", new ZhFullResource());
+
+        Assert.Equal("User '42' does not exist.", resolver[L.Exception.User.NotFound("42")]);
+    }
+
+    [Fact]
     public void Accepts_resource_provider_directly()
     {
         var provider = new LResourceProvider(new ZhFullResource());

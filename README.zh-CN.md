@@ -109,6 +109,8 @@ Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 - JSON 键会被转换为生成的 C# 成员名。
 - 请保持键名稳定，因为生成的 API 名称依赖这些键。
 - 已经包含下划线的键还会生成保留下划线的兼容别名，因此 `Exception_User_NotFound` 既可以通过 `L.ExceptionUserNotFound(...)` 访问，也可以通过 `L.Exception_User_NotFound(...)` 访问。
+- 嵌套 JSON 对象会生成嵌套访问器，因此 `exception -> user -> notFound` 会生成 `L.Exception.User.NotFound(...)`。
+- 这些嵌套路径在内部会被展平成以下划线连接的资源键，因此上面的示例仍然对应 `Exception_User_NotFound` 这一组生成的资源成员。
 
 ### 占位符参数
 
