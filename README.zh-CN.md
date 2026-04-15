@@ -48,7 +48,31 @@ dotnet add package Senlinz.Localization.Abstractions
 
 ### 创建本地化文件
 
-在项目根目录按语言各放一个 JSON 文件。除非你用 `SenlinzLocalizationFile` 覆盖，默认主文件是 `en.json`。
+把本地化 JSON 放到 `L/` 文件夹下。除非你用 `SenlinzLocalizationFile` 覆盖，默认主文件是 `en.json`。
+
+单模块目录：
+
+```text
+MyProject/
+├── L/
+│   ├── en.json
+│   └── zh.json
+└── MyProject.csproj
+```
+
+多模块目录：
+
+```text
+MyProject/
+├── L/
+│   ├── Identity/
+│   │   ├── en.json
+│   │   └── zh.json
+│   └── Order/
+│       ├── en.json
+│       └── zh.json
+└── MyProject.csproj
+```
 
 ```json
 // en.json
@@ -80,15 +104,14 @@ dotnet add package Senlinz.Localization.Abstractions
 
 ```xml
 <ItemGroup>
-  <AdditionalFiles Include="en.json" />
-  <AdditionalFiles Include="zh.json" />
-  <None Update="en.json" CopyToOutputDirectory="PreserveNewest" />
-  <None Update="zh.json" CopyToOutputDirectory="PreserveNewest" />
+  <AdditionalFiles Include="L\**\*.json" />
+  <None Update="L\**\*.json" CopyToOutputDirectory="PreserveNewest" />
 </ItemGroup>
 ```
 
-- `AdditionalFiles` 让源码生成器在编译期间读取该文件。
+- `AdditionalFiles` 让源码生成器在编译期间读取 `L/` 下的所有本地化文件，包括子目录。
 - `CopyToOutputDirectory` 适用于运行时也希望将 JSON 文件一并输出的场景。
+- `L/` 下的子目录可以用来隔离不同模块。
 
 ### 使用生成代码
 
@@ -171,8 +194,7 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 </PropertyGroup>
 
 <ItemGroup>
-  <AdditionalFiles Include="en.json" />
-  <AdditionalFiles Include="zh.json" />
+  <AdditionalFiles Include="L\**\*.json" />
 </ItemGroup>
 ```
 

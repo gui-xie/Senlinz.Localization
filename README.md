@@ -48,7 +48,31 @@ dotnet add package Senlinz.Localization.Abstractions
 
 ### 1. Create the localization files
 
-Create one JSON file per culture in your project root. `en.json` is the default primary file unless you override it with `SenlinzLocalizationFile`.
+Place localization JSON files under the `L/` folder. `en.json` is the default primary file unless you override it with `SenlinzLocalizationFile`.
+
+Single-module layout:
+
+```text
+MyProject/
+├── L/
+│   ├── en.json
+│   └── zh.json
+└── MyProject.csproj
+```
+
+Multi-module layout:
+
+```text
+MyProject/
+├── L/
+│   ├── Identity/
+│   │   ├── en.json
+│   │   └── zh.json
+│   └── Order/
+│       ├── en.json
+│       └── zh.json
+└── MyProject.csproj
+```
 
 ```json
 // en.json
@@ -80,15 +104,14 @@ Create one JSON file per culture in your project root. `en.json` is the default 
 
 ```xml
 <ItemGroup>
-  <AdditionalFiles Include="en.json" />
-  <AdditionalFiles Include="zh.json" />
-  <None Update="en.json" CopyToOutputDirectory="PreserveNewest" />
-  <None Update="zh.json" CopyToOutputDirectory="PreserveNewest" />
+  <AdditionalFiles Include="L\**\*.json" />
+  <None Update="L\**\*.json" CopyToOutputDirectory="PreserveNewest" />
 </ItemGroup>
 ```
 
-- `AdditionalFiles` lets the source generator read the file during compilation.
+- `AdditionalFiles` lets the source generator read every localization file under `L/`, including subfolders.
 - `CopyToOutputDirectory` is useful when the application also wants to ship the JSON file.
+- Subfolders under `L/` can be used to separate modules.
 
 ### 3. Use generated members
 
@@ -171,8 +194,7 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 </PropertyGroup>
 
 <ItemGroup>
-  <AdditionalFiles Include="en.json" />
-  <AdditionalFiles Include="zh.json" />
+  <AdditionalFiles Include="L\**\*.json" />
 </ItemGroup>
 ```
 
