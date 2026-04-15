@@ -95,7 +95,7 @@ public class LocalizationTests
     [Fact]
     public void Falls_back_to_configured_primary_values_when_resource_is_missing()
     {
-        var resolver = LStringResolver.Create(() => "fr", new EnResource());
+        var resolver = LStringResolver.Create(() => "fr", new EnResource(), new ZhResource());
 
         Assert.Equal("你好", resolver[L.Hello]);
         Assert.Equal("你好，World！", resolver[L.SayHelloTo("World")]);
@@ -169,7 +169,7 @@ public class LocalizationTests
     [Fact]
     public void Falls_back_to_configured_primary_values_for_nested_json_objects()
     {
-        var resolver = LStringResolver.Create(() => "fr", new EnResource());
+        var resolver = LStringResolver.Create(() => "fr", new EnResource(), new ZhResource());
 
         Assert.Equal("未找到用户 42。", resolver[L.Exception.User.NotFound("42")]);
     }
@@ -191,7 +191,7 @@ public class LocalizationTests
     [Fact]
     public void Creates_default_resolver_from_generated_configured_primary_resource()
     {
-        var resolver = LStringResolver.Create(() => "en");
+        var resolver = LStringResolver.Create(() => "fr");
 
         Assert.Equal("你好", resolver[L.Hello]);
         Assert.Equal("你好，Alice！", resolver[L.SayHelloTo("Alice")]);
