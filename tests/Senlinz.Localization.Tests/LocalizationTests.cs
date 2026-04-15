@@ -77,8 +77,8 @@ public class LocalizationTests
         Assert.Equal("zh", zh.Culture);
         Assert.Equal("你好", zh.GetResource()["hello"]);
         Assert.Equal("未找到用户 42。", zh.GetResource()["exception.user.notFound"].Replace("{userId}", "42"));
-        Assert.IsAssignableFrom<IDefaultLResource>(zh);
-        Assert.False(typeof(IDefaultLResource).IsAssignableFrom(typeof(EnResource)));
+        Assert.IsAssignableFrom<IDefaultLResource>(en);
+        Assert.False(typeof(IDefaultLResource).IsAssignableFrom(typeof(ZhResource)));
     }
 
     [Fact]
@@ -97,9 +97,9 @@ public class LocalizationTests
     {
         var resolver = LStringResolver.Create(() => "fr", new EnResource(), new ZhResource());
 
-        Assert.Equal("你好", resolver[L.Hello]);
-        Assert.Equal("你好，World！", resolver[L.SayHelloTo("World")]);
-        Assert.Equal("你好", resolver.Resolve(SampleText.Hello.ToLString()));
+        Assert.Equal("Hello", resolver[L.Hello]);
+        Assert.Equal("Hello World!", resolver[L.SayHelloTo("World")]);
+        Assert.Equal("Hello", resolver.Resolve(SampleText.Hello.ToLString()));
     }
 
     [Fact]
@@ -115,7 +115,7 @@ public class LocalizationTests
         var resolver = LStringResolver.Create(() => "en", new EnResource(), new ZhResource());
 
         Assert.Equal("userType.teacher", UserType.Teacher.ToLString().Key);
-        Assert.Equal("老师", UserType.Teacher.ToLString().DefaultValue);
+        Assert.Equal("Teacher", UserType.Teacher.ToLString().DefaultValue);
         Assert.Equal("Teacher", resolver[UserType.Teacher.ToLString()]);
         Assert.Equal("Student", resolver[UserType.Student.ToLString()]);
     }
@@ -140,8 +140,8 @@ public class LocalizationTests
         var resolver = LStringResolver.Create(() => "en", new PartialEnResource());
 
         Assert.Equal("Hello", resolver[L.Hello]);
-        Assert.Equal("你好，World！", resolver[L.SayHelloTo("World")]);
-        Assert.Equal("就绪", resolver[L.StatusReady]);
+        Assert.Equal("Hello World!", resolver[L.SayHelloTo("World")]);
+        Assert.Equal("Ready", resolver[L.StatusReady]);
     }
 
     [Fact]
@@ -171,7 +171,7 @@ public class LocalizationTests
     {
         var resolver = LStringResolver.Create(() => "fr", new EnResource(), new ZhResource());
 
-        Assert.Equal("未找到用户 42。", resolver[L.Exception.User.NotFound("42")]);
+        Assert.Equal("User '42' does not exist.", resolver[L.Exception.User.NotFound("42")]);
     }
 
     [Fact]
@@ -193,8 +193,8 @@ public class LocalizationTests
     {
         var resolver = LStringResolver.Create(() => "fr");
 
-        Assert.Equal("你好", resolver[L.Hello]);
-        Assert.Equal("你好，Alice！", resolver[L.SayHelloTo("Alice")]);
-        Assert.Equal("未找到用户 42。", resolver[L.Exception.User.NotFound("42")]);
+        Assert.Equal("Hello", resolver[L.Hello]);
+        Assert.Equal("Hello Alice!", resolver[L.SayHelloTo("Alice")]);
+        Assert.Equal("User '42' does not exist.", resolver[L.Exception.User.NotFound("42")]);
     }
 }
