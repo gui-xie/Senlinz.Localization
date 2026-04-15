@@ -6,7 +6,7 @@
     <IsPackable>false</IsPackable>
     <AssemblyName>Senlinz-Localization.Tests</AssemblyName>
     <RootNamespace>Senlinz.Localization.Tests</RootNamespace>
-    <SenlinzLocalizationFile>localization.json</SenlinzLocalizationFile>
+    <SenlinzLocalizationFile>zh.json</SenlinzLocalizationFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,8 +22,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <AdditionalFiles Include="localization.json" />
-    <None Update="localization.json" CopyToOutputDirectory="PreserveNewest" />
+    <AdditionalFiles Include="en.json" />
+    <AdditionalFiles Include="zh.json" />
+    <None Update="en.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="zh.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
