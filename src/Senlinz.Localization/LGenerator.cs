@@ -367,7 +367,10 @@ public sealed class LGenerator : IIncrementalGenerator
         AppendNamespaceStart(source, targetNamespace);
         AppendSummary(source, "    ", $"Generated localization resource for culture '{file.CultureName}'.");
         source.AppendLine($"    [System.CodeDom.Compiler.GeneratedCodeAttribute(\"{ExecutingAssembly.Name}\", \"{ExecutingAssembly.Version}\")]");
-        source.AppendLine($"    public sealed class {file.ResourceClassName} : LResource{(ReferenceEquals(primaryFile, file) ? ", IDefaultLResource" : string.Empty)}");
+        var defaultResourceInterface = string.Equals(primaryFile.FileName, file.FileName, StringComparison.OrdinalIgnoreCase)
+            ? ", IDefaultLResource"
+            : string.Empty;
+        source.AppendLine($"    public sealed class {file.ResourceClassName} : LResource{defaultResourceInterface}");
         source.AppendLine("    {");
         AppendSummary(source, "        ", "Gets the culture name.");
         source.AppendLine($"        public override string Culture => {ToLiteral(file.CultureName)};");
