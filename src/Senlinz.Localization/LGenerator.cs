@@ -49,26 +49,8 @@ public sealed class LGenerator : IIncrementalGenerator
                 CreateResourceSource(sourceContext, targetNamespace, primaryFile, file);
             }
 
-            CreateDynamicResolverInterface(sourceContext, targetNamespace);
             CreateGlobalAliasesSource(sourceContext, targetNamespace);
         });
-    }
-
-    private static void CreateDynamicResolverInterface(SourceProductionContext context, string targetNamespace)
-    {
-        var source = new StringBuilder();
-        source.AppendLine("#nullable enable");
-        source.AppendLine("using Senlinz.Localization;");
-        AppendNamespaceStart(source, targetNamespace);
-        source.AppendLine("    /// <summary>");
-        source.AppendLine("    /// Typed localization resolver contract.");
-        source.AppendLine("    /// </summary>");
-        source.AppendLine("    public interface IL : ILStringResolver");
-        source.AppendLine("    {");
-        source.AppendLine("    }");
-        AppendNamespaceEnd(source, targetNamespace);
-        source.Append("#nullable restore");
-        context.AddSource("IL.g.cs", source.ToString());
     }
 
     private static void AddEnumAttributeSource(IncrementalGeneratorInitializationContext context)
@@ -367,10 +349,13 @@ public sealed class LGenerator : IIncrementalGenerator
         AppendNamespaceStart(source, targetNamespace);
         AppendSummary(source, "    ", $"Generated localization resource for culture '{file.CultureName}'.");
         source.AppendLine($"    [System.CodeDom.Compiler.GeneratedCodeAttribute(\"{ExecutingAssembly.Name}\", \"{ExecutingAssembly.Version}\")]");
-        var defaultResourceInterface = string.Equals(primaryFile.FileName, file.FileName, StringComparison.OrdinalIgnoreCase)
-            ? ", IDefaultLResource"
-            : string.Empty;
-        source.AppendLine($"    public sealed class {file.ResourceClassName} : LResource{defaultResourceInterface}");
+        var implementedInterfaces = new List<string> { "IGeneratedLResource" };
+        if (string.Equals(primaryFile.FileName, file.FileName, StringComparison.OrdinalIgnoreCase))
+        {
+            implementedInterfaces.Add("IDefaultLResource");
+        }
+
+        source.AppendLine($"    internal sealed class {file.ResourceClassName} : LResource, {string.Join(", ", implementedInterfaces)}");
         source.AppendLine("    {");
         AppendSummary(source, "        ", "Gets the culture name.");
         source.AppendLine($"        public override string Culture => {ToLiteral(file.CultureName)};");
@@ -466,7 +451,6 @@ public sealed class LGenerator : IIncrementalGenerator
         source.AppendLine();
         source.AppendLine($"global using L = {targetNamespace}.L;");
         source.AppendLine($"global using LResource = {targetNamespace}.LResource;");
-        source.AppendLine($"global using IL = {targetNamespace}.IL;");
         source.Append("#nullable restore");
         context.AddSource("LAliases.g.cs", source.ToString());
     }

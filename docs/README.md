@@ -50,27 +50,13 @@ dotnet add package Senlinz.Localization.Abstractions
 
 Place localization JSON files under the `L/` folder. `en.json` is the default primary file unless you override it with `SenlinzLocalizationFile`.
 
-Single-module layout:
+Example layout:
 
 ```text
 MyProject/
 ├── L/
 │   ├── en.json
 │   └── zh.json
-└── MyProject.csproj
-```
-
-Multi-module layout:
-
-```text
-MyProject/
-├── L/
-│   ├── Identity/
-│   │   ├── en.json
-│   │   └── zh.json
-│   └── Order/
-│       ├── en.json
-│       └── zh.json
 └── MyProject.csproj
 ```
 
@@ -104,14 +90,12 @@ MyProject/
 
 ```xml
 <ItemGroup>
-  <AdditionalFiles Include="L\**\*.json" />
-  <None Update="L\**\*.json" CopyToOutputDirectory="PreserveNewest" />
+  <AdditionalFiles Include="L/*.json" />
 </ItemGroup>
 ```
 
-- `AdditionalFiles` lets the source generator read every localization file under `L/`, including subfolders.
-- `CopyToOutputDirectory` is useful when the application also wants to ship the JSON file.
-- Subfolders under `L/` can be used to separate modules.
+- `AdditionalFiles` lets the source generator read the localization files under `L/`.
+- If you later place files into subfolders, just widen the glob pattern; folders do not affect the generated namespace.
 
 ### 3. Use generated members
 
@@ -131,17 +115,14 @@ Console.WriteLine(L.SayHelloTo("World"));
 using Senlinz.Localization;
 
 var currentCulture = "zh";
-var resolver = LStringResolver.Create(
-    () => currentCulture,
-    new EnResource(),
-    new ZhResource());
+var resolver = LStringResolver.Create(() => currentCulture);
 
 Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 ```
 
-- Pass generated resources directly to `LStringResolver.Create(...)` for the common case.
-- If you only want to use the primary JSON values, call `LStringResolver.Create(() => currentCulture)`.
+- `LStringResolver.Create(() => currentCulture)` loads generated resources automatically for the common case.
+- If you need runtime overrides, pass your own `LResource` instances to the overload that accepts resources explicitly.
 
 ## Localization file rules
 
@@ -194,7 +175,7 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 </PropertyGroup>
 
 <ItemGroup>
-  <AdditionalFiles Include="L\**\*.json" />
+  <AdditionalFiles Include="L/*.json" />
 </ItemGroup>
 ```
 
@@ -208,8 +189,8 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 ### `LResource`
 
 - `LResource` is a generated abstract base class with one protected abstract member per top-level key from the primary JSON file.
-- The generator also emits one concrete `*Resource` class per discovered culture JSON file, such as `EnResource` and `ZhResource`.
-- The primary file's generated resource is used automatically by `LStringResolver.Create(() => currentCulture)`.
+- The generator also emits one concrete internal `*Resource` class per discovered culture JSON file, such as `EnResource` and `ZhResource`.
+- `LStringResolver.Create(() => currentCulture)` loads the generated resources from the assembly automatically.
 - You can still derive your own custom resources from `LResource` when you need overrides at runtime.
 
 ### `LString`
@@ -225,17 +206,13 @@ Use `LStringResolver` to resolve text for the current culture. For most applicat
 using Senlinz.Localization;
 
 var currentCulture = "zh";
-var resolver = LStringResolver.Create(() => currentCulture, new EnResource(), new ZhResource());
+var resolver = LStringResolver.Create(() => currentCulture);
 
 Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 ```
 
-If you want to resolve only the generated primary resource values, use:
-
-```csharp
-var resolver = LStringResolver.Create(() => currentCulture);
-```
+If you need runtime overrides, derive from `LResource` and pass your own resources explicitly.
 
 You can also call the extension method:
 
@@ -374,7 +351,7 @@ public enum UserType
 using Senlinz.Localization;
 
 var currentCulture = "zh";
-var resolver = LStringResolver.Create(() => currentCulture, new EnResource(), new ZhResource());
+var resolver = LStringResolver.Create(() => currentCulture);
 
 Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);

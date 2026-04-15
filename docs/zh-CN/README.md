@@ -50,27 +50,13 @@ dotnet add package Senlinz.Localization.Abstractions
 
 把本地化 JSON 放到 `L/` 文件夹下。除非你用 `SenlinzLocalizationFile` 覆盖，默认主文件是 `en.json`。
 
-单模块目录：
+示例目录：
 
 ```text
 MyProject/
 ├── L/
 │   ├── en.json
 │   └── zh.json
-└── MyProject.csproj
-```
-
-多模块目录：
-
-```text
-MyProject/
-├── L/
-│   ├── Identity/
-│   │   ├── en.json
-│   │   └── zh.json
-│   └── Order/
-│       ├── en.json
-│       └── zh.json
 └── MyProject.csproj
 ```
 
@@ -104,14 +90,12 @@ MyProject/
 
 ```xml
 <ItemGroup>
-  <AdditionalFiles Include="L\**\*.json" />
-  <None Update="L\**\*.json" CopyToOutputDirectory="PreserveNewest" />
+  <AdditionalFiles Include="L/*.json" />
 </ItemGroup>
 ```
 
-- `AdditionalFiles` 让源码生成器在编译期间读取 `L/` 下的所有本地化文件，包括子目录。
-- `CopyToOutputDirectory` 适用于运行时也希望将 JSON 文件一并输出的场景。
-- `L/` 下的子目录可以用来隔离不同模块。
+- `AdditionalFiles` 让源码生成器在编译期间读取 `L/` 下的本地化文件。
+- 如果后续放到子目录，只需要放宽 glob；文件夹不会影响生成的命名空间。
 
 ### 使用生成代码
 
@@ -131,17 +115,14 @@ Console.WriteLine(L.SayHelloTo("World"));
 using Senlinz.Localization;
 
 var currentCulture = "zh";
-var resolver = LStringResolver.Create(
-    () => currentCulture,
-    new EnResource(),
-    new ZhResource());
+var resolver = LStringResolver.Create(() => currentCulture);
 
 Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 ```
 
-- 常见场景下，直接把生成的资源实例传给 `LStringResolver.Create(...)` 即可。
-- 如果你只想直接使用主 JSON 文件里的默认文本，可以调用 `LStringResolver.Create(() => currentCulture)`。
+- 常见场景下，`LStringResolver.Create(() => currentCulture)` 会自动加载生成的资源。
+- 如果你需要运行时覆盖，可以改用接收显式资源参数的重载并传入自定义 `LResource`。
 
 ## 本地化文件规则
 
@@ -194,7 +175,7 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 </PropertyGroup>
 
 <ItemGroup>
-  <AdditionalFiles Include="L\**\*.json" />
+  <AdditionalFiles Include="L/*.json" />
 </ItemGroup>
 ```
 
@@ -208,8 +189,8 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 ### `LResource`
 
 - `LResource` 是自动生成的抽象基类，主 JSON 文件中的每个顶层键都会对应一个受保护的抽象成员。
-- 生成器还会为每个发现的语言 JSON 自动生成一个具体的 `*Resource` 类，例如 `EnResource`、`ZhResource`。
-- 主文件对应的生成资源会被 `LStringResolver.Create(() => currentCulture)` 自动当作默认资源使用。
+- 生成器还会为每个发现的语言 JSON 自动生成一个具体的 internal `*Resource` 类，例如 `EnResource`、`ZhResource`。
+- `LStringResolver.Create(() => currentCulture)` 会自动从程序集加载这些生成资源。
 - 如果你需要运行时覆盖，仍然可以继续手写派生自 `LResource` 的自定义资源类。
 
 ### `LString`
@@ -225,17 +206,13 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 using Senlinz.Localization;
 
 var currentCulture = "zh";
-var resolver = LStringResolver.Create(() => currentCulture, new EnResource(), new ZhResource());
+var resolver = LStringResolver.Create(() => currentCulture);
 
 Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 ```
 
-如果你只想解析生成的主资源默认值，可以直接调用：
-
-```csharp
-var resolver = LStringResolver.Create(() => currentCulture);
-```
+如果你需要运行时覆盖，可以继承 `LResource` 后通过显式资源重载传入自定义资源。
 
 也可以使用扩展方法：
 
@@ -374,7 +351,7 @@ public enum UserType
 using Senlinz.Localization;
 
 var currentCulture = "zh";
-var resolver = LStringResolver.Create(() => currentCulture, new EnResource(), new ZhResource());
+var resolver = LStringResolver.Create(() => currentCulture);
 
 Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);

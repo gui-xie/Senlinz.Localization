@@ -39,14 +39,14 @@ public class LStringResolver(GetCulture getCulture, GetCultureResource getCultur
         new(getCulture, CreateCultureResource(resources));
 
     /// <summary>
-    /// Creates a resolver that uses the generated primary resource discovered from loaded assemblies.
+    /// Creates a resolver that uses generated resources discovered from loaded assemblies.
     /// </summary>
     [MethodImpl(MethodImplOptions.NoInlining)]
     public static LStringResolver Create(GetCulture getCulture) =>
         Create(getCulture, DefaultResourceFactory.GetDefaultAssembly());
 
     /// <summary>
-    /// Creates a resolver that uses the generated primary resource from the provided assembly.
+    /// Creates a resolver that uses generated resources from the provided assembly.
     /// </summary>
     public static LStringResolver Create(GetCulture getCulture, Assembly assembly)
     {
@@ -60,8 +60,8 @@ public class LStringResolver(GetCulture getCulture, GetCultureResource getCultur
             throw new ArgumentNullException(nameof(assembly));
         }
 
-        var resource = DefaultResourceFactory.Create(assembly);
-        return new LStringResolver(getCulture, _ => resource.GetResource());
+        var resources = DefaultResourceFactory.CreateAll(assembly);
+        return new LStringResolver(getCulture, CreateCultureResource(resources));
     }
 
     internal static GetCultureResource CreateCultureResource(params ILResource[] resources)
@@ -104,7 +104,7 @@ public sealed class LStringResolver<T>(GetCulture getCulture, GetCultureResource
         new(getCulture, CreateCultureResource(resources));
 
     /// <summary>
-    /// Creates a resolver that uses the generated primary resource from the marker type assembly.
+    /// Creates a resolver that uses generated resources from the marker type assembly.
     /// </summary>
     public static new LStringResolver<T> Create(GetCulture getCulture)
     {
@@ -113,8 +113,8 @@ public sealed class LStringResolver<T>(GetCulture getCulture, GetCultureResource
             throw new ArgumentNullException(nameof(getCulture));
         }
 
-        var resource = DefaultResourceFactory.Create(typeof(T).Assembly);
-        return new LStringResolver<T>(getCulture, _ => resource.GetResource());
+        var resources = DefaultResourceFactory.CreateAll(typeof(T).Assembly);
+        return new LStringResolver<T>(getCulture, CreateCultureResource(resources));
     }
 }
 
@@ -136,16 +136,19 @@ internal static class DefaultResourceFactory
         };
     }
 
-    public static ILResource Create(Assembly assembly)
+    public static ILResource[] CreateAll(Assembly assembly)
     {
-        var candidates = GetDefaultResourceTypes(assembly);
+        var candidates = GetGeneratedResourceTypes(assembly);
 
-        return candidates.Length switch
+        if (candidates.Length == 0)
         {
-            1 => CreateInstance(candidates[0]),
-            0 => throw new InvalidOperationException($"No generated primary localization resource was found in assembly '{assembly.FullName}'."),
-            _ => throw new InvalidOperationException($"Multiple generated primary localization resources were found in assembly '{assembly.FullName}'. Use LStringResolver<T>.Create with a marker type from the desired localization namespace."),
-        };
+            throw new InvalidOperationException($"No generated localization resources were found in assembly '{assembly.FullName}'.");
+        }
+
+        return candidates
+            .OrderBy(static type => type.FullName, StringComparer.Ordinal)
+            .Select(CreateInstance)
+            .ToArray();
     }
 
     private static bool HasDefaultResource(Assembly assembly) => GetDefaultResourceTypes(assembly).Length > 0;
@@ -159,7 +162,16 @@ internal static class DefaultResourceFactory
                 typeof(ILResource).IsAssignableFrom(type))
             .ToArray();
 
+    private static Type[] GetGeneratedResourceTypes(Assembly assembly) =>
+        assembly
+            .GetTypes()
+            .Where(static type =>
+                type is { IsAbstract: false, IsClass: true } &&
+                typeof(IGeneratedLResource).IsAssignableFrom(type) &&
+                typeof(ILResource).IsAssignableFrom(type))
+            .ToArray();
+
     private static ILResource CreateInstance(Type type) =>
-        Activator.CreateInstance(type) as ILResource
-        ?? throw new InvalidOperationException($"Unable to create generated primary resource '{type.FullName}'.");
+        Activator.CreateInstance(type, nonPublic: true) as ILResource
+        ?? throw new InvalidOperationException($"Unable to create generated localization resource '{type.FullName}'.");
 }
