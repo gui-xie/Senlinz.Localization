@@ -1,6 +1,6 @@
 # Senlinz.Localization
 
-**English** | [Chinese](./README.zh-CN.md)
+**English** | [Chinese](./zh-CN/README.md)
 
 A JSON-driven localization source generator for .NET that generates strongly typed localization accessors, resource base classes, and enum-to-localization helpers.
 

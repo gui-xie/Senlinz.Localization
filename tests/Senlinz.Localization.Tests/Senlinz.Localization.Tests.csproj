@@ -6,6 +6,7 @@
     <IsPackable>false</IsPackable>
     <AssemblyName>Senlinz-Localization.Tests</AssemblyName>
     <RootNamespace>Senlinz.Localization.Tests</RootNamespace>
+    <!-- Uses a non-default primary file so the tests cover SenlinzLocalizationFile selection. -->
     <SenlinzLocalizationFile>zh.json</SenlinzLocalizationFile>
   </PropertyGroup>
 
