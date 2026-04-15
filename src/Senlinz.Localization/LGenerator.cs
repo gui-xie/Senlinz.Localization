@@ -32,26 +32,23 @@ public sealed class LGenerator : IIncrementalGenerator
 
     private static void AddJsonLocalizationSource(IncrementalGeneratorInitializationContext context)
     {
-        context.RegisterSourceOutput(GetLocalizationFileProvider(context), (sourceContext, pair) =>
+        context.RegisterSourceOutput(GetLocalizationStateProvider(context), (sourceContext, state) =>
         {
-            var file = pair.Source.File;
-            var targetNamespace = pair.Source.TargetNamespace;
-            var configuredFileName = pair.FileName;
-
-            if (targetNamespace is null || !file.Path.EndsWith(configuredFileName, StringComparison.OrdinalIgnoreCase))
+            if (state.PrimaryFile is null)
             {
                 return;
             }
 
-            var jsonText = file.GetText()?.ToString() ?? string.Empty;
-            if (!TryParseLocalizationEntries(jsonText, out var entries))
-            {
-                return;
-            }
-
-            var infos = GetLStringInfos(entries);
+            var targetNamespace = state.TargetNamespace;
+            var primaryFile = state.PrimaryFile;
+            var infos = primaryFile.Infos;
             CreateLSource(sourceContext, targetNamespace, infos);
-            CreateLResourceSource(sourceContext, targetNamespace, infos);
+            CreateLResourceBaseSource(sourceContext, targetNamespace, infos);
+            foreach (var file in state.Files)
+            {
+                CreateResourceSource(sourceContext, targetNamespace, primaryFile, file);
+            }
+
             CreateDynamicResolverInterface(sourceContext, targetNamespace);
             CreateGlobalAliasesSource(sourceContext, targetNamespace);
         });
@@ -76,36 +73,21 @@ public sealed class LGenerator : IIncrementalGenerator
 
     private static void AddEnumAttributeSource(IncrementalGeneratorInitializationContext context)
     {
-        var localizationInfosProvider = GetLocalizationFileProvider(context)
-            .Select(static (pair, _) =>
-            {
-                var file = pair.Source.File;
-                var targetNamespace = pair.Source.TargetNamespace;
-                var configuredFileName = pair.FileName;
-
-                if (targetNamespace is null || !file.Path.EndsWith(configuredFileName, StringComparison.OrdinalIgnoreCase))
-                {
-                    return ImmutableArray<LStringInfo>.Empty;
-                }
-
-                var jsonText = file.GetText()?.ToString() ?? string.Empty;
-                return TryParseLocalizationEntries(jsonText, out var entries)
-                    ? GetLStringInfos(entries).ToImmutableArray()
-                    : ImmutableArray<LStringInfo>.Empty;
-            });
+        var localizationInfosProvider = GetLocalizationStateProvider(context)
+            .Select(static (state, _) => state.PrimaryFile?.Infos ?? ImmutableArray<LStringInfo>.Empty);
 
         var enumProviders = context.SyntaxProvider.ForAttributeWithMetadataName(
                 LStringAttributeName,
                 static (node, _) => node is EnumDeclarationSyntax,
                 static (syntaxContext, _) => (Symbol: (INamedTypeSymbol)syntaxContext.TargetSymbol, Syntax: (EnumDeclarationSyntax)syntaxContext.TargetNode));
 
-        context.RegisterSourceOutput(enumProviders.Combine(localizationInfosProvider.Collect()), (sourceContext, pair) =>
+        context.RegisterSourceOutput(enumProviders.Combine(localizationInfosProvider), (sourceContext, pair) =>
         {
             var enumInfo = pair.Left;
             var enumSymbol = enumInfo.Symbol;
             var enumSyntax = enumInfo.Syntax;
             var enumFields = enumSyntax.Members;
-            var infos = pair.Right.SelectMany(static item => item).ToArray();
+            var infos = pair.Right;
             if (enumFields.Count == 0)
             {
                 return;
@@ -230,18 +212,67 @@ public sealed class LGenerator : IIncrementalGenerator
         return ToCamelCase(JsonKeyToIdentifier(candidate));
     }
 
-    private static IncrementalValuesProvider<((AdditionalText File, string TargetNamespace) Source, string FileName)> GetLocalizationFileProvider(
-        IncrementalGeneratorInitializationContext context) =>
+    private static IncrementalValueProvider<LocalizationGenerationState> GetLocalizationStateProvider(IncrementalGeneratorInitializationContext context) =>
+        GetLocalizationFilesProvider(context)
+            .Collect()
+            .Combine(GetTargetNamespaceProvider(context))
+            .Combine(context.AnalyzerConfigOptionsProvider.Select(static (provider, _) => GetLocalizationFileName(provider)))
+            .Select(static (values, _) => CreateLocalizationGenerationState(values.Left.Left, values.Left.Right, values.Right));
+
+    private static IncrementalValuesProvider<LocalizationFileModel> GetLocalizationFilesProvider(IncrementalGeneratorInitializationContext context) =>
         context.AdditionalTextsProvider
-            .Combine(
-                context.CompilationProvider.Select(static (compilation, _) => compilation.AssemblyName)
-                    .Combine(context.AnalyzerConfigOptionsProvider.Select(static (provider, _) =>
-                    {
-                        provider.GlobalOptions.TryGetValue(RootNamespaceProperty, out var rootNamespace);
-                        return rootNamespace;
-                    }))
-                    .Select(static (values, _) => ResolveTargetNamespace(values.Left, values.Right)))
-            .Combine(context.AnalyzerConfigOptionsProvider.Select(static (provider, _) => GetLocalizationFileName(provider)));
+            .Where(static file => IsLocalizationJsonFile(file.Path))
+            .Select(static (file, _) => ParseLocalizationFile(file))
+            .Where(static file => file is not null)
+            .Select(static (file, _) => file!);
+
+    private static IncrementalValueProvider<string> GetTargetNamespaceProvider(IncrementalGeneratorInitializationContext context) =>
+        context.CompilationProvider.Select(static (compilation, _) => compilation.AssemblyName)
+            .Combine(context.AnalyzerConfigOptionsProvider.Select(static (provider, _) =>
+            {
+                provider.GlobalOptions.TryGetValue(RootNamespaceProperty, out var rootNamespace);
+                return rootNamespace;
+            }))
+            .Select(static (values, _) => ResolveTargetNamespace(values.Left, values.Right));
+
+    private static LocalizationGenerationState CreateLocalizationGenerationState(
+        ImmutableArray<LocalizationFileModel> files,
+        string targetNamespace,
+        string primaryFileName)
+    {
+        var orderedFiles = files
+            .OrderBy(static file => file.FileName, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(static file => file.Path, StringComparer.OrdinalIgnoreCase)
+            .ToImmutableArray();
+        var primaryFile = orderedFiles.FirstOrDefault(file => string.Equals(file.FileName, primaryFileName, StringComparison.OrdinalIgnoreCase));
+        return new LocalizationGenerationState(targetNamespace, orderedFiles, primaryFile);
+    }
+
+    private static bool IsLocalizationJsonFile(string path) =>
+        string.Equals(Path.GetExtension(path), ".json", StringComparison.OrdinalIgnoreCase);
+
+    private static LocalizationFileModel? ParseLocalizationFile(AdditionalText file)
+    {
+        var fileName = Path.GetFileName(file.Path);
+        var cultureName = Path.GetFileNameWithoutExtension(file.Path);
+        if (string.IsNullOrWhiteSpace(fileName) || string.IsNullOrWhiteSpace(cultureName))
+        {
+            return null;
+        }
+
+        var jsonText = file.GetText()?.ToString() ?? string.Empty;
+        if (!TryParseLocalizationEntries(jsonText, out var entries))
+        {
+            return null;
+        }
+
+        return new LocalizationFileModel(
+            file.Path,
+            fileName,
+            cultureName,
+            GetResourceClassName(cultureName),
+            GetLStringInfos(entries).ToImmutableArray());
+    }
 
     private static string GetLocalizationFileName(AnalyzerConfigOptionsProvider provider)
     {
@@ -250,10 +281,41 @@ public sealed class LGenerator : IIncrementalGenerator
             return fileName;
         }
 
-        return "l.json";
+        return "en.json";
     }
 
-    private static void CreateLResourceSource(SourceProductionContext context, string targetNamespace, IReadOnlyCollection<LStringInfo> infos)
+    private static string GetResourceClassName(string cultureName)
+    {
+        var builder = new StringBuilder();
+        foreach (var segment in Regex.Split(cultureName, "[^A-Za-z0-9_]+"))
+        {
+            if (string.IsNullOrWhiteSpace(segment))
+            {
+                continue;
+            }
+
+            var identifier = JsonKeyToIdentifier(segment);
+            if (string.IsNullOrWhiteSpace(identifier) || identifier == "_")
+            {
+                continue;
+            }
+
+            builder.Append(char.ToUpperInvariant(identifier[0]));
+            if (identifier.Length > 1)
+            {
+                builder.Append(identifier.Substring(1));
+            }
+        }
+
+        if (builder.Length == 0)
+        {
+            builder.Append("Localization");
+        }
+
+        return $"{builder}Resource";
+    }
+
+    private static void CreateLResourceBaseSource(SourceProductionContext context, string targetNamespace, IReadOnlyCollection<LStringInfo> infos)
     {
         var source = new StringBuilder();
         source.AppendLine("#nullable enable");
@@ -286,37 +348,57 @@ public sealed class LGenerator : IIncrementalGenerator
 
         source.AppendLine("        };");
         source.AppendLine("    }");
-        source.AppendLine();
-        source.AppendLine("    /// <summary>");
-        source.AppendLine("    /// Default generated resource backed by l.json values.");
-        source.AppendLine("    /// </summary>");
-        source.AppendLine("    public sealed class LDefaultResource : LResource");
-        source.AppendLine("    {");
-        AppendSummary(source, "        ", "Gets the default culture marker.");
-        source.AppendLine("        public override string Culture => string.Empty;");
-
-        foreach (var info in infos.Where(static item => item.PathSegments.Count == 1))
-        {
-            source.AppendLine();
-            AppendSummary(source, "        ", info.DefaultValue);
-            source.AppendLine($"        protected override string {info.KeyProperty} => {ToLiteral(info.DefaultValue)};");
-        }
-
-        source.AppendLine();
-        AppendSummary(source, "        ", "Gets the default resource dictionary.");
-        source.AppendLine("        public override Dictionary<string, string> GetResource() => new()");
-        source.AppendLine("        {");
-        foreach (var info in infos)
-        {
-            var valueExpression = info.PathSegments.Count == 1 ? info.KeyProperty : ToLiteral(info.DefaultValue);
-            source.AppendLine($"            {{ {ToLiteral(info.Key)}, {valueExpression} }},");
-        }
-
-        source.AppendLine("        };");
-        source.AppendLine("    }");
         AppendNamespaceEnd(source, targetNamespace);
         source.Append("#nullable restore");
         context.AddSource("LResource.g.cs", source.ToString());
+    }
+
+    private static void CreateResourceSource(
+        SourceProductionContext context,
+        string targetNamespace,
+        LocalizationFileModel primaryFile,
+        LocalizationFileModel file)
+    {
+        var source = new StringBuilder();
+        var values = file.Infos.ToDictionary(static info => info.Key, static info => info.DefaultValue, StringComparer.Ordinal);
+        source.AppendLine("#nullable enable");
+        source.AppendLine("using Senlinz.Localization;");
+        source.AppendLine("using System.Collections.Generic;");
+        AppendNamespaceStart(source, targetNamespace);
+        AppendSummary(source, "    ", $"Generated localization resource for culture '{file.CultureName}'.");
+        source.AppendLine($"    [System.CodeDom.Compiler.GeneratedCodeAttribute(\"{ExecutingAssembly.Name}\", \"{ExecutingAssembly.Version}\")]");
+        var defaultResourceInterface = string.Equals(primaryFile.FileName, file.FileName, StringComparison.OrdinalIgnoreCase)
+            ? ", IDefaultLResource"
+            : string.Empty;
+        source.AppendLine($"    public sealed class {file.ResourceClassName} : LResource{defaultResourceInterface}");
+        source.AppendLine("    {");
+        AppendSummary(source, "        ", "Gets the culture name.");
+        source.AppendLine($"        public override string Culture => {ToLiteral(file.CultureName)};");
+
+        foreach (var info in primaryFile.Infos.Where(static item => item.PathSegments.Count == 1))
+        {
+            source.AppendLine();
+            values.TryGetValue(info.Key, out var localizedValue);
+            AppendSummary(source, "        ", localizedValue ?? string.Empty);
+            source.AppendLine($"        protected override string {info.KeyProperty} => {ToLiteral(localizedValue ?? string.Empty)};");
+        }
+
+        source.AppendLine();
+        AppendSummary(source, "        ", "Gets the generated resource dictionary.");
+        source.AppendLine("        public override Dictionary<string, string> GetResource()");
+        source.AppendLine("        {");
+        source.AppendLine("            var resource = base.GetResource();");
+        foreach (var info in file.Infos)
+        {
+            source.AppendLine($"            resource[{ToLiteral(info.Key)}] = {ToLiteral(info.DefaultValue)};");
+        }
+
+        source.AppendLine("            return resource;");
+        source.AppendLine("        }");
+        source.AppendLine("    }");
+        AppendNamespaceEnd(source, targetNamespace);
+        source.Append("#nullable restore");
+        context.AddSource($"{file.ResourceClassName}.g.cs", source.ToString());
     }
 
     private static void CreateLSource(SourceProductionContext context, string targetNamespace, IReadOnlyCollection<LStringInfo> infos)
@@ -384,7 +466,6 @@ public sealed class LGenerator : IIncrementalGenerator
         source.AppendLine();
         source.AppendLine($"global using L = {targetNamespace}.L;");
         source.AppendLine($"global using LResource = {targetNamespace}.LResource;");
-        source.AppendLine($"global using LDefaultResource = {targetNamespace}.LDefaultResource;");
         source.AppendLine($"global using IL = {targetNamespace}.IL;");
         source.Append("#nullable restore");
         context.AddSource("LAliases.g.cs", source.ToString());
@@ -781,6 +862,49 @@ public sealed class LGenerator : IIncrementalGenerator
         public string Value { get; }
 
         public IReadOnlyList<string> PathSegments { get; }
+    }
+
+    private sealed class LocalizationFileModel
+    {
+        public LocalizationFileModel(
+            string path,
+            string fileName,
+            string cultureName,
+            string resourceClassName,
+            ImmutableArray<LStringInfo> infos)
+        {
+            Path = path;
+            FileName = fileName;
+            CultureName = cultureName;
+            ResourceClassName = resourceClassName;
+            Infos = infos;
+        }
+
+        public string Path { get; }
+
+        public string FileName { get; }
+
+        public string CultureName { get; }
+
+        public string ResourceClassName { get; }
+
+        public ImmutableArray<LStringInfo> Infos { get; }
+    }
+
+    private sealed class LocalizationGenerationState
+    {
+        public LocalizationGenerationState(string targetNamespace, ImmutableArray<LocalizationFileModel> files, LocalizationFileModel? primaryFile)
+        {
+            TargetNamespace = targetNamespace;
+            Files = files;
+            PrimaryFile = primaryFile;
+        }
+
+        public string TargetNamespace { get; }
+
+        public ImmutableArray<LocalizationFileModel> Files { get; }
+
+        public LocalizationFileModel? PrimaryFile { get; }
     }
 
     private sealed class NestedLApiNode

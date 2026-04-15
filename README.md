@@ -20,8 +20,8 @@ Supports .NET 6 and newer consumer projects.
 
 ## Features
 
-- Generate `L` accessors from `l.json`.
-- Generate `LResource` base classes for culture-specific resource implementations.
+- Generate `L` accessors from a primary culture JSON file.
+- Generate `LResource` plus one concrete resource class for every discovered culture JSON file.
 - Resolve localized text through `LString`, `LStringResolver`, and generated `LResource` types.
 - Convert enum values to localization keys with `[LString]` and `[LStringKey]`.
 - Publish `Senlinz.Localization` and `Senlinz.Localization.Abstractions` as separate NuGet packages with a shared embedded package icon.
@@ -46,11 +46,12 @@ dotnet add package Senlinz.Localization.Abstractions
 
 ## Quick start
 
-### 1. Create the localization file
+### 1. Create the localization files
 
-Create `l.json` in your project root.
+Create one JSON file per culture in your project root. `en.json` is the default primary file unless you override it with `SenlinzLocalizationFile`.
 
 ```json
+// en.json
 {
   "hello": "Hello",
   "sayHelloTo": "Hello {name}!",
@@ -62,12 +63,27 @@ Create `l.json` in your project root.
 }
 ```
 
-### 2. Register the file in the project
+```json
+// zh.json
+{
+  "hello": "你好",
+  "sayHelloTo": "你好，{name}！",
+  "statusReady": "就绪",
+  "userType": {
+    "teacher": "老师",
+    "student": "学生"
+  }
+}
+```
+
+### 2. Register the files in the project
 
 ```xml
 <ItemGroup>
-  <AdditionalFiles Include="l.json" />
-  <None Update="l.json" CopyToOutputDirectory="PreserveNewest" />
+  <AdditionalFiles Include="en.json" />
+  <AdditionalFiles Include="zh.json" />
+  <None Update="en.json" CopyToOutputDirectory="PreserveNewest" />
+  <None Update="zh.json" CopyToOutputDirectory="PreserveNewest" />
 </ItemGroup>
 ```
 
@@ -86,7 +102,7 @@ Console.WriteLine(L.SayHelloTo("World"));
 - `hello` becomes `L.Hello`.
 - `sayHelloTo` becomes `L.SayHelloTo(string name)`.
 
-### 4. Create culture resources and resolve text
+### 4. Use generated culture resources and resolve text
 
 ```csharp
 using Senlinz.Localization;
@@ -101,8 +117,8 @@ Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 ```
 
-- Pass resources directly to `LStringResolver.Create(...)` for the common case.
-- If you only want to use the default text from `l.json`, call `LStringResolver.Create(() => currentCulture)`.
+- Pass generated resources directly to `LStringResolver.Create(...)` for the common case.
+- If you only want to use the primary JSON values, call `LStringResolver.Create(() => currentCulture)`.
 
 ## Localization file rules
 
@@ -145,18 +161,18 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 
 - The generated default text becomes `Use {name} as a placeholder in your template.`
 
-### Custom file name
+### Primary localization file
 
-If you do not want to use `l.json`, set `SenlinzLocalizationFile` in your project file.
+`SenlinzLocalizationFile` selects which JSON file generates `L` and which generated resource acts as the default resource. The default is `en.json`.
 
 ```xml
 <PropertyGroup>
-  <SenlinzLocalizationFile>localization.json</SenlinzLocalizationFile>
+  <SenlinzLocalizationFile>zh.json</SenlinzLocalizationFile>
 </PropertyGroup>
 
 <ItemGroup>
-  <AdditionalFiles Include="localization.json" />
-  <None Update="localization.json" CopyToOutputDirectory="PreserveNewest" />
+  <AdditionalFiles Include="en.json" />
+  <AdditionalFiles Include="zh.json" />
 </ItemGroup>
 ```
 
@@ -169,42 +185,10 @@ If you do not want to use `l.json`, set `SenlinzLocalizationFile` in your projec
 
 ### `LResource`
 
-- `LResource` is a generated abstract base class with one protected abstract member per top-level localization key.
-- `LDefaultResource` is generated alongside it and provides the default values from `l.json`.
-- Implement one derived class per culture and fill in each generated member, which makes IDE override completion straightforward.
-
-Example:
-
-```csharp
-using Senlinz.Localization;
-
-public sealed class EnResource : LResource
-{
-    public override string Culture => "en";
-
-    protected override string Hello => "Hello";
-    protected override string SayHelloTo => "Hello {name}!";
-    protected override string StatusReady => "Ready";
-}
-
-public sealed class ZhResource : LResource
-{
-    public override string Culture => "zh";
-
-    protected override string Hello => "你好";
-    protected override string SayHelloTo => "你好 {name}！";
-    protected override string StatusReady => "就绪";
-}
-
-public sealed class FrResource : LResource
-{
-    public override string Culture => "fr";
-
-    protected override string Hello => "Bonjour";
-    protected override string SayHelloTo => "Bonjour {name} !";
-    protected override string StatusReady => "Prêt";
-}
-```
+- `LResource` is a generated abstract base class with one protected abstract member per top-level key from the primary JSON file.
+- The generator also emits one concrete `*Resource` class per discovered culture JSON file, such as `EnResource` and `ZhResource`.
+- The primary file's generated resource is used automatically by `LStringResolver.Create(() => currentCulture)`.
+- You can still derive your own custom resources from `LResource` when you need overrides at runtime.
 
 ### `LString`
 
@@ -225,7 +209,7 @@ Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 ```
 
-If you want to resolve only the default `l.json` values, use the generated default resource factory:
+If you want to resolve only the generated primary resource values, use:
 
 ```csharp
 var resolver = LStringResolver.Create(() => currentCulture);
@@ -239,7 +223,7 @@ var text = resolver.Resolve(L.Hello);
 
 ### Fallback behavior
 
-- If no resource exists for the current culture, the default text from `l.json` is used.
+- If no resource exists for the current culture, the default text from the primary JSON file is used.
 - If a resource exists but does not contain a key, the default text is also used.
 - Resource dictionaries are cached per resolver instance and culture.
 
@@ -325,7 +309,7 @@ Console.WriteLine(resolver[text]);
 
 ## End-to-end example
 
-### `l.json`
+### `en.json`
 
 ```json
 {
@@ -334,6 +318,19 @@ Console.WriteLine(resolver[text]);
   "userType": {
     "teacher": "Teacher",
     "student": "Student"
+  }
+}
+```
+
+### `zh.json`
+
+```json
+{
+  "hello": "你好",
+  "sayHelloTo": "你好，{name}！",
+  "userType": {
+    "teacher": "老师",
+    "student": "学生"
   }
 }
 ```
@@ -349,36 +346,17 @@ public enum UserType
 }
 ```
 
-### Resources and resolver
+### Resolver
 
 ```csharp
 using Senlinz.Localization;
 
 var currentCulture = "zh";
-var resolver = LStringResolver.Create(() => currentCulture, new ZhResource());
+var resolver = LStringResolver.Create(() => currentCulture, new EnResource(), new ZhResource());
 
 Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 Console.WriteLine(resolver[UserType.Student.ToLString()]);
-
-public sealed class ZhResource : LResource
-{
-    private const string UserTypeTeacherKey = "userType.teacher";
-    private const string UserTypeStudentKey = "userType.student";
-
-    public override string Culture => "zh";
-
-    protected override string Hello => "你好";
-    protected override string SayHelloTo => "你好，{name}！";
-
-    public override Dictionary<string, string> GetResource()
-    {
-        var resource = base.GetResource();
-        resource[UserTypeTeacherKey] = "老师";
-        resource[UserTypeStudentKey] = "学生";
-        return resource;
-    }
-}
 ```
 
 Expected output:

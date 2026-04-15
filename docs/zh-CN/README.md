@@ -17,12 +17,11 @@
 - [解析本地化值](#解析本地化值)
 - [枚举本地化](#枚举本地化)
 - [完整示例](#完整示例)
-- [发布与文档站点](#发布与文档站点)
 
 ## 功能特性
 
-- 从 `l.json` 生成 `L` 访问器。
-- 生成 `LResource` 基类，方便实现不同语言资源。
+- 从主语言 JSON 文件生成 `L` 访问器。
+- 生成 `LResource` 基类，并为每个发现的语言 JSON 自动生成具体资源类。
 - 通过 `LString`、`LStringResolver` 和生成的 `LResource` 类型解析本地化文本。
 - 通过 `[LString]` 与 `[LStringKey]` 将枚举值转换为本地化键。
 - `Senlinz.Localization` 与 `Senlinz.Localization.Abstractions` 可分别作为带共享嵌入图标的 NuGet 包发布。
@@ -49,9 +48,10 @@ dotnet add package Senlinz.Localization.Abstractions
 
 ### 创建本地化文件
 
-在项目根目录创建 `l.json`。
+在项目根目录按语言各放一个 JSON 文件。除非你用 `SenlinzLocalizationFile` 覆盖，默认主文件是 `en.json`。
 
 ```json
+// en.json
 {
   "hello": "Hello",
   "sayHelloTo": "Hello {name}!",
@@ -63,12 +63,27 @@ dotnet add package Senlinz.Localization.Abstractions
 }
 ```
 
+```json
+// zh.json
+{
+  "hello": "你好",
+  "sayHelloTo": "你好，{name}！",
+  "statusReady": "就绪",
+  "userType": {
+    "teacher": "老师",
+    "student": "学生"
+  }
+}
+```
+
 ### 在项目中注册文件
 
 ```xml
 <ItemGroup>
-  <AdditionalFiles Include="l.json" />
-  <None Update="l.json" CopyToOutputDirectory="PreserveNewest" />
+  <AdditionalFiles Include="en.json" />
+  <AdditionalFiles Include="zh.json" />
+  <None Update="en.json" CopyToOutputDirectory="PreserveNewest" />
+  <None Update="zh.json" CopyToOutputDirectory="PreserveNewest" />
 </ItemGroup>
 ```
 
@@ -87,7 +102,7 @@ Console.WriteLine(L.SayHelloTo("World"));
 - `hello` 会生成 `L.Hello`。
 - `sayHelloTo` 会生成 `L.SayHelloTo(string name)`。
 
-### 创建资源并解析文本
+### 使用生成的语言资源并解析文本
 
 ```csharp
 using Senlinz.Localization;
@@ -102,8 +117,8 @@ Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 ```
 
-- 常见场景下，直接把资源实例传给 `LStringResolver.Create(...)` 即可。
-- 如果你只想直接使用 `l.json` 里的默认文本，可以调用 `LStringResolver.Create(() => currentCulture)`。
+- 常见场景下，直接把生成的资源实例传给 `LStringResolver.Create(...)` 即可。
+- 如果你只想直接使用主 JSON 文件里的默认文本，可以调用 `LStringResolver.Create(() => currentCulture)`。
 
 ## 本地化文件规则
 
@@ -146,18 +161,18 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 
 - 生成后的默认文本会是 `Use {name} as a placeholder in your template.`
 
-### 自定义文件名
+### 主本地化文件
 
-如果你不想使用 `l.json`，可以在项目文件中设置 `SenlinzLocalizationFile`。
+`SenlinzLocalizationFile` 用来指定哪个 JSON 文件负责生成 `L`，同时它对应的生成资源类也会作为默认资源。默认值是 `en.json`。
 
 ```xml
 <PropertyGroup>
-  <SenlinzLocalizationFile>localization.json</SenlinzLocalizationFile>
+  <SenlinzLocalizationFile>zh.json</SenlinzLocalizationFile>
 </PropertyGroup>
 
 <ItemGroup>
-  <AdditionalFiles Include="localization.json" />
-  <None Update="localization.json" CopyToOutputDirectory="PreserveNewest" />
+  <AdditionalFiles Include="en.json" />
+  <AdditionalFiles Include="zh.json" />
 </ItemGroup>
 ```
 
@@ -170,42 +185,10 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 
 ### `LResource`
 
-- `LResource` 是自动生成的抽象基类，每个本地化键都会对应一个受保护的抽象成员。
-- 同时还会生成 `LDefaultResource`，用于提供 `l.json` 中的默认值。
-- 通常为每种语言实现一个派生类并补全所有生成成员，这样 IDE 也更容易直接生成重写代码。
-
-示例：
-
-```csharp
-using Senlinz.Localization;
-
-public sealed class EnResource : LResource
-{
-    public override string Culture => "en";
-
-    protected override string Hello => "Hello";
-    protected override string SayHelloTo => "Hello {name}!";
-    protected override string StatusReady => "Ready";
-}
-
-public sealed class ZhResource : LResource
-{
-    public override string Culture => "zh";
-
-    protected override string Hello => "你好";
-    protected override string SayHelloTo => "你好 {name}！";
-    protected override string StatusReady => "就绪";
-}
-
-public sealed class FrResource : LResource
-{
-    public override string Culture => "fr";
-
-    protected override string Hello => "Bonjour";
-    protected override string SayHelloTo => "Bonjour {name} !";
-    protected override string StatusReady => "Prêt";
-}
-```
+- `LResource` 是自动生成的抽象基类，主 JSON 文件中的每个顶层键都会对应一个受保护的抽象成员。
+- 生成器还会为每个发现的语言 JSON 自动生成一个具体的 `*Resource` 类，例如 `EnResource`、`ZhResource`。
+- 主文件对应的生成资源会被 `LStringResolver.Create(() => currentCulture)` 自动当作默认资源使用。
+- 如果你需要运行时覆盖，仍然可以继续手写派生自 `LResource` 的自定义资源类。
 
 ### `LString`
 
@@ -226,7 +209,7 @@ Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 ```
 
-如果你只想解析 `l.json` 默认值，可以直接使用生成的默认资源工厂：
+如果你只想解析生成的主资源默认值，可以直接调用：
 
 ```csharp
 var resolver = LStringResolver.Create(() => currentCulture);
@@ -240,7 +223,7 @@ var text = resolver.Resolve(L.Hello);
 
 ### 回退行为
 
-- 如果当前语言没有对应资源，则会使用 `l.json` 中的默认文本。
+- 如果当前语言没有对应资源，则会使用主 JSON 文件中的默认文本。
 - 如果资源存在但缺少某个键，同样会回退到默认文本。
 - 资源字典会按解析器实例与语言维度分别缓存。
 
@@ -326,7 +309,7 @@ Console.WriteLine(resolver[text]);
 
 ## 完整示例
 
-### `l.json`
+### `en.json`
 
 ```json
 {
@@ -335,6 +318,19 @@ Console.WriteLine(resolver[text]);
   "userType": {
     "teacher": "Teacher",
     "student": "Student"
+  }
+}
+```
+
+### `zh.json`
+
+```json
+{
+  "hello": "你好",
+  "sayHelloTo": "你好，{name}！",
+  "userType": {
+    "teacher": "老师",
+    "student": "学生"
   }
 }
 ```
@@ -350,36 +346,17 @@ public enum UserType
 }
 ```
 
-### 资源与解析器
+### 解析器
 
 ```csharp
 using Senlinz.Localization;
 
 var currentCulture = "zh";
-var resolver = LStringResolver.Create(() => currentCulture, new ZhResource());
+var resolver = LStringResolver.Create(() => currentCulture, new EnResource(), new ZhResource());
 
 Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 Console.WriteLine(resolver[UserType.Student.ToLString()]);
-
-public sealed class ZhResource : LResource
-{
-    private const string UserTypeTeacherKey = "userType.teacher";
-    private const string UserTypeStudentKey = "userType.student";
-
-    public override string Culture => "zh";
-
-    protected override string Hello => "你好";
-    protected override string SayHelloTo => "你好，{name}！";
-
-    public override Dictionary<string, string> GetResource()
-    {
-        var resource = base.GetResource();
-        resource[UserTypeTeacherKey] = "老师";
-        resource[UserTypeStudentKey] = "学生";
-        return resource;
-    }
-}
 ```
 
 预期输出：
@@ -389,22 +366,3 @@ public sealed class ZhResource : LResource
 你好，世界！
 学生
 ```
-
-## 发布与文档站点
-
-- 每次 push 和 pull request 都会触发校验工作流，执行 restore、build、test 与 pack，并上传生成的包制品。
-- 创建并推送类似 `v2.0.0` 的版本标签即可触发 NuGet 发布工作流。
-- 向 `main` 分支推送，或手动运行 Pages 工作流，即可把 `/docs` 中的静态站点发布到 GitHub Pages。
-
-1. 先验证解决方案。
-   ```bash
-   dotnet test Senlinz.Localization.slnx --configuration Release
-   ```
-2. 如有需要，可在本地打包。
-   ```bash
-   dotnet pack Senlinz.Localization.slnx --configuration Release --output artifacts
-   ```
-3. 发布前应先确保 `Validate` GitHub Actions 工作流通过。
-4. 本地与 CI 打包会产出 `.nupkg`，并在可用时产出 `.snupkg` 符号包制品、嵌入共享包图标，校验工作流也会上传这些制品供检查。
-5. 标签构建成功后，`Publish NuGet packages` 工作流会先上传本次发布生成的制品，再将主包以及已生成的符号包一起发布到 NuGet。
-6. `Deploy GitHub Pages` 工作流会发布 `/docs` 目录中的文档站点。

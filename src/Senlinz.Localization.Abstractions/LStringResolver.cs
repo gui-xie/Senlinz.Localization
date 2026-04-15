@@ -39,14 +39,14 @@ public class LStringResolver(GetCulture getCulture, GetCultureResource getCultur
         new(getCulture, CreateCultureResource(resources));
 
     /// <summary>
-    /// Creates a resolver that uses the generated default resource discovered from loaded assemblies.
+    /// Creates a resolver that uses the generated primary resource discovered from loaded assemblies.
     /// </summary>
     [MethodImpl(MethodImplOptions.NoInlining)]
     public static LStringResolver Create(GetCulture getCulture) =>
         Create(getCulture, DefaultResourceFactory.GetDefaultAssembly());
 
     /// <summary>
-    /// Creates a resolver that uses the generated default resource from the provided assembly.
+    /// Creates a resolver that uses the generated primary resource from the provided assembly.
     /// </summary>
     public static LStringResolver Create(GetCulture getCulture, Assembly assembly)
     {
@@ -104,7 +104,7 @@ public sealed class LStringResolver<T>(GetCulture getCulture, GetCultureResource
         new(getCulture, CreateCultureResource(resources));
 
     /// <summary>
-    /// Creates a resolver that uses the generated default resource from the marker type assembly.
+    /// Creates a resolver that uses the generated primary resource from the marker type assembly.
     /// </summary>
     public static new LStringResolver<T> Create(GetCulture getCulture)
     {
@@ -131,8 +131,8 @@ internal static class DefaultResourceFactory
         return candidates.Length switch
         {
             1 => candidates[0],
-            0 => throw new InvalidOperationException("No generated LDefaultResource was found in the current application domain."),
-            _ => throw new InvalidOperationException("Multiple generated LDefaultResource types were found. Use LStringResolver<T>.Create with a marker type from the desired localization namespace."),
+            0 => throw new InvalidOperationException("No generated primary localization resource was found in the current application domain."),
+            _ => throw new InvalidOperationException("Multiple generated primary localization resources were found. Use LStringResolver<T>.Create with a marker type from the desired localization namespace."),
         };
     }
 
@@ -143,8 +143,8 @@ internal static class DefaultResourceFactory
         return candidates.Length switch
         {
             1 => CreateInstance(candidates[0]),
-            0 => throw new InvalidOperationException($"No generated LDefaultResource was found in assembly '{assembly.FullName}'."),
-            _ => throw new InvalidOperationException($"Multiple generated LDefaultResource types were found in assembly '{assembly.FullName}'. Use LStringResolver<T>.Create with a marker type from the desired localization namespace."),
+            0 => throw new InvalidOperationException($"No generated primary localization resource was found in assembly '{assembly.FullName}'."),
+            _ => throw new InvalidOperationException($"Multiple generated primary localization resources were found in assembly '{assembly.FullName}'. Use LStringResolver<T>.Create with a marker type from the desired localization namespace."),
         };
     }
 
@@ -155,11 +155,11 @@ internal static class DefaultResourceFactory
             .GetTypes()
             .Where(static type =>
                 type is { IsAbstract: false, IsClass: true } &&
-                type.Name == "LDefaultResource" &&
+                typeof(IDefaultLResource).IsAssignableFrom(type) &&
                 typeof(ILResource).IsAssignableFrom(type))
             .ToArray();
 
     private static ILResource CreateInstance(Type type) =>
         Activator.CreateInstance(type) as ILResource
-        ?? throw new InvalidOperationException($"Unable to create generated default resource '{type.FullName}'.");
+        ?? throw new InvalidOperationException($"Unable to create generated primary resource '{type.FullName}'.");
 }

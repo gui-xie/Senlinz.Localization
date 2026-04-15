@@ -1,4 +1,8 @@
 <Project>
+  <PropertyGroup>
+    <SenlinzLocalizationFile Condition="'$(SenlinzLocalizationFile)' == ''">en.json</SenlinzLocalizationFile>
+  </PropertyGroup>
+
   <ItemGroup>
     <CompilerVisibleProperty Include="SenlinzLocalizationFile" />
   </ItemGroup>
