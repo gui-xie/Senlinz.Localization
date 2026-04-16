@@ -139,6 +139,7 @@ public class LocalizationTests
         Assert.Equal("Hi", resolver[L.Hello]);
         Assert.Equal("Hello World!", resolver[L.SayHelloTo("World")]);
         Assert.Equal("Ready", resolver[L.StatusReady]);
+        Assert.Equal("User '42' does not exist.", resolver[L.Exception.User.NotFound("42")]);
     }
 
     [Fact]

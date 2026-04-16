@@ -313,7 +313,7 @@ public sealed class LGenerator : IIncrementalGenerator
         source.AppendLine("        public abstract string Culture { get; }");
 
         source.AppendLine();
-        AppendSummary(source, "        ", "Gets the default resource dictionary from the primary localization file.");
+        AppendSummary(source, "        ", "Gets the default resource dictionary from the primary localization file, including nested dotted keys.");
         source.AppendLine("        public virtual Dictionary<string, string> GetResource() => new()");
         source.AppendLine("        {");
         foreach (var info in infos)
@@ -366,6 +366,11 @@ public sealed class LGenerator : IIncrementalGenerator
 
             source.AppendLine("            return resource;");
             source.AppendLine("        }");
+        }
+        else
+        {
+            source.AppendLine();
+            AppendSummary(source, "        ", "Uses the primary localization dictionary inherited from the generated base resource.");
         }
 
         source.AppendLine("    }");
