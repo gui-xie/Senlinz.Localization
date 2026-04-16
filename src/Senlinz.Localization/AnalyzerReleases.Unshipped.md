@@ -1,4 +1,4 @@
-## Release 3.0.0 (2026-04-16)
+## Release
 
 ### New Rules
 
