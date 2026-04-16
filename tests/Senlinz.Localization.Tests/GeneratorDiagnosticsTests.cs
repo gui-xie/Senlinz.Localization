@@ -83,6 +83,7 @@ public class GeneratorDiagnosticsTests
             .Concat(projectReferences)
             .GroupBy(static reference => ((PortableExecutableReference)reference).FilePath, StringComparer.OrdinalIgnoreCase)
             .Select(static group => group.First())
+            .Cast<MetadataReference>()
             .ToImmutableArray();
     }
 
@@ -103,7 +104,7 @@ public class GeneratorDiagnosticsTests
 
     private sealed class TestAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
     {
-        private static readonly AnalyzerConfigOptions EmptyOptions = new TestAnalyzerConfigOptions([]);
+        private static readonly AnalyzerConfigOptions EmptyOptions = new TestAnalyzerConfigOptions(new Dictionary<string, string>());
         private readonly AnalyzerConfigOptions _globalOptions;
 
         public TestAnalyzerConfigOptionsProvider(IReadOnlyDictionary<string, string> globalOptions)
