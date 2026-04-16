@@ -116,10 +116,14 @@ public sealed partial class LGenerator
                 $"localization key '{info.Key}'");
         }
 
-        foreach (var (scope, members) in scopeMembers.OrderBy(static pair => pair.Key, StringComparer.Ordinal))
+        foreach (var scopeMember in scopeMembers.OrderBy(static pair => pair.Key, StringComparer.Ordinal))
         {
-            foreach (var (identifier, conflicts) in members.OrderBy(static pair => pair.Key, StringComparer.Ordinal))
+            var scope = scopeMember.Key;
+            var members = scopeMember.Value;
+            foreach (var member in members.OrderBy(static pair => pair.Key, StringComparer.Ordinal))
             {
+                var identifier = member.Key;
+                var conflicts = member.Value;
                 if (conflicts.Count <= 1)
                 {
                     continue;

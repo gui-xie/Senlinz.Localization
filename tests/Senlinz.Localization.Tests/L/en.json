@@ -1,5 +1,6 @@
 {
   "hello": "Hello",
+  "user_status": "Active",
   "sayHelloTo": "Hello {name}!",
   "statusReady": "Ready",
   "quotedMessage": "Say \"Hello\" to {name}!\nDone",

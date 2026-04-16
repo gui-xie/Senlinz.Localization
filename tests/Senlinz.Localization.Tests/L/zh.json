@@ -1,5 +1,6 @@
 {
   "hello": "你好",
+  "user_status": "活跃",
   "sayHelloTo": "你好，{name}！",
   "statusReady": "就绪",
   "quotedMessage": "对 {name} 说“你好”！\n完成",

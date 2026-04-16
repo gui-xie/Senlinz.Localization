@@ -85,6 +85,7 @@ public class LocalizationTests
         var resolver = new LStringResolver(() => currentCulture);
 
         Assert.Equal("Hello", resolver[L.Hello]);
+        Assert.Equal("Active", resolver[L.UserStatus]);
         Assert.Equal("Hello World!", resolver[L.SayHelloTo("World")]);
         Assert.Equal("Ready", resolver[SampleText.Ready.ToLString()]);
     }
@@ -137,6 +138,7 @@ public class LocalizationTests
         var resolver = new LStringResolver(() => "en", new PartialEnResource());
 
         Assert.Equal("Hi", resolver[L.Hello]);
+        Assert.Equal("Active", resolver[L.UserStatus]);
         Assert.Equal("Hello World!", resolver[L.SayHelloTo("World")]);
         Assert.Equal("Ready", resolver[L.StatusReady]);
         Assert.Equal("User '42' does not exist.", resolver[L.Exception.User.NotFound("42")]);
@@ -193,14 +195,23 @@ public class LocalizationTests
         var resolver = new LStringResolver(() => currentCulture);
 
         Assert.Equal("你好", resolver[L.Hello]);
+        Assert.Equal("活跃", resolver[L.UserStatus]);
         Assert.Equal("你好，Alice！", resolver[L.SayHelloTo("Alice")]);
         Assert.Equal("未找到用户 42。", resolver[L.Exception.User.NotFound("42")]);
 
         currentCulture = "fr";
 
         Assert.Equal("Hello", resolver[L.Hello]);
+        Assert.Equal("Active", resolver[L.UserStatus]);
         Assert.Equal("Hello Alice!", resolver[L.SayHelloTo("Alice")]);
         Assert.Equal("User '42' does not exist.", resolver[L.Exception.User.NotFound("42")]);
+    }
+
+    [Fact]
+    public void Generates_pascal_case_identifiers_for_underscored_keys()
+    {
+        Assert.Equal("user_status", L.UserStatus.Key);
+        Assert.Equal("Active", new LStringResolver(() => "en")[L.UserStatus]);
     }
 
     [Fact]
