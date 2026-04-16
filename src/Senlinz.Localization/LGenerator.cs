@@ -478,7 +478,7 @@ public sealed class LGenerator : IIncrementalGenerator
         source.AppendLine("                throw new ArgumentNullException(nameof(resources));");
         source.AppendLine("            }");
         source.AppendLine();
-        source.AppendLine("            var resourceMap = new Dictionary<string, ILResource>(StringComparer.Ordinal);");
+        source.AppendLine("            var resourceMap = new Dictionary<string, ILResource>(resources.Length, StringComparer.Ordinal);");
         source.AppendLine("            for (var index = 0; index < resources.Length; index++)");
         source.AppendLine("            {");
         source.AppendLine("                var resource = resources[index] ?? throw new ArgumentNullException(nameof(resources), $\"Resource at index {index} is null.\");");
@@ -556,7 +556,7 @@ public sealed class LGenerator : IIncrementalGenerator
         source.AppendLine("    public sealed class LStringResolver<T> : LStringResolver, ILStringResolver<T>");
         source.AppendLine("    {");
         source.AppendLine("        /// <summary>");
-        source.AppendLine("        /// Creates a resolver that uses all generated resources from this project.");
+        source.AppendLine("        /// Creates a marker-typed resolver that uses all generated resources from this project.");
         source.AppendLine("        /// </summary>");
         source.AppendLine("        public LStringResolver(GetCulture getCulture)");
         source.AppendLine("            : base(getCulture)");
