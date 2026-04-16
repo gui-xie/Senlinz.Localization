@@ -38,7 +38,7 @@ dotnet add package Senlinz.Localization
 
 ### `Senlinz.Localization.Abstractions`
 
-- 如果你只需要运行时契约与辅助类型，而不需要源码生成器，请安装这个包。
+- 如果你只需要共享的本地化契约，而不需要源码生成器，请安装这个包。
 
 ```bash
 dotnet add package Senlinz.Localization.Abstractions
@@ -115,13 +115,13 @@ Console.WriteLine(L.SayHelloTo("World"));
 using Senlinz.Localization;
 
 var currentCulture = "zh";
-var resolver = LStringResolver.Create(() => currentCulture);
+var resolver = new LStringResolver(() => currentCulture);
 
 Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 ```
 
-- 常见场景下，`LStringResolver.Create(() => currentCulture)` 会自动加载生成的资源。
+- 常见场景下，`new LStringResolver(() => currentCulture)` 会直接使用生成的解析器并自动包含所有发现的资源。
 - 如果你需要运行时覆盖，可以改用接收显式资源参数的重载并传入自定义 `LResource`。
 
 ## 本地化文件规则
@@ -190,7 +190,7 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 
 - `LResource` 是自动生成的抽象基类，主 JSON 文件中的每个顶层键都会对应一个受保护的抽象成员。
 - 生成器还会为每个发现的语言 JSON 自动生成一个具体的 internal `*Resource` 类，例如 `EnResource`、`ZhResource`。
-- `LStringResolver.Create(() => currentCulture)` 会自动从程序集加载这些生成资源。
+- `new LStringResolver(() => currentCulture)` 会直接使用生成的解析器并自动接入所有发现的资源。
 - 如果你需要运行时覆盖，仍然可以继续手写派生自 `LResource` 的自定义资源类。
 
 ### `LString`
@@ -200,13 +200,13 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 
 ## 解析本地化值
 
-通过 `LStringResolver` 按当前语言解析文本。对于大多数场景，`LStringResolver.Create(...)` 是最简单的方式。
+通过 `LStringResolver` 按当前语言解析文本。对于大多数场景，`new LStringResolver(...)` 是最简单的方式。
 
 ```csharp
 using Senlinz.Localization;
 
 var currentCulture = "zh";
-var resolver = LStringResolver.Create(() => currentCulture);
+var resolver = new LStringResolver(() => currentCulture);
 
 Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
@@ -214,7 +214,7 @@ Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 
 如果你需要运行时覆盖，可以继承 `LResource` 后通过显式资源重载传入自定义资源。
 
-也可以使用扩展方法：
+也可以直接调用实例方法：
 
 ```csharp
 var text = resolver.Resolve(L.Hello);
@@ -351,7 +351,7 @@ public enum UserType
 using Senlinz.Localization;
 
 var currentCulture = "zh";
-var resolver = LStringResolver.Create(() => currentCulture);
+var resolver = new LStringResolver(() => currentCulture);
 
 Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
