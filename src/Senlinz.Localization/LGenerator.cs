@@ -312,20 +312,13 @@ public sealed class LGenerator : IIncrementalGenerator
         AppendSummary(source, "        ", "Gets the culture name.");
         source.AppendLine("        public abstract string Culture { get; }");
 
-        foreach (var info in infos.Where(static item => item.PathSegments.Count == 1))
-        {
-            source.AppendLine();
-            AppendSummary(source, "        ", info.DefaultValue);
-            source.AppendLine($"        protected abstract string {info.KeyProperty} {{ get; }}");
-        }
-
         source.AppendLine();
-        AppendSummary(source, "        ", "Gets the resource dictionary.");
+        AppendSummary(source, "        ", "Gets the default resource dictionary from the primary localization file.");
         source.AppendLine("        public virtual Dictionary<string, string> GetResource() => new()");
         source.AppendLine("        {");
-        foreach (var info in infos.Where(static item => item.PathSegments.Count == 1))
+        foreach (var info in infos)
         {
-            source.AppendLine($"            {{ {ToLiteral(info.Key)}, {info.KeyProperty} }},");
+            source.AppendLine($"            {{ {ToLiteral(info.Key)}, {ToLiteral(info.DefaultValue)} }},");
         }
 
         source.AppendLine("        };");
@@ -342,7 +335,6 @@ public sealed class LGenerator : IIncrementalGenerator
         LocalizationFileModel file)
     {
         var source = new StringBuilder();
-        var values = file.Infos.ToDictionary(static info => info.Key, static info => info.DefaultValue, StringComparer.Ordinal);
         source.AppendLine("#nullable enable");
         source.AppendLine("using Senlinz.Localization;");
         source.AppendLine("using System.Collections.Generic;");
@@ -360,26 +352,22 @@ public sealed class LGenerator : IIncrementalGenerator
         AppendSummary(source, "        ", "Gets the culture name.");
         source.AppendLine($"        public override string Culture => {ToLiteral(file.CultureName)};");
 
-        foreach (var info in primaryFile.Infos.Where(static item => item.PathSegments.Count == 1))
+        if (!string.Equals(primaryFile.FileName, file.FileName, StringComparison.OrdinalIgnoreCase))
         {
             source.AppendLine();
-            values.TryGetValue(info.Key, out var localizedValue);
-            AppendSummary(source, "        ", localizedValue ?? string.Empty);
-            source.AppendLine($"        protected override string {info.KeyProperty} => {ToLiteral(localizedValue ?? string.Empty)};");
+            AppendSummary(source, "        ", "Gets the generated resource dictionary.");
+            source.AppendLine("        public override Dictionary<string, string> GetResource()");
+            source.AppendLine("        {");
+            source.AppendLine("            var resource = base.GetResource();");
+            foreach (var info in file.Infos)
+            {
+                source.AppendLine($"            resource[{ToLiteral(info.Key)}] = {ToLiteral(info.DefaultValue)};");
+            }
+
+            source.AppendLine("            return resource;");
+            source.AppendLine("        }");
         }
 
-        source.AppendLine();
-        AppendSummary(source, "        ", "Gets the generated resource dictionary.");
-        source.AppendLine("        public override Dictionary<string, string> GetResource()");
-        source.AppendLine("        {");
-        source.AppendLine("            var resource = base.GetResource();");
-        foreach (var info in file.Infos)
-        {
-            source.AppendLine($"            resource[{ToLiteral(info.Key)}] = {ToLiteral(info.DefaultValue)};");
-        }
-
-        source.AppendLine("            return resource;");
-        source.AppendLine("        }");
         source.AppendLine("    }");
         AppendNamespaceEnd(source, targetNamespace);
         source.Append("#nullable restore");

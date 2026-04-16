@@ -188,10 +188,10 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 
 ### `LResource`
 
-- `LResource` is a generated abstract base class with one protected abstract member per top-level key from the primary JSON file.
+- `LResource` is a generated abstract base class whose `GetResource()` method returns the primary localization dictionary.
 - The generator also emits one concrete internal `*Resource` class per discovered culture JSON file, such as `EnResource` and `ZhResource`.
 - `new LStringResolver(() => currentCulture)` uses the generated resolver and wires in every discovered resource automatically.
-- You can still derive your own custom resources from `LResource` when you need overrides at runtime.
+- You can still derive your own custom resources from `LResource` and override `GetResource()` when you need runtime overrides.
 
 ### `LString`
 
@@ -212,7 +212,7 @@ Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 ```
 
-If you need runtime overrides, derive from `LResource` and pass your own resources explicitly.
+If you need runtime overrides, derive from `LResource`, override `GetResource()`, and pass your own resources explicitly.
 
 You can also call the instance method:
 

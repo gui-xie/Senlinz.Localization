@@ -188,10 +188,10 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 
 ### `LResource`
 
-- `LResource` 是自动生成的抽象基类，主 JSON 文件中的每个顶层键都会对应一个受保护的抽象成员。
+- `LResource` 是自动生成的抽象基类，它的 `GetResource()` 会返回主本地化文件对应的默认字典。
 - 生成器还会为每个发现的语言 JSON 自动生成一个具体的 internal `*Resource` 类，例如 `EnResource`、`ZhResource`。
 - `new LStringResolver(() => currentCulture)` 会直接使用生成的解析器并自动接入所有发现的资源。
-- 如果你需要运行时覆盖，仍然可以继续手写派生自 `LResource` 的自定义资源类。
+- 如果你需要运行时覆盖，仍然可以继续手写派生自 `LResource` 的自定义资源类，并重写 `GetResource()`。
 
 ### `LString`
 
@@ -212,7 +212,7 @@ Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 ```
 
-如果你需要运行时覆盖，可以继承 `LResource` 后通过显式资源重载传入自定义资源。
+如果你需要运行时覆盖，可以继承 `LResource`、重写 `GetResource()`，再通过显式资源重载传入自定义资源。
 
 也可以直接调用实例方法：
 
