@@ -24,7 +24,7 @@
     <Title>Senlinz.Localization</Title>
     <Description>Localization source generator package that ships with Senlinz.Localization.Abstractions runtime support.</Description>
     <PackageReleaseNotes>Generates LStringResolver in consumer projects so generated resources are wired automatically.</PackageReleaseNotes>
-    <Copyright>Copyright (c) gui-xie 2026</Copyright>
+    <Copyright>Copyright (c) Senlinz 2026</Copyright>
     <RepositoryUrl>https://github.com/gui-xie/Senlinz.Localization</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>

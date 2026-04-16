@@ -50,7 +50,6 @@ public sealed class LGenerator : IIncrementalGenerator
             }
 
             CreateLStringResolverSource(sourceContext, targetNamespace, state.Files);
-            CreateGlobalAliasesSource(sourceContext, targetNamespace);
         });
     }
 
@@ -659,23 +658,6 @@ public sealed class LGenerator : IIncrementalGenerator
         AppendNamespaceEnd(source, targetNamespace);
         source.Append("#nullable restore");
         context.AddSource("L.g.cs", source.ToString());
-    }
-
-    private static void CreateGlobalAliasesSource(SourceProductionContext context, string targetNamespace)
-    {
-        if (string.IsNullOrWhiteSpace(targetNamespace))
-        {
-            return;
-        }
-
-        var source = new StringBuilder();
-        source.AppendLine("#nullable enable");
-        source.AppendLine();
-        source.AppendLine($"global using L = {targetNamespace}.L;");
-        source.AppendLine($"global using LResource = {targetNamespace}.LResource;");
-        source.AppendLine($"global using LStringResolver = {targetNamespace}.LStringResolver;");
-        source.Append("#nullable restore");
-        context.AddSource("LAliases.g.cs", source.ToString());
     }
 
     private static void AppendNestedLApi(StringBuilder source, IReadOnlyCollection<LStringInfo> infos)
