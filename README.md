@@ -38,7 +38,7 @@ dotnet add package Senlinz.Localization
 
 ### `Senlinz.Localization.Abstractions`
 
-Use this package only when you need the shared runtime contracts and helpers without the source generator.
+Use this package only when you need the shared localization contracts without the source generator.
 
 ```bash
 dotnet add package Senlinz.Localization.Abstractions
@@ -115,13 +115,13 @@ Console.WriteLine(L.SayHelloTo("World"));
 using Senlinz.Localization;
 
 var currentCulture = "zh";
-var resolver = LStringResolver.Create(() => currentCulture);
+var resolver = new LStringResolver(() => currentCulture);
 
 Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 ```
 
-- `LStringResolver.Create(() => currentCulture)` loads generated resources automatically for the common case.
+- `new LStringResolver(() => currentCulture)` uses the generated resolver and automatically includes all discovered resources.
 - If you need runtime overrides, pass your own `LResource` instances to the overload that accepts resources explicitly.
 
 ## Localization file rules
@@ -190,7 +190,7 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 
 - `LResource` is a generated abstract base class with one protected abstract member per top-level key from the primary JSON file.
 - The generator also emits one concrete internal `*Resource` class per discovered culture JSON file, such as `EnResource` and `ZhResource`.
-- `LStringResolver.Create(() => currentCulture)` loads the generated resources from the assembly automatically.
+- `new LStringResolver(() => currentCulture)` uses the generated resolver and wires in every discovered resource automatically.
 - You can still derive your own custom resources from `LResource` when you need overrides at runtime.
 
 ### `LString`
@@ -200,13 +200,13 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 
 ## Resolve localized values
 
-Use `LStringResolver` to resolve text for the current culture. For most applications, `LStringResolver.Create(...)` is the simplest setup.
+Use `LStringResolver` to resolve text for the current culture. For most applications, `new LStringResolver(...)` is the simplest setup.
 
 ```csharp
 using Senlinz.Localization;
 
 var currentCulture = "zh";
-var resolver = LStringResolver.Create(() => currentCulture);
+var resolver = new LStringResolver(() => currentCulture);
 
 Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
@@ -214,7 +214,7 @@ Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 
 If you need runtime overrides, derive from `LResource` and pass your own resources explicitly.
 
-You can also call the extension method:
+You can also call the instance method:
 
 ```csharp
 var text = resolver.Resolve(L.Hello);
@@ -351,7 +351,7 @@ public enum UserType
 using Senlinz.Localization;
 
 var currentCulture = "zh";
-var resolver = LStringResolver.Create(() => currentCulture);
+var resolver = new LStringResolver(() => currentCulture);
 
 Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);

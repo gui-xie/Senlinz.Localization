@@ -23,8 +23,8 @@
     <Authors>gui-xie</Authors>
     <Title>Senlinz.Localization</Title>
     <Description>Localization source generator package that ships with Senlinz.Localization.Abstractions runtime support.</Description>
-    <PackageReleaseNotes>Removes LResourceProvider and consolidates resource-array resolution behind LStringResolver.Create(...) for the 2.0 API.</PackageReleaseNotes>
-    <Copyright>Copyright (c) gui-xie 2026</Copyright>
+    <PackageReleaseNotes>Generates LStringResolver in consumer projects so generated resources are wired automatically.</PackageReleaseNotes>
+    <Copyright>Copyright (c) Senlinz 2026</Copyright>
     <RepositoryUrl>https://github.com/gui-xie/Senlinz.Localization</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
