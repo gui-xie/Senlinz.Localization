@@ -23,13 +23,12 @@ public sealed class PartialEnResource : LResource
 {
     public override string Culture => "en";
 
-    protected override string Hello => "Hello";
-
-    protected override string SayHelloTo => string.Empty;
-
-    protected override string StatusReady => string.Empty;
-
-    protected override string QuotedMessage => string.Empty;
+    public override Dictionary<string, string> GetResource()
+    {
+        var resource = base.GetResource();
+        resource["hello"] = "Hi";
+        return resource;
+    }
 }
 
 public sealed class ZhAlternativeResource : LResource
@@ -42,17 +41,13 @@ public sealed class ZhAlternativeResource : LResource
 
     public override string Culture => "zh";
 
-    protected override string Hello => "您好";
-
-    protected override string SayHelloTo => "您好，{name}！";
-
-    protected override string StatusReady => "已就绪";
-
-    protected override string QuotedMessage => "向 {name} 问好！\n已完成";
-
     public override Dictionary<string, string> GetResource()
     {
         var resource = base.GetResource();
+        resource["hello"] = "您好";
+        resource["sayHelloTo"] = "您好，{name}！";
+        resource["statusReady"] = "已就绪";
+        resource["quotedMessage"] = "向 {name} 问好！\n已完成";
         resource[ExceptionUserNotFoundKey] = "找不到 ID 为 {userId} 的用户。";
         resource[SampleTextHelloKey] = "您好";
         resource[SampleTextReadyKey] = "已就绪";
@@ -141,9 +136,10 @@ public class LocalizationTests
     {
         var resolver = new LStringResolver(() => "en", new PartialEnResource());
 
-        Assert.Equal("Hello", resolver[L.Hello]);
+        Assert.Equal("Hi", resolver[L.Hello]);
         Assert.Equal("Hello World!", resolver[L.SayHelloTo("World")]);
         Assert.Equal("Ready", resolver[L.StatusReady]);
+        Assert.Equal("User '42' does not exist.", resolver[L.Exception.User.NotFound("42")]);
     }
 
     [Fact]

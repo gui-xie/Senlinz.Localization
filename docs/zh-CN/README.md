@@ -7,7 +7,7 @@
 支持 .NET 6 及以上的消费项目。
 
 - 文档站点：<https://gui-xie.github.io/Senlinz.Localization/>
-- 当前包版本：`2.0.0`
+- 当前包版本：`3.0.0`
 
 ## 快速导航
 
@@ -24,7 +24,7 @@
 - 生成 `LResource` 基类，并为每个发现的语言 JSON 自动生成具体资源类。
 - 通过 `LString`、`LStringResolver` 和生成的 `LResource` 类型解析本地化文本。
 - 通过 `[LString]` 与 `[LStringKey]` 将枚举值转换为本地化键。
-- `Senlinz.Localization` 与 `Senlinz.Localization.Abstractions` 可分别作为带共享嵌入图标的 NuGet 包发布。
+- `Senlinz.Localization` 与 `Senlinz.Localization.Abstractions` 可分别作为独立的 NuGet 包发布。
 
 ## 包选择
 
@@ -188,10 +188,10 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 
 ### `LResource`
 
-- `LResource` 是自动生成的抽象基类，主 JSON 文件中的每个顶层键都会对应一个受保护的抽象成员。
+- `LResource` 是自动生成的抽象基类，它的 `GetResource()` 会返回主本地化文件对应的默认字典。
 - 生成器还会为每个发现的语言 JSON 自动生成一个具体的 internal `*Resource` 类，例如 `EnResource`、`ZhResource`。
 - `new LStringResolver(() => currentCulture)` 会直接使用生成的解析器并自动接入所有发现的资源。
-- 如果你需要运行时覆盖，仍然可以继续手写派生自 `LResource` 的自定义资源类。
+- 如果你需要运行时覆盖，仍然可以继续手写派生自 `LResource` 的自定义资源类，并重写 `GetResource()`。
 
 ### `LString`
 
@@ -212,7 +212,7 @@ Console.WriteLine(resolver[L.Hello]);
 Console.WriteLine(resolver[L.SayHelloTo("世界")]);
 ```
 
-如果你需要运行时覆盖，可以继承 `LResource` 后通过显式资源重载传入自定义资源。
+如果你需要运行时覆盖，可以继承 `LResource`、重写 `GetResource()`，再通过显式资源重载传入自定义资源。
 
 也可以直接调用实例方法：
 
