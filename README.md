@@ -7,7 +7,7 @@ A JSON-driven localization source generator for .NET that generates strongly typ
 Supports .NET 6 and newer consumer projects.
 
 - Documentation site: <https://gui-xie.github.io/Senlinz.Localization/>
-- Current package version: `2.0.0`
+- Current package version: `3.0.0`
 
 ## Quick navigation
 
@@ -24,7 +24,7 @@ Supports .NET 6 and newer consumer projects.
 - Generate `LResource` plus one concrete resource class for every discovered culture JSON file.
 - Resolve localized text through `LString`, `LStringResolver`, and generated `LResource` types.
 - Convert enum values to localization keys with `[LString]` and `[LStringKey]`.
-- Publish `Senlinz.Localization` and `Senlinz.Localization.Abstractions` as separate NuGet packages with a shared embedded package icon.
+- Publish `Senlinz.Localization` and `Senlinz.Localization.Abstractions` as separate NuGet packages.
 
 ## Package selection
 

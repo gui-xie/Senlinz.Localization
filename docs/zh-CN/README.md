@@ -7,7 +7,7 @@
 支持 .NET 6 及以上的消费项目。
 
 - 文档站点：<https://gui-xie.github.io/Senlinz.Localization/>
-- 当前包版本：`2.0.0`
+- 当前包版本：`3.0.0`
 
 ## 快速导航
 
@@ -24,7 +24,7 @@
 - 生成 `LResource` 基类，并为每个发现的语言 JSON 自动生成具体资源类。
 - 通过 `LString`、`LStringResolver` 和生成的 `LResource` 类型解析本地化文本。
 - 通过 `[LString]` 与 `[LStringKey]` 将枚举值转换为本地化键。
-- `Senlinz.Localization` 与 `Senlinz.Localization.Abstractions` 可分别作为带共享嵌入图标的 NuGet 包发布。
+- `Senlinz.Localization` 与 `Senlinz.Localization.Abstractions` 可分别作为独立的 NuGet 包发布。
 
 ## 包选择
 
