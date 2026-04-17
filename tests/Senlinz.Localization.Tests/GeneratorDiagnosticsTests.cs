@@ -62,6 +62,50 @@ public class GeneratorDiagnosticsTests
         Assert.DoesNotContain(diagnostics, static diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
     }
 
+    [Fact]
+    public void Generated_sources_compile_with_control_characters_and_xml_sensitive_content()
+    {
+        var diagnostics = RunGeneratorAndGetCompilationDiagnostics(
+            new Dictionary<string, string>
+            {
+                ["/tmp/Sample/L/en.json"] = """
+                                           {
+                                             "hello": "Line\u0001\b\f & <tag> \"quote\""
+                                           }
+                                           """
+            },
+            LanguageVersion.CSharp12);
+
+        Assert.DoesNotContain(diagnostics, static diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+    }
+
+    [Fact]
+    public void Reports_diagnostic_for_excessive_localization_depth()
+    {
+        var builder = new StringBuilder();
+        for (var index = 0; index < 65; index++)
+        {
+            builder.Append("{\"level");
+            builder.Append(index);
+            builder.Append("\":");
+        }
+
+        builder.Append("\"value\"");
+
+        for (var index = 0; index < 65; index++)
+        {
+            builder.Append('}');
+        }
+
+        var diagnostics = RunGenerator(new Dictionary<string, string>
+        {
+            ["/tmp/Sample/L/en.json"] = builder.ToString()
+        });
+
+        var diagnostic = Assert.Single(diagnostics.Where(static diagnostic => diagnostic.Id == "SL001"));
+        Assert.Contains("nesting depth exceeds the supported limit", diagnostic.GetMessage());
+    }
+
     private static ImmutableArray<Diagnostic> RunGenerator(IReadOnlyDictionary<string, string> files)
     {
         return RunGenerator(files, LanguageVersion.CSharp12).Diagnostics;

@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Xml;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -14,6 +16,7 @@ namespace Senlinz.Localization
 
 public sealed partial class LGenerator
 {
+    private const int MaxLocalizationDepth = 64;
     private static readonly Regex PlaceholderRegex = new Regex("(?<={)[^{}]+(?=})", RegexOptions.Compiled);
     private static readonly Regex IdentifierWordRegex = new Regex("[A-Z]+(?=[A-Z][a-z]|[0-9]|$)|[A-Z]?[a-z]+|[0-9]+", RegexOptions.Compiled);
 
@@ -192,27 +195,40 @@ public sealed partial class LGenerator
             0,
             messageArguments);
 
-    private static void FlattenLocalizationEntries(JsonElement element, List<string> pathSegments, List<LocalizationEntry> entries)
+    private static void FlattenLocalizationEntries(JsonElement element, IReadOnlyList<string> pathSegments, List<LocalizationEntry> entries)
     {
-        foreach (var property in element.EnumerateObject())
+        var stack = new Stack<(JsonElement Element, string[] PathSegments)>();
+        stack.Push((element, pathSegments.Count == 0 ? Array.Empty<string>() : pathSegments.ToArray()));
+
+        while (stack.Count > 0)
         {
-            pathSegments.Add(property.Name);
-            if (property.Value.ValueKind == JsonValueKind.Object)
+            var current = stack.Pop();
+            var properties = current.Element.EnumerateObject().ToArray();
+            for (var index = properties.Length - 1; index >= 0; index--)
             {
-                FlattenLocalizationEntries(property.Value, pathSegments, entries);
-                pathSegments.RemoveAt(pathSegments.Count - 1);
-                continue;
-            }
+                var property = properties[index];
+                var nextPathSegments = new string[current.PathSegments.Length + 1];
+                Array.Copy(current.PathSegments, nextPathSegments, current.PathSegments.Length);
+                nextPathSegments[current.PathSegments.Length] = property.Name;
+                if (nextPathSegments.Length > MaxLocalizationDepth)
+                {
+                    throw new JsonException($"The localization nesting depth exceeds the supported limit of {MaxLocalizationDepth}.");
+                }
 
-            if (property.Value.ValueKind == JsonValueKind.String)
-            {
-                entries.Add(new LocalizationEntry(
-                    GetFlattenedLocalizationKey(pathSegments),
-                    property.Value.GetString() ?? string.Empty,
-                    pathSegments.ToArray()));
-            }
+                if (property.Value.ValueKind == JsonValueKind.Object)
+                {
+                    stack.Push((property.Value, nextPathSegments));
+                    continue;
+                }
 
-            pathSegments.RemoveAt(pathSegments.Count - 1);
+                if (property.Value.ValueKind == JsonValueKind.String)
+                {
+                    entries.Add(new LocalizationEntry(
+                        GetFlattenedLocalizationKey(nextPathSegments),
+                        property.Value.GetString() ?? string.Empty,
+                        nextPathSegments));
+                }
+            }
         }
     }
 
@@ -456,10 +472,100 @@ public sealed partial class LGenerator
             : char.ToLowerInvariant(value[0]) + value.Substring(1);
     }
 
-    private static string ToLiteral(string value) =>
-        $"\"{value.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\r", "\\r").Replace("\n", "\\n").Replace("\t", "\\t")}\"";
+    private static string ToLiteral(string value)
+    {
+        var builder = new StringBuilder(value.Length + 2);
+        builder.Append('"');
+        foreach (var character in value)
+        {
+            switch (character)
+            {
+                case '\\':
+                    builder.Append("\\\\");
+                    break;
+                case '"':
+                    builder.Append("\\\"");
+                    break;
+                case '\0':
+                    builder.Append("\\0");
+                    break;
+                case '\a':
+                    builder.Append("\\a");
+                    break;
+                case '\b':
+                    builder.Append("\\b");
+                    break;
+                case '\f':
+                    builder.Append("\\f");
+                    break;
+                case '\n':
+                    builder.Append("\\n");
+                    break;
+                case '\r':
+                    builder.Append("\\r");
+                    break;
+                case '\t':
+                    builder.Append("\\t");
+                    break;
+                case '\v':
+                    builder.Append("\\v");
+                    break;
+                default:
+                    if (char.IsControl(character) || character == '\u2028' || character == '\u2029')
+                    {
+                        builder.Append("\\u");
+                        builder.Append(((int)character).ToString("x4", CultureInfo.InvariantCulture));
+                        break;
+                    }
 
-    private static string EscapeXml(string value) => value.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
+                    builder.Append(character);
+                    break;
+            }
+        }
+
+        builder.Append('"');
+        return builder.ToString();
+    }
+
+    private static string EscapeXml(string value)
+    {
+        var builder = new StringBuilder(value.Length);
+        foreach (var character in value)
+        {
+            switch (character)
+            {
+                case '&':
+                    builder.Append("&amp;");
+                    break;
+                case '<':
+                    builder.Append("&lt;");
+                    break;
+                case '>':
+                    builder.Append("&gt;");
+                    break;
+                case '"':
+                    builder.Append("&quot;");
+                    break;
+                case '\'':
+                    builder.Append("&apos;");
+                    break;
+                default:
+                    if (XmlConvert.IsXmlChar(character))
+                    {
+                        builder.Append(character);
+                    }
+                    else
+                    {
+                        builder.Append("\\u");
+                        builder.Append(((int)character).ToString("x4", CultureInfo.InvariantCulture));
+                    }
+
+                    break;
+            }
+        }
+
+        return builder.ToString();
+    }
 
     private static void AppendSummary(StringBuilder source, string indent, string value)
     {
