@@ -31,6 +31,18 @@ public sealed class PartialEnResource : LResource
     }
 }
 
+public sealed class EmptyEnResource : LResource
+{
+    public override string Culture => "en";
+
+    public override Dictionary<string, string> GetResource()
+    {
+        var resource = base.GetResource();
+        resource["hello"] = string.Empty;
+        return resource;
+    }
+}
+
 public sealed class ZhAlternativeResource : LResource
 {
     private const string ExceptionUserNotFoundKey = "exception.user.notFound";
@@ -88,6 +100,26 @@ public class LocalizationTests
         Assert.Equal("Active", resolver[L.UserStatus]);
         Assert.Equal("Hello World!", resolver[L.SayHelloTo("World")]);
         Assert.Equal("Ready", resolver[SampleText.Ready.ToLString()]);
+    }
+
+    [Fact]
+    public void Preserves_empty_values_returned_by_resolver()
+    {
+        var resolver = new LStringResolver(() => "en", new EmptyEnResource());
+
+        Assert.Equal(string.Empty, resolver[L.Hello]);
+    }
+
+    [Fact]
+    public void Does_not_reprocess_placeholder_values()
+    {
+        var value = new LString(
+            "hello",
+            "Hello {name}",
+            new KeyValuePair<string, string>("name", "{world}"),
+            new KeyValuePair<string, string>("world", "Earth"));
+
+        Assert.Equal("Hello {world}", value.Resolve());
     }
 
     [Fact]

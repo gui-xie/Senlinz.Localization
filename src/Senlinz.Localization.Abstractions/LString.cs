@@ -35,21 +35,56 @@ public readonly struct LString
 
     /// <summary>
     /// Resolves the string with an optional key resolver.
+    /// Falls back to <see cref="DefaultValue"/> when the resolver returns <see langword="null"/>.
     /// </summary>
-    public string Resolve(Func<string, string>? resolve = null)
+    public string Resolve(Func<string, string?>? resolve = null)
     {
-        var value = resolve?.Invoke(Key) ?? DefaultValue;
-        if (string.IsNullOrWhiteSpace(value))
+        var value = resolve?.Invoke(Key) ?? DefaultValue ?? string.Empty;
+        if (_arguments.Length == 0 || string.IsNullOrEmpty(value))
         {
-            value = DefaultValue;
+            return value;
         }
 
+        var replacements = new Dictionary<string, string>(_arguments.Length, StringComparer.Ordinal);
         foreach (var argument in _arguments)
         {
-            value = value.Replace($"{{{argument.Key}}}", argument.Value);
+            replacements[argument.Key] = argument.Value;
         }
 
-        return value;
+        var builder = new System.Text.StringBuilder(value.Length);
+        var startIndex = 0;
+        while (startIndex < value.Length)
+        {
+            var openBraceIndex = value.IndexOf('{', startIndex);
+            if (openBraceIndex < 0)
+            {
+                builder.Append(value, startIndex, value.Length - startIndex);
+                break;
+            }
+
+            var closeBraceIndex = value.IndexOf('}', openBraceIndex + 1);
+            if (closeBraceIndex < 0)
+            {
+                builder.Append(value, startIndex, value.Length - startIndex);
+                break;
+            }
+
+            builder.Append(value, startIndex, openBraceIndex - startIndex);
+
+            var token = value.Substring(openBraceIndex + 1, closeBraceIndex - openBraceIndex - 1);
+            if (token.Length > 0 && token.IndexOf('{') < 0 && replacements.TryGetValue(token, out var replacement))
+            {
+                builder.Append(replacement);
+            }
+            else
+            {
+                builder.Append(value, openBraceIndex, closeBraceIndex - openBraceIndex + 1);
+            }
+
+            startIndex = closeBraceIndex + 1;
+        }
+
+        return builder.ToString();
     }
 }
 }

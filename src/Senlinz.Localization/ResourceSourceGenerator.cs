@@ -205,7 +205,7 @@ public sealed partial class LGenerator
         source.AppendLine("            };");
         source.AppendLine("        }");
         source.AppendLine();
-        source.AppendLine("        private string ResolveCore(string key)");
+        source.AppendLine("        private string? ResolveCore(string key)");
         source.AppendLine("        {");
         source.AppendLine("            var culture = _getCulture();");
         source.AppendLine("            var dictionary = _dictionaries.GetOrAdd(");
@@ -217,7 +217,7 @@ public sealed partial class LGenerator
         source.AppendLine("                return value;");
         source.AppendLine("            }");
         source.AppendLine();
-        source.AppendLine("            return string.Empty;");
+        source.AppendLine("            return null;");
         source.AppendLine("        }");
         source.AppendLine();
         source.AppendLine("        private static ILResource[] CreateGeneratedResources() =>");
