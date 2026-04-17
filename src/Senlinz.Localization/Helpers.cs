@@ -9,12 +9,13 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Senlinz.Localization;
+namespace Senlinz.Localization
+{
 
 public sealed partial class LGenerator
 {
-    private static readonly Regex PlaceholderRegex = new("(?<={)[^{}]+(?=})", RegexOptions.Compiled);
-    private static readonly Regex IdentifierWordRegex = new("[A-Z]+(?=[A-Z][a-z]|[0-9]|$)|[A-Z]?[a-z]+|[0-9]+", RegexOptions.Compiled);
+    private static readonly Regex PlaceholderRegex = new Regex("(?<={)[^{}]+(?=})", RegexOptions.Compiled);
+    private static readonly Regex IdentifierWordRegex = new Regex("[A-Z]+(?=[A-Z][a-z]|[0-9]|$)|[A-Z]?[a-z]+|[0-9]+", RegexOptions.Compiled);
 
     private static LocalizationFileParseResult ParseLocalizationFile(LocalizationFileCandidate candidate)
     {
@@ -72,10 +73,10 @@ public sealed partial class LGenerator
         ICollection<LocalizationDiagnosticInfo> diagnostics)
     {
         foreach (var duplicateKey in entries
-                     .GroupBy(static entry => entry.Key, StringComparer.Ordinal)
-                     .Where(static group => group.Skip(1).Any())
-                     .Select(static group => group.Key)
-                     .OrderBy(static key => key, StringComparer.Ordinal))
+                     .GroupBy(entry => entry.Key, StringComparer.Ordinal)
+                     .Where(group => group.Skip(1).Any())
+                     .Select(group => group.Key)
+                     .OrderBy(key => key, StringComparer.Ordinal))
         {
             diagnostics.Add(CreateFileDiagnostic(DuplicateLocalizationKeyDescriptor, candidate.Path, candidate.FileName, duplicateKey));
         }
@@ -116,11 +117,11 @@ public sealed partial class LGenerator
                 $"localization key '{info.Key}'");
         }
 
-        foreach (var scopeMember in scopeMembers.OrderBy(static pair => pair.Key, StringComparer.Ordinal))
+        foreach (var scopeMember in scopeMembers.OrderBy(pair => pair.Key, StringComparer.Ordinal))
         {
             var scope = scopeMember.Key;
             var members = scopeMember.Value;
-            foreach (var member in members.OrderBy(static pair => pair.Key, StringComparer.Ordinal))
+            foreach (var member in members.OrderBy(pair => pair.Key, StringComparer.Ordinal))
             {
                 var identifier = member.Key;
                 var conflicts = member.Value;
@@ -129,7 +130,7 @@ public sealed partial class LGenerator
                     continue;
                 }
 
-                var details = string.Join(", ", conflicts.Values.OrderBy(static value => value, StringComparer.Ordinal));
+                var details = string.Join(", ", conflicts.Values.OrderBy(value => value, StringComparer.Ordinal));
                 diagnostics.Add(CreateFileDiagnostic(
                     ConflictingLocalizationIdentifierDescriptor,
                     candidate.Path,
@@ -184,7 +185,7 @@ public sealed partial class LGenerator
         DiagnosticDescriptor descriptor,
         string filePath,
         params object[] messageArguments) =>
-        new(
+        new LocalizationDiagnosticInfo(
             descriptor,
             filePath,
             0,
@@ -338,7 +339,7 @@ public sealed partial class LGenerator
     private static string GetNamespace(BaseTypeDeclarationSyntax syntax)
     {
         SyntaxNode? parent = syntax.Parent;
-        while (parent is not null && parent is not BaseNamespaceDeclarationSyntax)
+        while (parent != null && !(parent is BaseNamespaceDeclarationSyntax))
         {
             parent = parent.Parent;
         }
@@ -410,8 +411,8 @@ public sealed partial class LGenerator
         }
 
         var words = Regex.Split(value, "[^A-Za-z0-9]+")
-            .Where(static segment => !string.IsNullOrWhiteSpace(segment))
-            .SelectMany(static segment => IdentifierWordRegex.Matches(segment).Cast<Match>().Select(static match => match.Value))
+            .Where(segment => !string.IsNullOrWhiteSpace(segment))
+            .SelectMany(segment => IdentifierWordRegex.Matches(segment).Cast<Match>().Select(match => match.Value))
             .ToArray();
         if (words.Length == 0)
         {
@@ -648,9 +649,9 @@ public sealed partial class LGenerator
 
         public bool IsRoot => Identifier.Length == 0;
 
-        public Dictionary<string, NestedLApiNode> Children { get; } = new(StringComparer.Ordinal);
+        public Dictionary<string, NestedLApiNode> Children { get; } = new Dictionary<string, NestedLApiNode>(StringComparer.Ordinal);
 
-        public List<NestedLApiLeaf> Leaves { get; } = new();
+        public List<NestedLApiLeaf> Leaves { get; } = new List<NestedLApiLeaf>();
 
         public NestedLApiNode GetOrAddChild(string identifier)
         {
@@ -690,4 +691,5 @@ public sealed partial class LGenerator
 
         public string ParameterName { get; }
     }
+}
 }

@@ -1,4 +1,5 @@
-namespace Senlinz.Localization;
+namespace Senlinz.Localization
+{
 
 /// <summary>
 /// Represents a localizable string.
@@ -10,7 +11,7 @@ public readonly struct LString
     /// <summary>
     /// Represents an empty localizable string.
     /// </summary>
-    public static readonly LString Empty = new(string.Empty, string.Empty);
+    public static readonly LString Empty = new LString(string.Empty, string.Empty);
 
     /// <summary>
     /// Creates a new <see cref="LString"/>.
@@ -19,7 +20,7 @@ public readonly struct LString
     {
         Key = key;
         DefaultValue = defaultValue;
-        _arguments = arguments ?? [];
+        _arguments = arguments ?? Array.Empty<KeyValuePair<string, string>>();
     }
 
     /// <summary>
@@ -50,4 +51,5 @@ public readonly struct LString
 
         return value;
     }
+}
 }

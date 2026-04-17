@@ -5,7 +5,8 @@ using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Senlinz.Localization;
+namespace Senlinz.Localization
+{
 
 /// <summary>
 /// Generates localization helpers from JSON files and enum attributes.
@@ -14,21 +15,21 @@ namespace Senlinz.Localization;
 public sealed partial class LGenerator : IIncrementalGenerator
 {
     private static readonly AssemblyName ExecutingAssembly = Assembly.GetExecutingAssembly().GetName();
-    private static readonly DiagnosticDescriptor InvalidLocalizationJsonDescriptor = new(
+    private static readonly DiagnosticDescriptor InvalidLocalizationJsonDescriptor = new DiagnosticDescriptor(
         id: "SL001",
         title: "Invalid localization JSON",
         messageFormat: "Localization file '{0}' could not be parsed: {1}",
         category: "Senlinz.Localization",
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
-    private static readonly DiagnosticDescriptor DuplicateLocalizationKeyDescriptor = new(
+    private static readonly DiagnosticDescriptor DuplicateLocalizationKeyDescriptor = new DiagnosticDescriptor(
         id: "SL002",
         title: "Duplicate localization key",
         messageFormat: "Localization file '{0}' contains duplicate localization key '{1}'",
         category: "Senlinz.Localization",
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
-    private static readonly DiagnosticDescriptor ConflictingLocalizationIdentifierDescriptor = new(
+    private static readonly DiagnosticDescriptor ConflictingLocalizationIdentifierDescriptor = new DiagnosticDescriptor(
         id: "SL003",
         title: "Conflicting localization identifier",
         messageFormat: "Localization file '{0}' generates conflicting identifier '{1}': {2}",
@@ -79,24 +80,24 @@ public sealed partial class LGenerator : IIncrementalGenerator
         GetLocalizationFilesProvider(context)
             .Collect()
             .Combine(GetTargetNamespaceProvider(context))
-            .Combine(context.AnalyzerConfigOptionsProvider.Select(static (provider, _) => GetLocalizationFileName(provider)))
-            .Select(static (values, _) => CreateLocalizationGenerationState(values.Left.Left, values.Left.Right, values.Right));
+            .Combine(context.AnalyzerConfigOptionsProvider.Select((provider, _) => GetLocalizationFileName(provider)))
+            .Select((values, _) => CreateLocalizationGenerationState(values.Left.Left, values.Left.Right, values.Right));
 
     private static IncrementalValuesProvider<LocalizationFileCandidate> GetLocalizationFilesProvider(IncrementalGeneratorInitializationContext context) =>
         context.AdditionalTextsProvider
-            .Where(static file => IsLocalizationJsonFile(file.Path))
-            .Select(static (file, _) => CreateLocalizationFileCandidate(file))
-            .Where(static file => file is not null)
-            .Select(static (file, _) => file!);
+            .Where(file => IsLocalizationJsonFile(file.Path))
+            .Select((file, _) => CreateLocalizationFileCandidate(file))
+            .Where(file => file != null)
+            .Select((file, _) => file!);
 
     private static IncrementalValueProvider<string> GetTargetNamespaceProvider(IncrementalGeneratorInitializationContext context) =>
-        context.CompilationProvider.Select(static (compilation, _) => compilation.AssemblyName)
-            .Combine(context.AnalyzerConfigOptionsProvider.Select(static (provider, _) =>
+        context.CompilationProvider.Select((compilation, _) => compilation.AssemblyName)
+            .Combine(context.AnalyzerConfigOptionsProvider.Select((provider, _) =>
             {
                 provider.GlobalOptions.TryGetValue(RootNamespaceProperty, out var rootNamespace);
                 return rootNamespace;
             }))
-            .Select(static (values, _) => ResolveTargetNamespace(values.Left, values.Right));
+            .Select((values, _) => ResolveTargetNamespace(values.Left, values.Right));
 
     private static LocalizationGenerationState CreateLocalizationGenerationState(
         ImmutableArray<LocalizationFileCandidate> files,
@@ -105,14 +106,14 @@ public sealed partial class LGenerator : IIncrementalGenerator
     {
         var diagnostics = ImmutableArray.CreateBuilder<LocalizationDiagnosticInfo>();
         var orderedFiles = files
-            .Select(static candidate => ParseLocalizationFile(candidate))
+            .Select(candidate => ParseLocalizationFile(candidate))
             .SelectMany(result =>
             {
                 diagnostics.AddRange(result.Diagnostics);
                 return result.File is null ? Enumerable.Empty<LocalizationFileModel>() : Enumerable.Repeat(result.File, 1);
             })
-            .OrderBy(static file => file.FileName, StringComparer.OrdinalIgnoreCase)
-            .ThenBy(static file => file.Path, StringComparer.OrdinalIgnoreCase)
+            .OrderBy(file => file.FileName, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(file => file.Path, StringComparer.OrdinalIgnoreCase)
             .ToImmutableArray();
         var primaryFile = orderedFiles.FirstOrDefault(file => string.Equals(file.FileName, primaryFileName, StringComparison.OrdinalIgnoreCase));
         return new LocalizationGenerationState(targetNamespace, orderedFiles, primaryFile, diagnostics.ToImmutable());
@@ -146,4 +147,5 @@ public sealed partial class LGenerator : IIncrementalGenerator
 
     private static bool IsLocalizationJsonFile(string path) =>
         string.Equals(Path.GetExtension(path), ".json", StringComparison.OrdinalIgnoreCase);
+}
 }

@@ -31,7 +31,7 @@ public class GeneratorDiagnosticsTests
         var diagnostics = RunGenerator(new Dictionary<string, string>
         {
             ["/tmp/Sample/L/en.json"] = """
-                                      {
+                                       {
                                         "user_status": "A",
                                         "user-status": "B"
                                       }
@@ -42,14 +42,49 @@ public class GeneratorDiagnosticsTests
         Assert.Contains("UserStatus", diagnostic.GetMessage());
     }
 
+    [Fact]
+    public void Generated_sources_compile_with_csharp8()
+    {
+        var diagnostics = RunGeneratorAndGetCompilationDiagnostics(
+            new Dictionary<string, string>
+            {
+                ["/tmp/Sample/L/en.json"] = """
+                                           {
+                                             "hello": "Hello",
+                                             "userType": {
+                                               "teacher": "Teacher"
+                                             }
+                                           }
+                                           """
+            },
+            LanguageVersion.CSharp8);
+
+        Assert.DoesNotContain(diagnostics, static diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+    }
+
     private static ImmutableArray<Diagnostic> RunGenerator(IReadOnlyDictionary<string, string> files)
     {
-        var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12);
+        return RunGenerator(files, LanguageVersion.CSharp12).Diagnostics;
+    }
+
+    private static ImmutableArray<Diagnostic> RunGeneratorAndGetCompilationDiagnostics(
+        IReadOnlyDictionary<string, string> files,
+        LanguageVersion languageVersion)
+    {
+        var result = RunGenerator(files, languageVersion);
+        return result.Compilation.GetDiagnostics();
+    }
+
+    private static (ImmutableArray<Diagnostic> Diagnostics, Compilation Compilation) RunGenerator(
+        IReadOnlyDictionary<string, string> files,
+        LanguageVersion languageVersion)
+    {
+        var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(languageVersion);
         var compilation = CSharpCompilation.Create(
             assemblyName: "Sample",
             syntaxTrees:
             [
-                CSharpSyntaxTree.ParseText("namespace Sample; public sealed class Marker { }", parseOptions)
+                CSharpSyntaxTree.ParseText("namespace Sample { public sealed class Marker { } }", parseOptions)
             ],
             references: GetMetadataReferences(),
             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
@@ -64,8 +99,8 @@ public class GeneratorDiagnosticsTests
                 ["build_property.SenlinzLocalizationFile"] = "en.json"
             }));
 
-        driver = driver.RunGenerators(compilation);
-        return driver.GetRunResult().Diagnostics;
+        driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out _);
+        return (driver.GetRunResult().Diagnostics, outputCompilation);
     }
 
     private static ImmutableArray<MetadataReference> GetMetadataReferences()

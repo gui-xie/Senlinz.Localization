@@ -3,7 +3,8 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 
-namespace Senlinz.Localization;
+namespace Senlinz.Localization
+{
 
 public sealed partial class LGenerator
 {
@@ -33,7 +34,7 @@ public sealed partial class LGenerator
             AppendSummary(source, "        ", info.DefaultValue);
             if (info.Parameters.Count == 0)
             {
-                source.AppendLine($"        public static LString {info.KeyProperty} = new({ToLiteral(info.Key)}, {ToLiteral(info.DefaultValue)});");
+                source.AppendLine($"        public static LString {info.KeyProperty} = new LString({ToLiteral(info.Key)}, {ToLiteral(info.DefaultValue)});");
                 continue;
             }
 
@@ -78,7 +79,7 @@ public sealed partial class LGenerator
     private static NestedLApiNode BuildNestedLApiTree(IEnumerable<LStringInfo> infos)
     {
         var root = new NestedLApiNode(string.Empty, string.Empty);
-        foreach (var info in infos.Where(static item => item.PathSegments.Count > 1))
+        foreach (var info in infos.Where(item => item.PathSegments.Count > 1))
         {
             var current = root;
             for (var index = 0; index < info.PathSegments.Count - 1; index++)
@@ -97,7 +98,7 @@ public sealed partial class LGenerator
     {
         foreach (var child in node.Children.Values)
         {
-            source.AppendLine($"{indent}public {(node.IsRoot ? "static " : string.Empty)}{child.TypeName} {child.Identifier} {{ get; }} = new();");
+            source.AppendLine($"{indent}public {(node.IsRoot ? "static " : string.Empty)}{child.TypeName} {child.Identifier} {{ get; }} = new {child.TypeName}();");
         }
 
         foreach (var leaf in node.Leaves)
@@ -106,7 +107,7 @@ public sealed partial class LGenerator
             AppendSummary(source, indent, leaf.Info.DefaultValue);
             if (leaf.Info.Parameters.Count == 0)
             {
-                source.AppendLine($"{indent}public LString {leaf.Identifier} => new({ToLiteral(leaf.Info.Key)}, {ToLiteral(leaf.Info.DefaultValue)});");
+                source.AppendLine($"{indent}public LString {leaf.Identifier} => new LString({ToLiteral(leaf.Info.Key)}, {ToLiteral(leaf.Info.DefaultValue)});");
                 continue;
             }
 
@@ -138,4 +139,5 @@ public sealed partial class LGenerator
             source.AppendLine($"{indent}}}");
         }
     }
+}
 }

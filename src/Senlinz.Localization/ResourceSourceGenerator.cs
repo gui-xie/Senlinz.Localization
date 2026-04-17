@@ -4,7 +4,8 @@ using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
 
-namespace Senlinz.Localization;
+namespace Senlinz.Localization
+{
 
 public sealed partial class LGenerator
 {
@@ -25,14 +26,17 @@ public sealed partial class LGenerator
 
         source.AppendLine();
         AppendSummary(source, "        ", "Gets the default resource dictionary from the primary localization file, including nested dotted keys.");
-        source.AppendLine("        public virtual Dictionary<string, string> GetResource() => new()");
+        source.AppendLine("        public virtual Dictionary<string, string> GetResource()");
         source.AppendLine("        {");
+        source.AppendLine("            return new Dictionary<string, string>");
+        source.AppendLine("            {");
         foreach (var info in infos)
         {
             source.AppendLine($"            {{ {ToLiteral(info.Key)}, {ToLiteral(info.DefaultValue)} }},");
         }
 
         source.AppendLine("        };");
+        source.AppendLine("        }");
         source.AppendLine("    }");
         AppendNamespaceEnd(source, targetNamespace);
         source.Append("#nullable restore");
@@ -115,7 +119,7 @@ public sealed partial class LGenerator
         source.AppendLine();
         source.AppendLine("        private readonly GetCulture _getCulture;");
         source.AppendLine("        private readonly GetCultureResource _getCultureResource;");
-        source.AppendLine("        private readonly ConcurrentDictionary<string, Lazy<IReadOnlyDictionary<string, string>>> _dictionaries = new();");
+        source.AppendLine("        private readonly ConcurrentDictionary<string, Lazy<IReadOnlyDictionary<string, string>>> _dictionaries = new ConcurrentDictionary<string, Lazy<IReadOnlyDictionary<string, string>>>();");
         source.AppendLine();
         source.AppendLine("        /// <summary>");
         source.AppendLine("        /// Creates a resolver that uses all generated resources from this project.");
@@ -163,17 +167,17 @@ public sealed partial class LGenerator
         source.AppendLine("        /// <summary>");
         source.AppendLine("        /// Creates a resolver that uses all generated resources from this project.");
         source.AppendLine("        /// </summary>");
-        source.AppendLine("        public static LStringResolver Create(GetCulture getCulture) => new(getCulture);");
+        source.AppendLine("        public static LStringResolver Create(GetCulture getCulture) => new LStringResolver(getCulture);");
         source.AppendLine();
         source.AppendLine("        /// <summary>");
         source.AppendLine("        /// Creates a resolver that uses the provided resources directly.");
         source.AppendLine("        /// </summary>");
-        source.AppendLine("        public static LStringResolver Create(GetCulture getCulture, params ILResource[] resources) => new(getCulture, resources);");
+        source.AppendLine("        public static LStringResolver Create(GetCulture getCulture, params ILResource[] resources) => new LStringResolver(getCulture, resources);");
         source.AppendLine();
         source.AppendLine("        /// <summary>");
         source.AppendLine("        /// Creates a resolver that uses generated resources from the provided assembly.");
         source.AppendLine("        /// </summary>");
-        source.AppendLine("        public static LStringResolver Create(GetCulture getCulture, Assembly assembly) => new(getCulture, assembly);");
+        source.AppendLine("        public static LStringResolver Create(GetCulture getCulture, Assembly assembly) => new LStringResolver(getCulture, assembly);");
         source.AppendLine();
         source.AppendLine("        internal static GetCultureResource CreateCultureResource(params ILResource[] resources)");
         source.AppendLine("        {");
@@ -235,12 +239,12 @@ public sealed partial class LGenerator
         source.AppendLine();
         source.AppendLine("            var candidates = assembly");
         source.AppendLine("                .GetTypes()");
-        source.AppendLine("                .Where(static type =>");
+        source.AppendLine("                .Where(type =>");
         source.AppendLine("                    type is { IsAbstract: false, IsClass: true } &&");
         source.AppendLine("                    typeof(IGeneratedLResource).IsAssignableFrom(type) &&");
         source.AppendLine("                    typeof(ILResource).IsAssignableFrom(type))");
-        source.AppendLine("                .OrderBy(static type => type.FullName, StringComparer.Ordinal)");
-        source.AppendLine("                .Select(static type => Activator.CreateInstance(type, nonPublic: true) as ILResource");
+        source.AppendLine("                .OrderBy(type => type.FullName, StringComparer.Ordinal)");
+        source.AppendLine("                .Select(type => Activator.CreateInstance(type, nonPublic: true) as ILResource");
         source.AppendLine("                    ?? throw new InvalidOperationException($\"Unable to create generated localization resource '{type.FullName}'.\"))");
         source.AppendLine("                .ToArray();");
         source.AppendLine();
@@ -294,20 +298,21 @@ public sealed partial class LGenerator
         source.AppendLine("        /// <summary>");
         source.AppendLine("        /// Creates a resolver that uses all generated resources from this project.");
         source.AppendLine("        /// </summary>");
-        source.AppendLine("        public static new LStringResolver<T> Create(GetCulture getCulture) => new(getCulture);");
+        source.AppendLine("        public static new LStringResolver<T> Create(GetCulture getCulture) => new LStringResolver<T>(getCulture);");
         source.AppendLine();
         source.AppendLine("        /// <summary>");
         source.AppendLine("        /// Creates a resolver that uses the provided resources directly.");
         source.AppendLine("        /// </summary>");
-        source.AppendLine("        public static new LStringResolver<T> Create(GetCulture getCulture, params ILResource[] resources) => new(getCulture, resources);");
+        source.AppendLine("        public static new LStringResolver<T> Create(GetCulture getCulture, params ILResource[] resources) => new LStringResolver<T>(getCulture, resources);");
         source.AppendLine();
         source.AppendLine("        /// <summary>");
         source.AppendLine("        /// Creates a resolver that uses generated resources from the provided assembly.");
         source.AppendLine("        /// </summary>");
-        source.AppendLine("        public static new LStringResolver<T> Create(GetCulture getCulture, Assembly assembly) => new(getCulture, assembly);");
+        source.AppendLine("        public static new LStringResolver<T> Create(GetCulture getCulture, Assembly assembly) => new LStringResolver<T>(getCulture, assembly);");
         source.AppendLine("    }");
         AppendNamespaceEnd(source, targetNamespace);
         source.Append("#nullable restore");
         context.AddSource("LStringResolver.g.cs", source.ToString());
     }
+}
 }

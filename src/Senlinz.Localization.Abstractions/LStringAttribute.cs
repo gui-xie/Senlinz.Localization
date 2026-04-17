@@ -1,4 +1,5 @@
-namespace Senlinz.Localization;
+namespace Senlinz.Localization
+{
 
 /// <summary>
 /// Marks an enum for localization key generation.
@@ -6,4 +7,5 @@ namespace Senlinz.Localization;
 [AttributeUsage(AttributeTargets.Enum)]
 public sealed class LStringAttribute : Attribute
 {
+}
 }
