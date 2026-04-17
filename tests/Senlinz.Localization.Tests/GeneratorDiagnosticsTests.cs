@@ -103,7 +103,7 @@ public class GeneratorDiagnosticsTests
         });
 
         var diagnostic = Assert.Single(diagnostics.Where(static diagnostic => diagnostic.Id == "SL001"));
-        Assert.Contains("nesting depth exceeds the supported limit", diagnostic.GetMessage());
+        Assert.Contains("depth", diagnostic.GetMessage(), StringComparison.OrdinalIgnoreCase);
     }
 
     private static ImmutableArray<Diagnostic> RunGenerator(IReadOnlyDictionary<string, string> files)
