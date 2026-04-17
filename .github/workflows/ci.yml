@@ -4,6 +4,7 @@ on:
   push:
     tags-ignore:
       - "v*"
+      - "V*"
   pull_request:
 
 permissions:

@@ -7,7 +7,9 @@ A JSON-driven localization source generator for .NET that generates strongly typ
 Supports .NET 6 and newer consumer projects.
 
 - Documentation site: <https://gui-xie.github.io/Senlinz.Localization/>
-- Current package version: `3.0.0`
+- Current package version: `3.1.0`
+- Release notes: [RELEASE_NOTES.md](./RELEASE_NOTES.md)
+- Changelog: [CHANGELOG.md](./CHANGELOG.md)
 
 ## Quick navigation
 
