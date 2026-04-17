@@ -198,15 +198,13 @@ public sealed partial class LGenerator
     private static void FlattenLocalizationEntries(JsonElement element, IReadOnlyList<string> pathSegments, List<LocalizationEntry> entries)
     {
         var stack = new Stack<(JsonElement Element, string[] PathSegments)>();
-        stack.Push((element, pathSegments.Count == 0 ? Array.Empty<string>() : pathSegments.ToArray()));
+        stack.Push((element, pathSegments.ToArray()));
 
         while (stack.Count > 0)
         {
             var current = stack.Pop();
-            var properties = current.Element.EnumerateObject().ToArray();
-            for (var index = properties.Length - 1; index >= 0; index--)
+            foreach (var property in current.Element.EnumerateObject().Reverse())
             {
-                var property = properties[index];
                 var nextPathSegments = new string[current.PathSegments.Length + 1];
                 Array.Copy(current.PathSegments, nextPathSegments, current.PathSegments.Length);
                 nextPathSegments[current.PathSegments.Length] = property.Name;
