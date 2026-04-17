@@ -29,12 +29,14 @@ public sealed partial class LGenerator
         source.AppendLine("        public virtual Dictionary<string, string> GetResource()");
         source.AppendLine("        {");
         source.AppendLine("            return new Dictionary<string, string>");
+        source.AppendLine("            {");
         foreach (var info in infos)
         {
             source.AppendLine($"            {{ {ToLiteral(info.Key)}, {ToLiteral(info.DefaultValue)} }},");
         }
 
         source.AppendLine("        };");
+        source.AppendLine("        }");
         source.AppendLine("    }");
         AppendNamespaceEnd(source, targetNamespace);
         source.Append("#nullable restore");
