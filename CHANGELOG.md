@@ -2,7 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
-## [3.1.0] - 2026-04-16
+## [3.1.0] - Unreleased
+
+> Planned next release. The latest published NuGet release is still `3.0.0`.
 
 ### Added
 
@@ -15,4 +17,11 @@ All notable changes to this project will be documented in this file.
 
 - Refactored the localization generator into `LSourceGenerator`, `ResourceSourceGenerator`, and `EnumSourceGenerator`.
 - Moved shared source-generation helpers into a dedicated helpers module.
-- Updated release metadata, project package notes, and repository documentation for the `3.1.0` release.
+- Updated release metadata, project package notes, and repository documentation for the upcoming `3.1.0` release.
+
+## [3.0.0]
+
+### Added
+
+- Published the first public NuGet release for `Senlinz.Localization`.
+- Published the shared runtime contracts package `Senlinz.Localization.Abstractions`.

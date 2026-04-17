@@ -21,7 +21,7 @@
     <Authors>gui-xie</Authors>
     <Title>Senlinz.Localization.Abstractions</Title>
     <Description>Shared localization contracts for Senlinz.Localization.</Description>
-    <PackageReleaseNotes>Aligns the shared localization contracts package with the Senlinz.Localization 3.1.0 diagnostics release.</PackageReleaseNotes>
+    <PackageReleaseNotes>Prepares the shared localization contracts package for the upcoming Senlinz.Localization 3.1.0 diagnostics release.</PackageReleaseNotes>
     <Copyright>Copyright (c) Senlinz 2026</Copyright>
     <RepositoryUrl>https://github.com/gui-xie/Senlinz.Localization</RepositoryUrl>
     <RepositoryType>git</RepositoryType>

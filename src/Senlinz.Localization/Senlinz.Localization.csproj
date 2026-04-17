@@ -23,7 +23,7 @@
     <Authors>gui-xie</Authors>
     <Title>Senlinz.Localization</Title>
     <Description>Localization source generator package that ships with Senlinz.Localization.Abstractions runtime support.</Description>
-    <PackageReleaseNotes>Adds localization source-generation diagnostics for invalid JSON, duplicate flattened keys, and conflicting generated identifiers.</PackageReleaseNotes>
+    <PackageReleaseNotes>Prepares the upcoming 3.1.0 release with localization source-generation diagnostics for invalid JSON, duplicate flattened keys, and conflicting generated identifiers.</PackageReleaseNotes>
     <Copyright>Copyright (c) Senlinz 2026</Copyright>
     <RepositoryUrl>https://github.com/gui-xie/Senlinz.Localization</RepositoryUrl>
     <RepositoryType>git</RepositoryType>

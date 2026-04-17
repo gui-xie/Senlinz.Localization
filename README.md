@@ -11,7 +11,8 @@ Runtime compatibility: generated runtime support targets `netstandard2.0`, so it
 Note: using more traditional C# syntax mainly reduces compiler and tooling requirements; actual runtime compatibility still comes from the `netstandard2.0` target.
 
 - Documentation site: <https://gui-xie.github.io/Senlinz.Localization/>
-- Current package version: `3.1.0`
+- Latest published package version: `3.0.0`
+- Next planned package version: `3.1.0`
 - Release notes: [RELEASE_NOTES.md](./RELEASE_NOTES.md)
 - Changelog: [CHANGELOG.md](./CHANGELOG.md)
 
@@ -371,3 +372,10 @@ Expected output:
 你好，世界！
 学生
 ```
+
+## Release and documentation publishing
+
+- The latest published NuGet release is currently `3.0.0`; repository metadata is already prepared for the next `3.1.0` release.
+- Keep `README.md`, `README.zh-CN.md`, `docs/README.md`, and `docs/zh-CN/README.md` aligned so the repository and Docsify site show the same release status.
+- Record package-facing changes in `CHANGELOG.md` and `RELEASE_NOTES.md` before creating the next release tag.
+- Publishing `v*` or `V*` tags triggers the NuGet publish workflow, and updates to the `docs/` content are deployed through the documentation workflow.
