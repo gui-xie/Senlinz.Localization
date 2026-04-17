@@ -1,4 +1,5 @@
-namespace Senlinz.Localization;
+namespace Senlinz.Localization
+{
 
 /// <summary>
 /// Localized resource provider contract.
@@ -14,4 +15,5 @@ public interface ILResource
     /// Gets the localized values for the resource.
     /// </summary>
     Dictionary<string, string> GetResource();
+}
 }

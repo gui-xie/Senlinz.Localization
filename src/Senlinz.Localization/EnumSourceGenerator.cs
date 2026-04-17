@@ -5,19 +5,20 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Senlinz.Localization;
+namespace Senlinz.Localization
+{
 
 public sealed partial class LGenerator
 {
     private static void AddEnumAttributeSource(IncrementalGeneratorInitializationContext context)
     {
         var localizationInfosProvider = GetLocalizationStateProvider(context)
-            .Select(static (state, _) => state.PrimaryFile?.Infos ?? ImmutableArray<LStringInfo>.Empty);
+            .Select((state, _) => state.PrimaryFile?.Infos ?? ImmutableArray<LStringInfo>.Empty);
 
         var enumProviders = context.SyntaxProvider.ForAttributeWithMetadataName(
                 LStringAttributeName,
-                static (node, _) => node is EnumDeclarationSyntax,
-                static (syntaxContext, _) => (Symbol: (INamedTypeSymbol)syntaxContext.TargetSymbol, Syntax: (EnumDeclarationSyntax)syntaxContext.TargetNode));
+                (node, _) => node is EnumDeclarationSyntax,
+                (syntaxContext, _) => (Symbol: (INamedTypeSymbol)syntaxContext.TargetSymbol, Syntax: (EnumDeclarationSyntax)syntaxContext.TargetNode));
 
         context.RegisterSourceOutput(enumProviders.Combine(localizationInfosProvider), (sourceContext, pair) =>
         {
@@ -149,4 +150,5 @@ public sealed partial class LGenerator
 
         return ToCamelCase(JsonKeyToIdentifier(candidate));
     }
+}
 }

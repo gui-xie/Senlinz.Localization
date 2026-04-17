@@ -1,4 +1,5 @@
-namespace Senlinz.Localization;
+namespace Senlinz.Localization
+{
 
 /// <summary>
 /// Resolves localized strings.
@@ -16,4 +17,5 @@ public interface ILStringResolver
 /// </summary>
 public interface ILStringResolver<T> : ILStringResolver
 {
+}
 }

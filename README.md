@@ -4,7 +4,11 @@
 
 A JSON-driven localization source generator for .NET that generates strongly typed localization accessors, resource base classes, and enum-to-localization helpers.
 
-Supports .NET 6 and newer consumer projects.
+Build-time requirement: .NET 8 SDK or newer (the source generator depends on Roslyn 4.8).
+
+Runtime compatibility: generated runtime support targets `netstandard2.0`, so it can run on .NET Framework 4.6.1+, .NET Core 2.0+, and newer runtimes.
+
+Note: using more traditional C# syntax mainly reduces compiler and tooling requirements; actual runtime compatibility still comes from the `netstandard2.0` target.
 
 - Documentation site: <https://gui-xie.github.io/Senlinz.Localization/>
 - Current package version: `3.1.0`
