@@ -1,6 +1,6 @@
 # Release Notes
 
-## 3.1.0 - 2026-04-16
+## 3.1.0 - 2026-04-17
 
 ### Highlights
 
@@ -16,6 +16,6 @@
 
 ### Release checklist
 
-- Update NuGet package versions to `3.1.0`.
+- Keep repository package versions aligned with the published release version `3.1.0`.
 - Tag the release with either `v3.1.0` or `V3.1.0`.
 - Publish the generated NuGet packages from the release workflow artifacts.
