@@ -18,12 +18,12 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageDescription>Localization source generator package that ships with Senlinz.Localization.Abstractions runtime support.</PackageDescription>
     <PackageTags>Localization JSON SourceGenerator NuGet</PackageTags>
-    <VersionPrefix>3.1.0</VersionPrefix>
-    <AssemblyVersion>3.1.0.0</AssemblyVersion>
+    <VersionPrefix>3.2.0</VersionPrefix>
+    <AssemblyVersion>3.2.0.0</AssemblyVersion>
     <Authors>gui-xie</Authors>
     <Title>Senlinz.Localization</Title>
     <Description>Localization source generator package that ships with Senlinz.Localization.Abstractions runtime support.</Description>
-    <PackageReleaseNotes>Adds localization source-generation diagnostics for invalid JSON, duplicate flattened keys, and conflicting generated identifiers in the 3.1.0 release.</PackageReleaseNotes>
+    <PackageReleaseNotes>Adds a diagnostic when the primary localization file is missing, makes generated L entries readonly, and shields resolver dictionaries from mutation.</PackageReleaseNotes>
     <Copyright>Copyright (c) Senlinz 2026</Copyright>
     <RepositoryUrl>https://github.com/gui-xie/Senlinz.Localization</RepositoryUrl>
     <RepositoryType>git</RepositoryType>

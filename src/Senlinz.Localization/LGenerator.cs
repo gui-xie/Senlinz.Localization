@@ -36,6 +36,13 @@ public sealed partial class LGenerator : IIncrementalGenerator
         category: "Senlinz.Localization",
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
+    private static readonly DiagnosticDescriptor PrimaryLocalizationFileNotFoundDescriptor = new DiagnosticDescriptor(
+        id: "SL004",
+        title: "Primary localization file not found",
+        messageFormat: "Primary localization file '{0}' was not found among AdditionalFiles",
+        category: "Senlinz.Localization",
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true);
     private const string LocalizationFileProperty = "build_property.SenlinzLocalizationFile";
     private const string RootNamespaceProperty = "build_property.RootNamespace";
     private const string LStringAttributeName = "Senlinz.Localization.LStringAttribute";
@@ -116,6 +123,10 @@ public sealed partial class LGenerator : IIncrementalGenerator
             .ThenBy(file => file.Path, StringComparer.OrdinalIgnoreCase)
             .ToImmutableArray();
         var primaryFile = orderedFiles.FirstOrDefault(file => string.Equals(file.FileName, primaryFileName, StringComparison.OrdinalIgnoreCase));
+        if (primaryFile is null)
+        {
+            diagnostics.Add(CreateProjectDiagnostic(PrimaryLocalizationFileNotFoundDescriptor, primaryFileName));
+        }
         return new LocalizationGenerationState(targetNamespace, orderedFiles, primaryFile, diagnostics.ToImmutable());
     }
 

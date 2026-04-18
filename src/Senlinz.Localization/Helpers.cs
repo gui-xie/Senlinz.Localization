@@ -195,6 +195,16 @@ public sealed partial class LGenerator
             0,
             messageArguments);
 
+    private static LocalizationDiagnosticInfo CreateProjectDiagnostic(
+        DiagnosticDescriptor descriptor,
+        params object[] messageArguments) =>
+        new LocalizationDiagnosticInfo(
+            descriptor,
+            string.Empty,
+            0,
+            0,
+            messageArguments);
+
     private static void FlattenLocalizationEntries(JsonElement element, IReadOnlyList<string> pathSegments, List<LocalizationEntry> entries)
     {
         var stack = new Stack<(JsonElement Element, string[] PathSegments)>();
@@ -732,10 +742,10 @@ public sealed partial class LGenerator
         public Diagnostic ToDiagnostic()
         {
             var position = new LinePosition(Line, Character);
-            return Diagnostic.Create(
-                Descriptor,
-                Location.Create(FilePath, new TextSpan(0, 0), new LinePositionSpan(position, position)),
-                MessageArguments);
+            var location = string.IsNullOrWhiteSpace(FilePath)
+                ? Location.None
+                : Location.Create(FilePath, new TextSpan(0, 0), new LinePositionSpan(position, position));
+            return Diagnostic.Create(Descriptor, location, MessageArguments);
         }
     }
 

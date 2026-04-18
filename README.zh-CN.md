@@ -11,7 +11,7 @@
 说明：改用更传统的 C# 语法，主要降低的是编译器和工具链门槛；真正决定运行时兼容性的仍然是 `netstandard2.0` 目标框架。
 
 - 文档站点：<https://gui-xie.github.io/Senlinz.Localization/>
-- 当前已发布包版本：`3.1.0`
+- 当前已发布包版本：`3.2.0`
 - 发布说明：[RELEASE_NOTES.md](./RELEASE_NOTES.md)
 - 更新日志：[CHANGELOG.md](./CHANGELOG.md)
 
@@ -374,7 +374,7 @@ Console.WriteLine(resolver[UserType.Student.ToLString()]);
 
 ## 发布与文档站点
 
-- 当前已经发布到 NuGet 的版本是 `3.1.0`。
+- 当前已经发布到 NuGet 的版本是 `3.2.0`。
 - 请保持 `README.md`、`README.zh-CN.md`、`docs/README.md` 和 `docs/zh-CN/README.md` 同步，确保仓库首页与 Docsify 文档站点展示一致的发布状态。
 - 在创建下一次发布标签前，把面向包使用者的重要变更补充到 `CHANGELOG.md` 与 `RELEASE_NOTES.md`。
 - 推送 `v*` 或 `V*` 标签会触发 NuGet 发布工作流，而 `docs/` 目录中的内容会通过文档工作流部署到站点。

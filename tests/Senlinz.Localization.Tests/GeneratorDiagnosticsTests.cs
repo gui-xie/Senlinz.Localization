@@ -106,22 +106,44 @@ public class GeneratorDiagnosticsTests
         Assert.Contains("depth", diagnostic.GetMessage(), StringComparison.OrdinalIgnoreCase);
     }
 
-    private static ImmutableArray<Diagnostic> RunGenerator(IReadOnlyDictionary<string, string> files)
+    [Fact]
+    public void Reports_diagnostic_when_primary_localization_file_is_missing()
     {
-        return RunGenerator(files, LanguageVersion.CSharp12).Diagnostics;
+        var diagnostics = RunGenerator(
+            new Dictionary<string, string>
+            {
+                ["/tmp/Sample/L/en.json"] = """
+                                           {
+                                             "hello": "Hello"
+                                           }
+                                           """
+            },
+            primaryFile: "fr.json");
+
+        var diagnostic = Assert.Single(diagnostics.Where(static diagnostic => diagnostic.Id == "SL004"));
+        Assert.Contains("fr.json", diagnostic.GetMessage(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static ImmutableArray<Diagnostic> RunGenerator(
+        IReadOnlyDictionary<string, string> files,
+        string primaryFile = "en.json")
+    {
+        return RunGenerator(files, LanguageVersion.CSharp12, primaryFile).Diagnostics;
     }
 
     private static ImmutableArray<Diagnostic> RunGeneratorAndGetCompilationDiagnostics(
         IReadOnlyDictionary<string, string> files,
-        LanguageVersion languageVersion)
+        LanguageVersion languageVersion,
+        string primaryFile = "en.json")
     {
-        var result = RunGenerator(files, languageVersion);
+        var result = RunGenerator(files, languageVersion, primaryFile);
         return result.Compilation.GetDiagnostics();
     }
 
     private static (ImmutableArray<Diagnostic> Diagnostics, Compilation Compilation) RunGenerator(
         IReadOnlyDictionary<string, string> files,
-        LanguageVersion languageVersion)
+        LanguageVersion languageVersion,
+        string primaryFile = "en.json")
     {
         var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(languageVersion);
         var compilation = CSharpCompilation.Create(
@@ -140,7 +162,7 @@ public class GeneratorDiagnosticsTests
             optionsProvider: new TestAnalyzerConfigOptionsProvider(new Dictionary<string, string>(StringComparer.Ordinal)
             {
                 ["build_property.RootNamespace"] = "Sample",
-                ["build_property.SenlinzLocalizationFile"] = "en.json"
+                ["build_property.SenlinzLocalizationFile"] = primaryFile
             }));
 
         driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out _);
