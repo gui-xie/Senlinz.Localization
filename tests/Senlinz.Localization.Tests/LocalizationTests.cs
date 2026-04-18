@@ -43,6 +43,22 @@ public sealed class EmptyEnResource : LResource
     }
 }
 
+public sealed class MutableEnResource : LResource
+{
+    private readonly Dictionary<string, string> _resource;
+
+    public MutableEnResource()
+    {
+        _resource = base.GetResource();
+    }
+
+    public override string Culture => "en";
+
+    public override Dictionary<string, string> GetResource() => _resource;
+
+    public void OverwriteHello(string value) => _resource["hello"] = value;
+}
+
 public sealed class ZhAlternativeResource : LResource
 {
     private const string ExceptionUserNotFoundKey = "exception.user.notFound";
@@ -162,6 +178,19 @@ public class LocalizationTests
         Assert.Equal("您好，世界！", secondResolver[L.SayHelloTo("世界")]);
         Assert.Equal("未找到用户 42。", firstResolver[L.Exception.User.NotFound("42")]);
         Assert.Equal("找不到 ID 为 42 的用户。", secondResolver[L.Exception.User.NotFound("42")]);
+    }
+
+    [Fact]
+    public void Resolver_does_not_expose_mutable_resource_dictionaries()
+    {
+        var resource = new MutableEnResource();
+        var resolver = new LStringResolver(() => "en", resource);
+
+        Assert.Equal("Hello", resolver[L.Hello]);
+
+        resource.OverwriteHello("Hacked");
+
+        Assert.Equal("Hello", resolver[L.Hello]);
     }
 
     [Fact]

@@ -104,6 +104,7 @@ public sealed partial class LGenerator
         source.AppendLine("using System;");
         source.AppendLine("using System.Collections.Concurrent;");
         source.AppendLine("using System.Collections.Generic;");
+        source.AppendLine("using System.Collections.ObjectModel;");
         source.AppendLine("using System.Linq;");
         source.AppendLine("using System.Reflection;");
         source.AppendLine("using Senlinz.Localization;");
@@ -114,7 +115,7 @@ public sealed partial class LGenerator
         source.AppendLine($"    [System.CodeDom.Compiler.GeneratedCodeAttribute(\"{ExecutingAssembly.Name}\", \"{ExecutingAssembly.Version}\")]");
         source.AppendLine("    public class LStringResolver : ILStringResolver");
         source.AppendLine("    {");
-        source.AppendLine("        private static readonly IReadOnlyDictionary<string, string> EmptyDictionary = new Dictionary<string, string>();");
+        source.AppendLine("        private static readonly IReadOnlyDictionary<string, string> EmptyDictionary = new ReadOnlyDictionary<string, string>(new Dictionary<string, string>());");
         source.AppendLine("        private static readonly ILResource[] GeneratedResources = CreateGeneratedResources();");
         source.AppendLine();
         source.AppendLine("        private readonly GetCulture _getCulture;");
@@ -210,7 +211,7 @@ public sealed partial class LGenerator
         source.AppendLine("            var culture = _getCulture();");
         source.AppendLine("            var dictionary = _dictionaries.GetOrAdd(");
         source.AppendLine("                culture,");
-        source.AppendLine("                _ => new Lazy<IReadOnlyDictionary<string, string>>(() => _getCultureResource(culture) ?? EmptyDictionary));");
+        source.AppendLine("                _ => new Lazy<IReadOnlyDictionary<string, string>>(() => ToReadOnlyDictionary(_getCultureResource(culture))));");
         source.AppendLine();
         source.AppendLine("            if (dictionary.Value.TryGetValue(key, out var value))");
         source.AppendLine("            {");
@@ -254,6 +255,16 @@ public sealed partial class LGenerator
         source.AppendLine("            }");
         source.AppendLine();
         source.AppendLine("            return candidates;");
+        source.AppendLine("        }");
+        source.AppendLine();
+        source.AppendLine("        private static IReadOnlyDictionary<string, string> ToReadOnlyDictionary(Dictionary<string, string>? resource)");
+        source.AppendLine("        {");
+        source.AppendLine("            if (resource is null || resource.Count == 0)");
+        source.AppendLine("            {");
+        source.AppendLine("                return EmptyDictionary;");
+        source.AppendLine("            }");
+        source.AppendLine();
+        source.AppendLine("            return new ReadOnlyDictionary<string, string>(new Dictionary<string, string>(resource, StringComparer.Ordinal));");
         source.AppendLine("        }");
         source.AppendLine("    }");
         source.AppendLine();

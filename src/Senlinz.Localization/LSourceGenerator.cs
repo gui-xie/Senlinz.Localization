@@ -34,7 +34,7 @@ public sealed partial class LGenerator
             AppendSummary(source, "        ", info.DefaultValue);
             if (info.Parameters.Count == 0)
             {
-                source.AppendLine($"        public static LString {info.KeyProperty} = new LString({ToLiteral(info.Key)}, {ToLiteral(info.DefaultValue)});");
+                source.AppendLine($"        public static readonly LString {info.KeyProperty} = new LString({ToLiteral(info.Key)}, {ToLiteral(info.DefaultValue)});");
                 continue;
             }
 

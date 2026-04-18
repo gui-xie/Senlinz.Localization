@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.2.0] - 2026-04-18
+
+### Added
+
+- Added diagnostic `SL004` to warn when the configured primary localization file is missing from `AdditionalFiles`.
+
+### Changed
+
+- Generated `L` members are now readonly fields to prevent accidental mutation at runtime.
+- Resolver now materializes read-only localization dictionaries to avoid downstream callers mutating cached resources.
+
 ## [3.1.0] - 2026-04-17
 
 ### Added
