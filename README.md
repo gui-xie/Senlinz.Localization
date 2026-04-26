@@ -40,9 +40,9 @@ Use this package in consumer projects that need source generation from JSON.
 
 ```bash
 dotnet add package Senlinz.Localization
+```
 
 Projects that need their own generated `L.g.cs` must reference `Senlinz.Localization` directly. Starting with `3.4.0`, the package no longer ships `buildTransitive` assets, so transitive references do not import the localization build props.
-```
 
 ### `Senlinz.Localization.Abstractions`
 

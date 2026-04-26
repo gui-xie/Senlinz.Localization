@@ -40,9 +40,9 @@
 
 ```bash
 dotnet add package Senlinz.Localization
+```
 
 如果项目需要生成自己的 `L.g.cs`，必须直接引用 `Senlinz.Localization`。从 `3.4.0` 开始，包不再提供 `buildTransitive` 资产，因此传递引用不会再自动导入本地化构建属性。
-```
 
 ### `Senlinz.Localization.Abstractions`
 
