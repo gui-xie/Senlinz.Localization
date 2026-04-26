@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -94,7 +95,7 @@ public sealed partial class LGenerator : IIncrementalGenerator
     private static IncrementalValuesProvider<LocalizationFileCandidate> GetLocalizationFilesProvider(IncrementalGeneratorInitializationContext context) =>
         context.AdditionalTextsProvider
             .Combine(context.AnalyzerConfigOptionsProvider.Select((provider, _) => GetLocalizationFolderPath(provider)))
-            .Where((value, _) => IsLocalizationJsonFile(value.Left.Path) && IsPathUnderLocalizationFolder(value.Left.Path, value.Right))
+            .Where(value => IsLocalizationJsonFile(value.Left.Path) && IsPathUnderLocalizationFolder(value.Left.Path, value.Right))
             .Select((value, _) => CreateLocalizationFileCandidate(value.Left))
             .Where(file => file != null)
             .Select((file, _) => file!);
@@ -175,12 +176,12 @@ public sealed partial class LGenerator : IIncrementalGenerator
     {
         var pathSegments = SplitPathSegments(path);
         var folderSegments = SplitPathSegments(folderPath);
-        if (pathSegments.Length == 0 || folderSegments.Length == 0)
+        if (folderSegments.Length == 0)
         {
             return false;
         }
 
-        for (var startIndex = 0; startIndex <= pathSegments.Length - folderSegments.Length - 1; startIndex++)
+        for (var startIndex = 0; startIndex <= pathSegments.Length - folderSegments.Length; startIndex++)
         {
             var isMatch = true;
             for (var folderIndex = 0; folderIndex < folderSegments.Length; folderIndex++)
@@ -192,7 +193,7 @@ public sealed partial class LGenerator : IIncrementalGenerator
                 }
             }
 
-            if (isMatch)
+            if (isMatch && startIndex + folderSegments.Length < pathSegments.Length)
             {
                 return true;
             }
@@ -201,9 +202,32 @@ public sealed partial class LGenerator : IIncrementalGenerator
         return false;
     }
 
-    private static string[] SplitPathSegments(string path) =>
-        path.Split(new[] { '\\', '/' }, StringSplitOptions.RemoveEmptyEntries)
-            .Where(static segment => !string.Equals(segment, ".", StringComparison.Ordinal))
-            .ToArray();
+    private static string[] SplitPathSegments(string path)
+    {
+        var normalizedSegments = new List<string>();
+        foreach (var segment in path.Split(new[] { '\\', '/' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (string.Equals(segment, ".", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            if (string.Equals(segment, "..", StringComparison.Ordinal))
+            {
+                if (normalizedSegments.Count > 0 && !string.Equals(normalizedSegments[normalizedSegments.Count - 1], "..", StringComparison.Ordinal))
+                {
+                    normalizedSegments.RemoveAt(normalizedSegments.Count - 1);
+                    continue;
+                }
+
+                normalizedSegments.Add(segment);
+                continue;
+            }
+
+            normalizedSegments.Add(segment);
+        }
+
+        return normalizedSegments.ToArray();
+    }
 }
 }
