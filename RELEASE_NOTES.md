@@ -1,5 +1,24 @@
 # Release Notes
 
+## 3.3.0 - 2026-04-26
+
+### Highlights
+
+- Adds `SenlinzLocalizationFolder` so projects can keep localization JSON in a configurable folder instead of only `L`.
+- Scans the configured localization folder recursively, so nested JSON files are discovered without changing generator behavior elsewhere.
+- Ignores unrelated JSON files outside the configured localization folder even when they are included in `AdditionalFiles`.
+
+### Packages
+
+- `Senlinz.Localization` `3.3.0`
+- `Senlinz.Localization.Abstractions` `3.3.0`
+
+### Release checklist
+
+- Keep repository package versions aligned with the published release version `3.3.0`.
+- Tag the release with either `v3.3.0` or `V3.3.0`.
+- Publish the generated NuGet packages from the release workflow artifacts.
+
 ## 3.2.0 - 2026-04-18
 
 ### Highlights
