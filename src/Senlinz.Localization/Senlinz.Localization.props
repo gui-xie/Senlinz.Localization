@@ -2,11 +2,13 @@
   <PropertyGroup>
     <SenlinzLocalizationFile Condition="'$(SenlinzLocalizationFile)' == ''">en.json</SenlinzLocalizationFile>
     <SenlinzLocalizationFolder Condition="'$(SenlinzLocalizationFolder)' == ''">L</SenlinzLocalizationFolder>
+    <SenlinzLocalizationWarnMissingPrimaryFile Condition="'$(SenlinzLocalizationWarnMissingPrimaryFile)' == ''">false</SenlinzLocalizationWarnMissingPrimaryFile>
   </PropertyGroup>
 
   <ItemGroup>
     <CompilerVisibleProperty Include="SenlinzLocalizationFile" />
     <CompilerVisibleProperty Include="SenlinzLocalizationFolder" />
+    <CompilerVisibleProperty Include="SenlinzLocalizationWarnMissingPrimaryFile" />
   </ItemGroup>
 
   <ItemGroup>

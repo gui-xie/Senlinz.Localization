@@ -16,12 +16,12 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageDescription>Shared localization contracts for Senlinz.Localization.</PackageDescription>
     <PackageTags>Localization JSON SourceGenerator NuGet</PackageTags>
-    <VersionPrefix>3.4.0</VersionPrefix>
-    <AssemblyVersion>3.4.0.0</AssemblyVersion>
+    <VersionPrefix>3.5.0</VersionPrefix>
+    <AssemblyVersion>3.5.0.0</AssemblyVersion>
     <Authors>gui-xie</Authors>
     <Title>Senlinz.Localization.Abstractions</Title>
     <Description>Shared localization contracts for Senlinz.Localization.</Description>
-    <PackageReleaseNotes>Aligns with Senlinz.Localization 3.4.0 direct-reference packaging behavior.</PackageReleaseNotes>
+    <PackageReleaseNotes>Aligns with Senlinz.Localization 3.5.0 and its explicit opt-in SL004 diagnostic behavior.</PackageReleaseNotes>
     <Copyright>Copyright (c) Senlinz 2026</Copyright>
     <RepositoryUrl>https://github.com/gui-xie/Senlinz.Localization</RepositoryUrl>
     <RepositoryType>git</RepositoryType>

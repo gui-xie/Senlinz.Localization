@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [3.5.0] - 2026-04-26
+
+### Changed
+
+- Made diagnostic `SL004` explicit opt-in through `SenlinzLocalizationWarnMissingPrimaryFile`, so missing primary localization files no longer warn by default.
+- Updated package versions, release metadata, and documentation for the `3.5.0` release.
+
 ## [3.4.0] - 2026-04-26
 
 ### Fixed

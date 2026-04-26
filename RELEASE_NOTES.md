@@ -1,5 +1,24 @@
 # Release Notes
 
+## 3.5.0 - 2026-04-26
+
+### Highlights
+
+- Makes `SL004` explicit opt-in so projects are not warned about a missing primary localization file unless they enable that check themselves.
+- Adds the `SenlinzLocalizationWarnMissingPrimaryFile` MSBuild property so consumers can re-enable the warning when they want stricter validation.
+- Updates package metadata and repository documentation for the `3.5.0` release.
+
+### Packages
+
+- `Senlinz.Localization` `3.5.0`
+- `Senlinz.Localization.Abstractions` `3.5.0`
+
+### Release checklist
+
+- Keep repository package versions aligned with the published release version `3.5.0`.
+- Tag the release with either `v3.5.0` or `V3.5.0`.
+- Publish the generated NuGet packages from the release workflow artifacts.
+
 ## 3.4.0 - 2026-04-26
 
 ### Highlights
