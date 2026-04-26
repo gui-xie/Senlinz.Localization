@@ -113,7 +113,7 @@ public class GeneratorDiagnosticsTests
             new Dictionary<string, string>
             {
                 ["/tmp/Sample/L/en.json"] = """
-                                           {
+                                            {
                                              "hello": "Hello"
                                             }
                                             """
