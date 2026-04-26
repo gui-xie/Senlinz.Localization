@@ -170,41 +170,36 @@ public class GeneratorDiagnosticsTests
     }
 
     [Fact]
-    public void Does_not_report_missing_primary_file_for_transitive_project_without_localization_configuration()
+    public void Does_not_report_missing_primary_file_when_no_localization_files_are_present()
     {
-        var diagnostics = RunGenerator(
-            new Dictionary<string, string>(),
-            includeBuildProperties: false);
+        var diagnostics = RunGenerator(new Dictionary<string, string>());
 
         Assert.DoesNotContain(diagnostics, static diagnostic => diagnostic.Id == "SL004");
     }
 
     private static ImmutableArray<Diagnostic> RunGenerator(
         IReadOnlyDictionary<string, string> files,
-        string primaryFile = "en.json",
-        bool includeBuildProperties = true)
+        string primaryFile = "en.json")
     {
-        return RunGenerator(files, LanguageVersion.CSharp12, primaryFile, includeBuildProperties: includeBuildProperties).Diagnostics;
+        return RunGenerator(files, LanguageVersion.CSharp12, primaryFile).Diagnostics;
     }
 
     private static ImmutableArray<Diagnostic> RunGeneratorAndGetCompilationDiagnostics(
         IReadOnlyDictionary<string, string> files,
         LanguageVersion languageVersion,
         string primaryFile = "en.json",
-        string localizationFolder = "L",
-        bool includeBuildProperties = true)
+        string localizationFolder = "L")
     {
-        var result = RunGenerator(files, languageVersion, primaryFile, localizationFolder, includeBuildProperties);
+        var result = RunGenerator(files, languageVersion, primaryFile, localizationFolder);
         return result.Compilation.GetDiagnostics();
     }
 
     private static ImmutableArray<string> RunGeneratorAndGetGeneratedSources(
         IReadOnlyDictionary<string, string> files,
         string primaryFile = "en.json",
-        string localizationFolder = "L",
-        bool includeBuildProperties = true)
+        string localizationFolder = "L")
     {
-        var result = RunGenerator(files, LanguageVersion.CSharp12, primaryFile, localizationFolder, includeBuildProperties);
+        var result = RunGenerator(files, LanguageVersion.CSharp12, primaryFile, localizationFolder);
         return result.Compilation.SyntaxTrees
             .Skip(1)
             .Select(static syntaxTree => syntaxTree.ToString())
@@ -215,8 +210,7 @@ public class GeneratorDiagnosticsTests
         IReadOnlyDictionary<string, string> files,
         LanguageVersion languageVersion,
         string primaryFile = "en.json",
-        string localizationFolder = "L",
-        bool includeBuildProperties = true)
+        string localizationFolder = "L")
     {
         var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(languageVersion);
         var compilation = CSharpCompilation.Create(
@@ -232,7 +226,7 @@ public class GeneratorDiagnosticsTests
             generators: [new LGenerator().AsSourceGenerator()],
             additionalTexts: additionalTexts,
             parseOptions: parseOptions,
-            optionsProvider: new TestAnalyzerConfigOptionsProvider(CreateGlobalOptions(primaryFile, localizationFolder, includeBuildProperties)));
+            optionsProvider: new TestAnalyzerConfigOptionsProvider(CreateGlobalOptions(primaryFile, localizationFolder)));
 
         driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out _);
         return (driver.GetRunResult().Diagnostics, outputCompilation);
@@ -240,21 +234,13 @@ public class GeneratorDiagnosticsTests
 
     private static IReadOnlyDictionary<string, string> CreateGlobalOptions(
         string primaryFile,
-        string localizationFolder,
-        bool includeBuildProperties)
-    {
-        var globalOptions = new Dictionary<string, string>(StringComparer.Ordinal)
+        string localizationFolder) =>
+        new Dictionary<string, string>(StringComparer.Ordinal)
         {
-            ["build_property.RootNamespace"] = "Sample"
+            ["build_property.RootNamespace"] = "Sample",
+            ["build_property.SenlinzLocalizationFile"] = primaryFile,
+            ["build_property.SenlinzLocalizationFolder"] = localizationFolder
         };
-        if (includeBuildProperties)
-        {
-            globalOptions["build_property.SenlinzLocalizationFile"] = primaryFile;
-            globalOptions["build_property.SenlinzLocalizationFolder"] = localizationFolder;
-        }
-
-        return globalOptions;
-    }
 
     private static ImmutableArray<MetadataReference> GetMetadataReferences()
     {

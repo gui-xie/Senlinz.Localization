@@ -15,7 +15,19 @@ namespace Senlinz.Localization
 [Generator]
 public sealed partial class LGenerator : IIncrementalGenerator
 {
-    private readonly record struct LocalizationGeneratorOptions(string PrimaryFileName, string LocalizationFolderPath, bool HasBuildConfiguration);
+    private readonly struct LocalizationGeneratorOptions
+    {
+        public LocalizationGeneratorOptions(string primaryFileName, string localizationFolderPath)
+        {
+            PrimaryFileName = primaryFileName;
+            LocalizationFolderPath = localizationFolderPath;
+        }
+
+        public string PrimaryFileName { get; }
+
+        public string LocalizationFolderPath { get; }
+    }
+
     private static readonly AssemblyName ExecutingAssembly = Assembly.GetExecutingAssembly().GetName();
     private static readonly DiagnosticDescriptor InvalidLocalizationJsonDescriptor = new DiagnosticDescriptor(
         id: "SL001",
@@ -127,7 +139,7 @@ public sealed partial class LGenerator : IIncrementalGenerator
             .ThenBy(file => file.Path, StringComparer.OrdinalIgnoreCase)
             .ToImmutableArray();
         var primaryFile = orderedFiles.FirstOrDefault(file => string.Equals(file.FileName, options.PrimaryFileName, StringComparison.OrdinalIgnoreCase));
-        if (primaryFile is null && (options.HasBuildConfiguration || !orderedFiles.IsEmpty))
+        if (primaryFile is null && !orderedFiles.IsEmpty)
         {
             diagnostics.Add(CreateProjectDiagnostic(PrimaryLocalizationFileNotFoundDescriptor, options.PrimaryFileName));
         }
@@ -152,12 +164,11 @@ public sealed partial class LGenerator : IIncrementalGenerator
 
     private static LocalizationGeneratorOptions GetLocalizationGeneratorOptions(AnalyzerConfigOptionsProvider provider)
     {
-        var hasFileProperty = provider.GlobalOptions.TryGetValue(LocalizationFileProperty, out var fileName);
-        var hasFolderProperty = provider.GlobalOptions.TryGetValue(LocalizationFolderProperty, out var folderPath);
-        return new LocalizationGeneratorOptions(
-            string.IsNullOrWhiteSpace(fileName) ? "en.json" : fileName,
-            string.IsNullOrWhiteSpace(folderPath) ? "L" : folderPath,
-            hasFileProperty || hasFolderProperty);
+        provider.GlobalOptions.TryGetValue(LocalizationFileProperty, out var fileName);
+        provider.GlobalOptions.TryGetValue(LocalizationFolderProperty, out var folderPath);
+        var resolvedFileName = string.IsNullOrWhiteSpace(fileName) ? "en.json" : fileName!;
+        var resolvedFolderPath = string.IsNullOrWhiteSpace(folderPath) ? "L" : folderPath!;
+        return new LocalizationGeneratorOptions(resolvedFileName, resolvedFolderPath);
     }
 
     private static bool IsLocalizationJsonFile(string path) =>
