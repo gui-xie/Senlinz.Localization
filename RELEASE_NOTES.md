@@ -4,9 +4,9 @@
 
 ### Highlights
 
-- Stops shipping `Senlinz.Localization.props` in `buildTransitive`, so localization file discovery only flows to projects that reference `Senlinz.Localization` directly.
+- Removes the accidentally introduced `buildTransitive` packaging and restores the intended direct-reference-only design for localization source generation.
 - Keeps direct-reference convenience by still auto-including `$(SenlinzLocalizationFolder)/**/*.json` in `AdditionalFiles` for projects that install the package themselves.
-- Clarifies the direct-reference requirement in the repository documentation.
+- Clarifies in the repository documentation that direct package references were always the intended usage.
 
 ### Packages
 

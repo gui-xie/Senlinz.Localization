@@ -23,7 +23,7 @@
     <Authors>gui-xie</Authors>
     <Title>Senlinz.Localization</Title>
     <Description>Localization source generator package that ships with Senlinz.Localization.Abstractions runtime support.</Description>
-    <PackageReleaseNotes>Removes buildTransitive packaging so localization build props only apply to direct package references while keeping direct-reference JSON discovery support.</PackageReleaseNotes>
+    <PackageReleaseNotes>Restores the intended direct-reference-only packaging model by removing the accidentally introduced buildTransitive behavior while keeping automatic JSON discovery for direct package references.</PackageReleaseNotes>
     <Copyright>Copyright (c) Senlinz 2026</Copyright>
     <RepositoryUrl>https://github.com/gui-xie/Senlinz.Localization</RepositoryUrl>
     <RepositoryType>git</RepositoryType>

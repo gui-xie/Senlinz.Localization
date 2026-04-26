@@ -12,7 +12,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- Stopped packing `Senlinz.Localization.props` into `buildTransitive`, so only projects with a direct `PackageReference` import the localization build props and generate their own `L.g.cs`.
+- Removed the accidentally introduced `buildTransitive` packaging so the original direct-reference-only design for generating `L.g.cs` is restored.
 - Updated release metadata and documentation for the `3.4.0` release.
 
 ## [3.3.0] - 2026-04-26
