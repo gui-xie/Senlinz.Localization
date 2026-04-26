@@ -18,12 +18,12 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageDescription>Localization source generator package that ships with Senlinz.Localization.Abstractions runtime support.</PackageDescription>
     <PackageTags>Localization JSON SourceGenerator NuGet</PackageTags>
-    <VersionPrefix>3.3.0</VersionPrefix>
-    <AssemblyVersion>3.3.0.0</AssemblyVersion>
+    <VersionPrefix>3.4.0</VersionPrefix>
+    <AssemblyVersion>3.4.0.0</AssemblyVersion>
     <Authors>gui-xie</Authors>
     <Title>Senlinz.Localization</Title>
     <Description>Localization source generator package that ships with Senlinz.Localization.Abstractions runtime support.</Description>
-    <PackageReleaseNotes>Adds configurable localization-folder filtering so only JSON files under the selected folder are used for source generation.</PackageReleaseNotes>
+    <PackageReleaseNotes>Removes buildTransitive packaging so localization build props only apply to direct package references while keeping direct-reference JSON discovery support.</PackageReleaseNotes>
     <Copyright>Copyright (c) Senlinz 2026</Copyright>
     <RepositoryUrl>https://github.com/gui-xie/Senlinz.Localization</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
@@ -41,7 +41,6 @@
   <ItemGroup>
     <None Include="..\..\README.md" Link="README.md" Pack="true" PackagePath="\" />
     <None Include="Senlinz.Localization.props" Pack="true" PackagePath="build\Senlinz.Localization.props" />
-    <None Include="Senlinz.Localization.props" Pack="true" PackagePath="buildTransitive\Senlinz.Localization.props" />
     <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="$(OutputPath)Senlinz.Localization.Abstractions.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="$(OutputPath)$(AssemblyName).xml" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />

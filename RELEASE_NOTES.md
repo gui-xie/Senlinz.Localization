@@ -1,5 +1,24 @@
 # Release Notes
 
+## 3.4.0 - 2026-04-26
+
+### Highlights
+
+- Stops shipping `Senlinz.Localization.props` in `buildTransitive`, so localization file discovery only flows to projects that reference `Senlinz.Localization` directly.
+- Keeps direct-reference convenience by still auto-including `$(SenlinzLocalizationFolder)/**/*.json` in `AdditionalFiles` for projects that install the package themselves.
+- Clarifies the direct-reference requirement in the repository documentation.
+
+### Packages
+
+- `Senlinz.Localization` `3.4.0`
+- `Senlinz.Localization.Abstractions` `3.4.0`
+
+### Release checklist
+
+- Keep repository package versions aligned with the published release version `3.4.0`.
+- Tag the release with either `v3.4.0` or `V3.4.0`.
+- Publish the generated NuGet packages from the release workflow artifacts.
+
 ## 3.3.0 - 2026-04-26
 
 ### Highlights

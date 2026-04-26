@@ -4,9 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [3.4.0] - 2026-04-26
+
 ### Fixed
 
-- Automatically includes `$(SenlinzLocalizationFolder)/**/*.json` as `AdditionalFiles` so existing localization files are discovered without extra project configuration.
+- Automatically includes `$(SenlinzLocalizationFolder)/**/*.json` as `AdditionalFiles` for direct package references so existing localization files are discovered without extra project configuration.
+
+### Changed
+
+- Stopped packing `Senlinz.Localization.props` into `buildTransitive`, so only projects with a direct `PackageReference` import the localization build props and generate their own `L.g.cs`.
+- Updated release metadata and documentation for the `3.4.0` release.
 
 ## [3.3.0] - 2026-04-26
 
