@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [3.4.0] - 2026-04-26
+
+### Fixed
+
+- Automatically includes `$(SenlinzLocalizationFolder)/**/*.json` as `AdditionalFiles` for direct package references so existing localization files are discovered without extra project configuration.
+
+### Changed
+
+- Removed the accidentally introduced `buildTransitive` packaging so the original direct-reference-only design for generating `L.g.cs` is restored.
+- Updated release metadata and documentation for the `3.4.0` release.
+
 ## [3.3.0] - 2026-04-26
 
 ### Added

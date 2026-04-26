@@ -11,7 +11,7 @@
 说明：改用更传统的 C# 语法，主要降低的是编译器和工具链门槛；真正决定运行时兼容性的仍然是 `netstandard2.0` 目标框架。
 
 - 文档站点：<https://gui-xie.github.io/Senlinz.Localization/>
-- 当前已发布包版本：`3.3.0`
+- 当前已发布包版本：`3.4.0`
 - 发布说明：[RELEASE_NOTES.md](./RELEASE_NOTES.md)
 - 更新日志：[CHANGELOG.md](./CHANGELOG.md)
 
@@ -41,6 +41,8 @@
 ```bash
 dotnet add package Senlinz.Localization
 ```
+
+如果项目需要生成自己的 `L.g.cs`，本来就应该直接引用 `Senlinz.Localization`。`3.4.0` 只是恢复这个设计初衷，移除了之前误引入的 `buildTransitive` 行为，因此传递引用不再自动导入本地化构建属性。
 
 ### `Senlinz.Localization.Abstractions`
 
@@ -92,7 +94,7 @@ MyProject/
 }
 ```
 
-### 在项目中注册文件
+### 把文件放到本地化目录里
 
 ```xml
 <ItemGroup>
@@ -100,9 +102,9 @@ MyProject/
 </ItemGroup>
 ```
 
-- 默认情况下，生成器只会读取 `L/` 及其所有子目录下的 JSON 文件。
-- `AdditionalFiles` 仍然需要把你希望编译器传给生成器的本地化文件包含进来。
-- 从构建性能考虑，仍然建议把 `AdditionalFiles` 的 glob 限定在本地化目录内。
+- 对于直接引用该包的项目，包默认会把 `$(SenlinzLocalizationFolder)/**/*.json` 自动加入 `AdditionalFiles`，所以只要文件放在 `L/` 目录下，一般不需要额外项目配置。
+- 上面的 `AdditionalFiles` 配置只在你想覆盖或扩展默认包含规则时才需要。
+- 生成器仍然只会读取配置的本地化目录（含子目录）下的 JSON 文件。
 
 ### 使用生成代码
 
@@ -394,7 +396,7 @@ Console.WriteLine(resolver[UserType.Student.ToLString()]);
 
 ## 发布与文档站点
 
-- 当前已经发布到 NuGet 的版本是 `3.3.0`。
+- 当前已经发布到 NuGet 的版本是 `3.4.0`。
 - 请保持 `README.md`、`README.zh-CN.md`、`docs/README.md` 和 `docs/zh-CN/README.md` 同步，确保仓库首页与 Docsify 文档站点展示一致的发布状态。
 - 在创建下一次发布标签前，把面向包使用者的重要变更补充到 `CHANGELOG.md` 与 `RELEASE_NOTES.md`。
 - 推送 `v*` 或 `V*` 标签会触发 NuGet 发布工作流，而 `docs/` 目录中的内容会通过文档工作流部署到站点。

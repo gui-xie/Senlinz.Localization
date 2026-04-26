@@ -23,7 +23,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <AdditionalFiles Include="L\**\*.json" />
     <None Update="L\**\*.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
