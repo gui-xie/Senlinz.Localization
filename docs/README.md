@@ -52,7 +52,7 @@ dotnet add package Senlinz.Localization.Abstractions
 
 ### 1. Create the localization files
 
-Place localization JSON files under the `L/` folder. `en.json` is the default primary file unless you override it with `SenlinzLocalizationFile`.
+Place localization JSON files under the `L/` folder by default. `en.json` is the default primary file unless you override it with `SenlinzLocalizationFile`.
 
 Example layout:
 
@@ -94,12 +94,13 @@ MyProject/
 
 ```xml
 <ItemGroup>
-  <AdditionalFiles Include="L/*.json" />
+  <AdditionalFiles Include="L/**/*.json" />
 </ItemGroup>
 ```
 
-- `AdditionalFiles` lets the source generator read the localization files under `L/`.
-- If you later place files into subfolders, just widen the glob pattern; folders do not affect the generated namespace.
+- By default, the generator only reads JSON files under `L/`, including subfolders.
+- `AdditionalFiles` still needs to include the localization files you want the compiler to pass to the generator.
+- Keeping the `AdditionalFiles` glob scoped to your localization folder is still recommended for build performance.
 
 ### 3. Use generated members
 
@@ -175,13 +176,32 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 
 ```xml
 <PropertyGroup>
+  <SenlinzLocalizationFolder>L</SenlinzLocalizationFolder>
   <SenlinzLocalizationFile>zh.json</SenlinzLocalizationFile>
 </PropertyGroup>
 
 <ItemGroup>
-  <AdditionalFiles Include="L/*.json" />
+  <AdditionalFiles Include="L/**/*.json" />
 </ItemGroup>
 ```
+
+### Localization folder
+
+`SenlinzLocalizationFolder` selects which folder the generator scans for localization JSON files. The default is `L`, and all nested subfolders are included.
+
+```xml
+<PropertyGroup>
+  <SenlinzLocalizationFolder>Localization</SenlinzLocalizationFolder>
+  <SenlinzLocalizationFile>en.json</SenlinzLocalizationFile>
+</PropertyGroup>
+
+<ItemGroup>
+  <AdditionalFiles Include="**/*.json" />
+</ItemGroup>
+```
+
+- Only JSON files under the configured folder are treated as localization inputs.
+- This lets you keep other JSON files in `AdditionalFiles` without the generator trying to use them as localization resources.
 
 ## Generated types
 

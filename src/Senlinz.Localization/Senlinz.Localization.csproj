@@ -23,7 +23,7 @@
     <Authors>gui-xie</Authors>
     <Title>Senlinz.Localization</Title>
     <Description>Localization source generator package that ships with Senlinz.Localization.Abstractions runtime support.</Description>
-    <PackageReleaseNotes>Adds a diagnostic when the primary localization file is missing, makes generated L entries readonly, and shields resolver dictionaries from mutation.</PackageReleaseNotes>
+    <PackageReleaseNotes>Adds configurable localization-folder filtering, keeps generated L entries readonly, and shields resolver dictionaries from mutation.</PackageReleaseNotes>
     <Copyright>Copyright (c) Senlinz 2026</Copyright>
     <RepositoryUrl>https://github.com/gui-xie/Senlinz.Localization</RepositoryUrl>
     <RepositoryType>git</RepositoryType>

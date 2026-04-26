@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- Added configurable `SenlinzLocalizationFolder` support so the generator only scans JSON files under the selected folder, defaulting to `L` and including all nested subfolders.
+
 ## [3.2.0] - 2026-04-18
 
 ### Added
