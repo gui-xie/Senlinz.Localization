@@ -15,6 +15,7 @@ namespace Senlinz.Localization
 [Generator]
 public sealed partial class LGenerator : IIncrementalGenerator
 {
+    private readonly record struct LocalizationGeneratorOptions(string PrimaryFileName, string LocalizationFolderPath, bool HasBuildConfiguration);
     private static readonly AssemblyName ExecutingAssembly = Assembly.GetExecutingAssembly().GetName();
     private static readonly DiagnosticDescriptor InvalidLocalizationJsonDescriptor = new DiagnosticDescriptor(
         id: "SL001",
@@ -89,13 +90,13 @@ public sealed partial class LGenerator : IIncrementalGenerator
         GetLocalizationFilesProvider(context)
             .Collect()
             .Combine(GetTargetNamespaceProvider(context))
-            .Combine(context.AnalyzerConfigOptionsProvider.Select((provider, _) => GetLocalizationFileName(provider)))
+            .Combine(context.AnalyzerConfigOptionsProvider.Select((provider, _) => GetLocalizationGeneratorOptions(provider)))
             .Select((values, _) => CreateLocalizationGenerationState(values.Left.Left, values.Left.Right, values.Right));
 
     private static IncrementalValuesProvider<LocalizationFileCandidate> GetLocalizationFilesProvider(IncrementalGeneratorInitializationContext context) =>
         context.AdditionalTextsProvider
-            .Combine(context.AnalyzerConfigOptionsProvider.Select((provider, _) => GetLocalizationFolderPath(provider)))
-            .Where(value => IsLocalizationJsonFile(value.Left.Path) && IsPathUnderLocalizationFolder(value.Left.Path, value.Right))
+            .Combine(context.AnalyzerConfigOptionsProvider.Select((provider, _) => GetLocalizationGeneratorOptions(provider)))
+            .Where(value => IsLocalizationJsonFile(value.Left.Path) && IsPathUnderLocalizationFolder(value.Left.Path, value.Right.LocalizationFolderPath))
             .Select((value, _) => CreateLocalizationFileCandidate(value.Left))
             .Where(file => file != null)
             .Select((file, _) => file!);
@@ -112,7 +113,7 @@ public sealed partial class LGenerator : IIncrementalGenerator
     private static LocalizationGenerationState CreateLocalizationGenerationState(
         ImmutableArray<LocalizationFileCandidate> files,
         string targetNamespace,
-        string primaryFileName)
+        LocalizationGeneratorOptions options)
     {
         var diagnostics = ImmutableArray.CreateBuilder<LocalizationDiagnosticInfo>();
         var orderedFiles = files
@@ -125,10 +126,10 @@ public sealed partial class LGenerator : IIncrementalGenerator
             .OrderBy(file => file.FileName, StringComparer.OrdinalIgnoreCase)
             .ThenBy(file => file.Path, StringComparer.OrdinalIgnoreCase)
             .ToImmutableArray();
-        var primaryFile = orderedFiles.FirstOrDefault(file => string.Equals(file.FileName, primaryFileName, StringComparison.OrdinalIgnoreCase));
-        if (primaryFile is null)
+        var primaryFile = orderedFiles.FirstOrDefault(file => string.Equals(file.FileName, options.PrimaryFileName, StringComparison.OrdinalIgnoreCase));
+        if (primaryFile is null && (options.HasBuildConfiguration || !orderedFiles.IsEmpty))
         {
-            diagnostics.Add(CreateProjectDiagnostic(PrimaryLocalizationFileNotFoundDescriptor, primaryFileName));
+            diagnostics.Add(CreateProjectDiagnostic(PrimaryLocalizationFileNotFoundDescriptor, options.PrimaryFileName));
         }
         return new LocalizationGenerationState(targetNamespace, orderedFiles, primaryFile, diagnostics.ToImmutable());
     }
@@ -149,24 +150,14 @@ public sealed partial class LGenerator : IIncrementalGenerator
             file.GetText()?.ToString() ?? string.Empty);
     }
 
-    private static string GetLocalizationFileName(AnalyzerConfigOptionsProvider provider)
+    private static LocalizationGeneratorOptions GetLocalizationGeneratorOptions(AnalyzerConfigOptionsProvider provider)
     {
-        if (provider.GlobalOptions.TryGetValue(LocalizationFileProperty, out var fileName) && !string.IsNullOrWhiteSpace(fileName))
-        {
-            return fileName;
-        }
-
-        return "en.json";
-    }
-
-    private static string GetLocalizationFolderPath(AnalyzerConfigOptionsProvider provider)
-    {
-        if (provider.GlobalOptions.TryGetValue(LocalizationFolderProperty, out var folderPath) && !string.IsNullOrWhiteSpace(folderPath))
-        {
-            return folderPath;
-        }
-
-        return "L";
+        var hasFileProperty = provider.GlobalOptions.TryGetValue(LocalizationFileProperty, out var fileName);
+        var hasFolderProperty = provider.GlobalOptions.TryGetValue(LocalizationFolderProperty, out var folderPath);
+        return new LocalizationGeneratorOptions(
+            string.IsNullOrWhiteSpace(fileName) ? "en.json" : fileName,
+            string.IsNullOrWhiteSpace(folderPath) ? "L" : folderPath,
+            hasFileProperty || hasFolderProperty);
     }
 
     private static bool IsLocalizationJsonFile(string path) =>
