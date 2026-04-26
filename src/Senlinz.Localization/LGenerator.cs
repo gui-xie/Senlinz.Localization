@@ -17,15 +17,18 @@ public sealed partial class LGenerator : IIncrementalGenerator
 {
     private readonly struct LocalizationGeneratorOptions
     {
-        public LocalizationGeneratorOptions(string primaryFileName, string localizationFolderPath)
+        public LocalizationGeneratorOptions(string primaryFileName, string localizationFolderPath, bool warnOnMissingPrimaryFile)
         {
             PrimaryFileName = primaryFileName;
             LocalizationFolderPath = localizationFolderPath;
+            WarnOnMissingPrimaryFile = warnOnMissingPrimaryFile;
         }
 
         public string PrimaryFileName { get; }
 
         public string LocalizationFolderPath { get; }
+
+        public bool WarnOnMissingPrimaryFile { get; }
     }
 
     private static readonly AssemblyName ExecutingAssembly = Assembly.GetExecutingAssembly().GetName();
@@ -59,6 +62,7 @@ public sealed partial class LGenerator : IIncrementalGenerator
         isEnabledByDefault: true);
     private const string LocalizationFileProperty = "build_property.SenlinzLocalizationFile";
     private const string LocalizationFolderProperty = "build_property.SenlinzLocalizationFolder";
+    private const string WarnOnMissingPrimaryFileProperty = "build_property.SenlinzLocalizationWarnMissingPrimaryFile";
     private const string RootNamespaceProperty = "build_property.RootNamespace";
     private const string LStringAttributeName = "Senlinz.Localization.LStringAttribute";
     private const string LStringKeyAttributeSuffix = "LStringKey";
@@ -139,7 +143,7 @@ public sealed partial class LGenerator : IIncrementalGenerator
             .ThenBy(file => file.Path, StringComparer.OrdinalIgnoreCase)
             .ToImmutableArray();
         var primaryFile = orderedFiles.FirstOrDefault(file => string.Equals(file.FileName, options.PrimaryFileName, StringComparison.OrdinalIgnoreCase));
-        if (primaryFile is null && !orderedFiles.IsEmpty)
+        if (primaryFile is null && options.WarnOnMissingPrimaryFile && !orderedFiles.IsEmpty)
         {
             diagnostics.Add(CreateProjectDiagnostic(PrimaryLocalizationFileNotFoundDescriptor, options.PrimaryFileName));
         }
@@ -166,9 +170,11 @@ public sealed partial class LGenerator : IIncrementalGenerator
     {
         provider.GlobalOptions.TryGetValue(LocalizationFileProperty, out var fileName);
         provider.GlobalOptions.TryGetValue(LocalizationFolderProperty, out var folderPath);
+        provider.GlobalOptions.TryGetValue(WarnOnMissingPrimaryFileProperty, out var warnOnMissingPrimaryFile);
         var resolvedFileName = string.IsNullOrWhiteSpace(fileName) ? "en.json" : fileName!;
         var resolvedFolderPath = string.IsNullOrWhiteSpace(folderPath) ? "L" : folderPath!;
-        return new LocalizationGeneratorOptions(resolvedFileName, resolvedFolderPath);
+        var shouldWarnOnMissingPrimaryFile = bool.TryParse(warnOnMissingPrimaryFile, out var parsedValue) && parsedValue;
+        return new LocalizationGeneratorOptions(resolvedFileName, resolvedFolderPath, shouldWarnOnMissingPrimaryFile);
     }
 
     private static bool IsLocalizationJsonFile(string path) =>

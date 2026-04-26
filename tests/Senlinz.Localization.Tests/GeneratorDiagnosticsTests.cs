@@ -107,7 +107,24 @@ public class GeneratorDiagnosticsTests
     }
 
     [Fact]
-    public void Reports_diagnostic_when_primary_localization_file_is_missing()
+    public void Does_not_report_missing_primary_file_by_default()
+    {
+        var diagnostics = RunGenerator(
+            new Dictionary<string, string>
+            {
+                ["/tmp/Sample/L/en.json"] = """
+                                           {
+                                             "hello": "Hello"
+                                            }
+                                            """
+            },
+            primaryFile: "fr.json");
+
+        Assert.DoesNotContain(diagnostics, static diagnostic => diagnostic.Id == "SL004");
+    }
+
+    [Fact]
+    public void Reports_diagnostic_when_primary_localization_file_is_missing_and_opted_in()
     {
         var diagnostics = RunGenerator(
             new Dictionary<string, string>
@@ -118,7 +135,8 @@ public class GeneratorDiagnosticsTests
                                            }
                                            """
             },
-            primaryFile: "fr.json");
+            primaryFile: "fr.json",
+            warnOnMissingPrimaryFile: true);
 
         var diagnostic = Assert.Single(diagnostics.Where(static diagnostic => diagnostic.Id == "SL004"));
         Assert.Contains("fr.json", diagnostic.GetMessage(), StringComparison.OrdinalIgnoreCase);
@@ -172,16 +190,17 @@ public class GeneratorDiagnosticsTests
     [Fact]
     public void Does_not_report_missing_primary_file_when_no_localization_files_are_present()
     {
-        var diagnostics = RunGenerator(new Dictionary<string, string>());
+        var diagnostics = RunGenerator(new Dictionary<string, string>(), warnOnMissingPrimaryFile: true);
 
         Assert.DoesNotContain(diagnostics, static diagnostic => diagnostic.Id == "SL004");
     }
 
     private static ImmutableArray<Diagnostic> RunGenerator(
         IReadOnlyDictionary<string, string> files,
-        string primaryFile = "en.json")
+        string primaryFile = "en.json",
+        bool warnOnMissingPrimaryFile = false)
     {
-        return RunGenerator(files, LanguageVersion.CSharp12, primaryFile).Diagnostics;
+        return RunGenerator(files, LanguageVersion.CSharp12, primaryFile, warnOnMissingPrimaryFile: warnOnMissingPrimaryFile).Diagnostics;
     }
 
     private static ImmutableArray<Diagnostic> RunGeneratorAndGetCompilationDiagnostics(
@@ -210,7 +229,8 @@ public class GeneratorDiagnosticsTests
         IReadOnlyDictionary<string, string> files,
         LanguageVersion languageVersion,
         string primaryFile = "en.json",
-        string localizationFolder = "L")
+        string localizationFolder = "L",
+        bool warnOnMissingPrimaryFile = false)
     {
         var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(languageVersion);
         var compilation = CSharpCompilation.Create(
@@ -226,7 +246,7 @@ public class GeneratorDiagnosticsTests
             generators: [new LGenerator().AsSourceGenerator()],
             additionalTexts: additionalTexts,
             parseOptions: parseOptions,
-            optionsProvider: new TestAnalyzerConfigOptionsProvider(CreateGlobalOptions(primaryFile, localizationFolder)));
+            optionsProvider: new TestAnalyzerConfigOptionsProvider(CreateGlobalOptions(primaryFile, localizationFolder, warnOnMissingPrimaryFile)));
 
         driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out _);
         return (driver.GetRunResult().Diagnostics, outputCompilation);
@@ -234,12 +254,14 @@ public class GeneratorDiagnosticsTests
 
     private static IReadOnlyDictionary<string, string> CreateGlobalOptions(
         string primaryFile,
-        string localizationFolder) =>
+        string localizationFolder,
+        bool warnOnMissingPrimaryFile) =>
         new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["build_property.RootNamespace"] = "Sample",
             ["build_property.SenlinzLocalizationFile"] = primaryFile,
-            ["build_property.SenlinzLocalizationFolder"] = localizationFolder
+            ["build_property.SenlinzLocalizationFolder"] = localizationFolder,
+            ["build_property.SenlinzLocalizationWarnMissingPrimaryFile"] = warnOnMissingPrimaryFile.ToString()
         };
 
     private static ImmutableArray<MetadataReference> GetMetadataReferences()

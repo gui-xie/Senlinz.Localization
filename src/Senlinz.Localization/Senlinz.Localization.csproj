@@ -18,12 +18,12 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageDescription>Localization source generator package that ships with Senlinz.Localization.Abstractions runtime support.</PackageDescription>
     <PackageTags>Localization JSON SourceGenerator NuGet</PackageTags>
-    <VersionPrefix>3.4.0</VersionPrefix>
-    <AssemblyVersion>3.4.0.0</AssemblyVersion>
+    <VersionPrefix>3.5.0</VersionPrefix>
+    <AssemblyVersion>3.5.0.0</AssemblyVersion>
     <Authors>gui-xie</Authors>
     <Title>Senlinz.Localization</Title>
     <Description>Localization source generator package that ships with Senlinz.Localization.Abstractions runtime support.</Description>
-    <PackageReleaseNotes>Restores the intended direct-reference-only packaging model by removing the accidentally introduced buildTransitive behavior while keeping automatic JSON discovery for direct package references.</PackageReleaseNotes>
+    <PackageReleaseNotes>Makes the SL004 missing-primary-file diagnostic explicit opt-in while keeping automatic JSON discovery for direct package references.</PackageReleaseNotes>
     <Copyright>Copyright (c) Senlinz 2026</Copyright>
     <RepositoryUrl>https://github.com/gui-xie/Senlinz.Localization</RepositoryUrl>
     <RepositoryType>git</RepositoryType>

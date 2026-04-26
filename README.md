@@ -11,7 +11,7 @@ Runtime compatibility: generated runtime support targets `netstandard2.0`, so it
 Note: using more traditional C# syntax mainly reduces compiler and tooling requirements; actual runtime compatibility still comes from the `netstandard2.0` target.
 
 - Documentation site: <https://gui-xie.github.io/Senlinz.Localization/>
-- Latest published package version: `3.4.0`
+- Latest published package version: `3.5.0`
 - Release notes: [RELEASE_NOTES.md](./RELEASE_NOTES.md)
 - Changelog: [CHANGELOG.md](./CHANGELOG.md)
 
@@ -42,7 +42,7 @@ Use this package in consumer projects that need source generation from JSON.
 dotnet add package Senlinz.Localization
 ```
 
-Projects that need their own generated `L.g.cs` should always reference `Senlinz.Localization` directly. Version `3.4.0` restores that intended design by removing the accidentally introduced `buildTransitive` behavior, so transitive references no longer import the localization build props.
+Projects that need their own generated `L.g.cs` should always reference `Senlinz.Localization` directly. Since `3.4.0`, transitive references no longer import the localization build props, so direct references remain the intended setup.
 
 ### `Senlinz.Localization.Abstractions`
 
@@ -187,6 +187,14 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 <ItemGroup>
   <AdditionalFiles Include="L/**/*.json" />
 </ItemGroup>
+```
+
+Missing the configured primary file does not report `SL004` by default. If you want that warning, opt in explicitly:
+
+```xml
+<PropertyGroup>
+  <SenlinzLocalizationWarnMissingPrimaryFile>true</SenlinzLocalizationWarnMissingPrimaryFile>
+</PropertyGroup>
 ```
 
 ### Localization folder
@@ -396,7 +404,7 @@ Expected output:
 
 ## Release and documentation publishing
 
-- The latest published NuGet release is `3.4.0`.
+- The latest published NuGet release is `3.5.0`.
 - Keep `README.md`, `README.zh-CN.md`, `docs/README.md`, and `docs/zh-CN/README.md` aligned so the repository and Docsify site show the same release status.
 - Record package-facing changes in `CHANGELOG.md` and `RELEASE_NOTES.md` before creating the next release tag.
 - Publishing `v*` or `V*` tags triggers the NuGet publish workflow, and updates to the `docs/` content are deployed through the documentation workflow.
