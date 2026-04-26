@@ -92,7 +92,7 @@ MyProject/
 }
 ```
 
-### 在项目中注册文件
+### 把文件放到本地化目录里
 
 ```xml
 <ItemGroup>
@@ -100,9 +100,9 @@ MyProject/
 </ItemGroup>
 ```
 
-- 默认情况下，生成器只会读取 `L/` 及其所有子目录下的 JSON 文件。
-- `AdditionalFiles` 仍然需要把你希望编译器传给生成器的本地化文件包含进来。
-- 从构建性能考虑，仍然建议把 `AdditionalFiles` 的 glob 限定在本地化目录内。
+- 包默认会把 `$(SenlinzLocalizationFolder)/**/*.json` 自动加入 `AdditionalFiles`，所以只要文件放在 `L/` 目录下，一般不需要额外项目配置。
+- 上面的 `AdditionalFiles` 配置只在你想覆盖或扩展默认包含规则时才需要。
+- 生成器仍然只会读取配置的本地化目录（含子目录）下的 JSON 文件。
 
 ### 使用生成代码
 

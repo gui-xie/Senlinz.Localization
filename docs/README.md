@@ -90,7 +90,7 @@ MyProject/
 }
 ```
 
-### 2. Register the files in the project
+### 2. Add the files to the localization folder
 
 ```xml
 <ItemGroup>
@@ -98,9 +98,9 @@ MyProject/
 </ItemGroup>
 ```
 
-- By default, the generator only reads JSON files under `L/`, including subfolders.
-- `AdditionalFiles` still needs to include the localization files you want the compiler to pass to the generator.
-- Keeping the `AdditionalFiles` glob scoped to your localization folder is still recommended for build performance.
+- By default, the package automatically adds `$(SenlinzLocalizationFolder)/**/*.json` to `AdditionalFiles`, so files placed under `L/` are picked up without extra project configuration.
+- The explicit `AdditionalFiles` entry above is only needed when you want to override or extend the default item inclusion behavior.
+- The generator only reads JSON files under the configured localization folder, including subfolders.
 
 ### 3. Use generated members
 

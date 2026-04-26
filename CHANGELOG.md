@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- Automatically includes `$(SenlinzLocalizationFolder)/**/*.json` as `AdditionalFiles` so existing localization files are discovered without extra project configuration.
+
 ## [3.3.0] - 2026-04-26
 
 ### Added
