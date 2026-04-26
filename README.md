@@ -11,7 +11,7 @@ Runtime compatibility: generated runtime support targets `netstandard2.0`, so it
 Note: using more traditional C# syntax mainly reduces compiler and tooling requirements; actual runtime compatibility still comes from the `netstandard2.0` target.
 
 - Documentation site: <https://gui-xie.github.io/Senlinz.Localization/>
-- Latest published package version: `3.2.0`
+- Latest published package version: `3.3.0`
 - Release notes: [RELEASE_NOTES.md](./RELEASE_NOTES.md)
 - Changelog: [CHANGELOG.md](./CHANGELOG.md)
 
@@ -54,7 +54,7 @@ dotnet add package Senlinz.Localization.Abstractions
 
 ### 1. Create the localization files
 
-Place localization JSON files under the `L/` folder. `en.json` is the default primary file unless you override it with `SenlinzLocalizationFile`.
+Place localization JSON files under the `L/` folder by default. `en.json` is the default primary file unless you override it with `SenlinzLocalizationFile`.
 
 Example layout:
 
@@ -96,12 +96,13 @@ MyProject/
 
 ```xml
 <ItemGroup>
-  <AdditionalFiles Include="L/*.json" />
+  <AdditionalFiles Include="L/**/*.json" />
 </ItemGroup>
 ```
 
-- `AdditionalFiles` lets the source generator read the localization files under `L/`.
-- If you later place files into subfolders, just widen the glob pattern; folders do not affect the generated namespace.
+- By default, the generator only reads JSON files under `L/`, including subfolders.
+- `AdditionalFiles` still needs to include the localization files you want the compiler to pass to the generator.
+- Keeping the `AdditionalFiles` glob scoped to your localization folder is still recommended for build performance.
 
 ### 3. Use generated members
 
@@ -177,13 +178,32 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 
 ```xml
 <PropertyGroup>
+  <SenlinzLocalizationFolder>L</SenlinzLocalizationFolder>
   <SenlinzLocalizationFile>zh.json</SenlinzLocalizationFile>
 </PropertyGroup>
 
 <ItemGroup>
-  <AdditionalFiles Include="L/*.json" />
+  <AdditionalFiles Include="L/**/*.json" />
 </ItemGroup>
 ```
+
+### Localization folder
+
+`SenlinzLocalizationFolder` selects which folder the generator scans for localization JSON files. The default is `L`, and all nested subfolders are included.
+
+```xml
+<PropertyGroup>
+  <SenlinzLocalizationFolder>Localization</SenlinzLocalizationFolder>
+  <SenlinzLocalizationFile>en.json</SenlinzLocalizationFile>
+</PropertyGroup>
+
+<ItemGroup>
+  <AdditionalFiles Include="**/*.json" />
+</ItemGroup>
+```
+
+- Only JSON files under the configured folder are treated as localization inputs.
+- This lets you keep other JSON files in `AdditionalFiles` without the generator trying to use them as localization resources.
 
 ## Generated types
 
@@ -374,7 +394,7 @@ Expected output:
 
 ## Release and documentation publishing
 
-- The latest published NuGet release is `3.2.0`.
+- The latest published NuGet release is `3.3.0`.
 - Keep `README.md`, `README.zh-CN.md`, `docs/README.md`, and `docs/zh-CN/README.md` aligned so the repository and Docsify site show the same release status.
 - Record package-facing changes in `CHANGELOG.md` and `RELEASE_NOTES.md` before creating the next release tag.
 - Publishing `v*` or `V*` tags triggers the NuGet publish workflow, and updates to the `docs/` content are deployed through the documentation workflow.

@@ -124,6 +124,51 @@ public class GeneratorDiagnosticsTests
         Assert.Contains("fr.json", diagnostic.GetMessage(), StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public void Ignores_json_files_outside_default_localization_folder()
+    {
+        var generatedSources = RunGeneratorAndGetGeneratedSources(
+            new Dictionary<string, string>
+            {
+                ["/tmp/Sample/L/en.json"] = """
+                                           {
+                                             "hello": "Hello from L"
+                                           }
+                                           """,
+                ["/tmp/Sample/Data/en.json"] = """
+                                              {
+                                                "hello": "Hello from data"
+                                              }
+                                              """
+            });
+
+        Assert.Contains(generatedSources, static source => source.Contains("Hello from L", StringComparison.Ordinal));
+        Assert.DoesNotContain(generatedSources, static source => source.Contains("Hello from data", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Uses_custom_localization_folder_recursively()
+    {
+        var generatedSources = RunGeneratorAndGetGeneratedSources(
+            new Dictionary<string, string>
+            {
+                ["/tmp/Sample/L/en.json"] = """
+                                           {
+                                             "hello": "Hello from default"
+                                           }
+                                           """,
+                ["/tmp/Sample/Localization/Nested/en.json"] = """
+                                                             {
+                                                               "hello": "Hello from custom"
+                                                             }
+                                                             """
+            },
+            localizationFolder: "Localization");
+
+        Assert.Contains(generatedSources, static source => source.Contains("Hello from custom", StringComparison.Ordinal));
+        Assert.DoesNotContain(generatedSources, static source => source.Contains("Hello from default", StringComparison.Ordinal));
+    }
+
     private static ImmutableArray<Diagnostic> RunGenerator(
         IReadOnlyDictionary<string, string> files,
         string primaryFile = "en.json")
@@ -134,16 +179,30 @@ public class GeneratorDiagnosticsTests
     private static ImmutableArray<Diagnostic> RunGeneratorAndGetCompilationDiagnostics(
         IReadOnlyDictionary<string, string> files,
         LanguageVersion languageVersion,
-        string primaryFile = "en.json")
+        string primaryFile = "en.json",
+        string localizationFolder = "L")
     {
-        var result = RunGenerator(files, languageVersion, primaryFile);
+        var result = RunGenerator(files, languageVersion, primaryFile, localizationFolder);
         return result.Compilation.GetDiagnostics();
+    }
+
+    private static ImmutableArray<string> RunGeneratorAndGetGeneratedSources(
+        IReadOnlyDictionary<string, string> files,
+        string primaryFile = "en.json",
+        string localizationFolder = "L")
+    {
+        var result = RunGenerator(files, LanguageVersion.CSharp12, primaryFile, localizationFolder);
+        return result.Compilation.SyntaxTrees
+            .Skip(1)
+            .Select(static syntaxTree => syntaxTree.ToString())
+            .ToImmutableArray();
     }
 
     private static (ImmutableArray<Diagnostic> Diagnostics, Compilation Compilation) RunGenerator(
         IReadOnlyDictionary<string, string> files,
         LanguageVersion languageVersion,
-        string primaryFile = "en.json")
+        string primaryFile = "en.json",
+        string localizationFolder = "L")
     {
         var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(languageVersion);
         var compilation = CSharpCompilation.Create(
@@ -162,7 +221,8 @@ public class GeneratorDiagnosticsTests
             optionsProvider: new TestAnalyzerConfigOptionsProvider(new Dictionary<string, string>(StringComparer.Ordinal)
             {
                 ["build_property.RootNamespace"] = "Sample",
-                ["build_property.SenlinzLocalizationFile"] = primaryFile
+                ["build_property.SenlinzLocalizationFile"] = primaryFile,
+                ["build_property.SenlinzLocalizationFolder"] = localizationFolder
             }));
 
         driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out _);

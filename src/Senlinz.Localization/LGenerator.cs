@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -39,11 +40,12 @@ public sealed partial class LGenerator : IIncrementalGenerator
     private static readonly DiagnosticDescriptor PrimaryLocalizationFileNotFoundDescriptor = new DiagnosticDescriptor(
         id: "SL004",
         title: "Primary localization file not found",
-        messageFormat: "Primary localization file '{0}' was not found among AdditionalFiles",
+        messageFormat: "Primary localization file '{0}' was not found among AdditionalFiles under the configured localization folder",
         category: "Senlinz.Localization",
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
     private const string LocalizationFileProperty = "build_property.SenlinzLocalizationFile";
+    private const string LocalizationFolderProperty = "build_property.SenlinzLocalizationFolder";
     private const string RootNamespaceProperty = "build_property.RootNamespace";
     private const string LStringAttributeName = "Senlinz.Localization.LStringAttribute";
     private const string LStringKeyAttributeSuffix = "LStringKey";
@@ -92,8 +94,9 @@ public sealed partial class LGenerator : IIncrementalGenerator
 
     private static IncrementalValuesProvider<LocalizationFileCandidate> GetLocalizationFilesProvider(IncrementalGeneratorInitializationContext context) =>
         context.AdditionalTextsProvider
-            .Where(file => IsLocalizationJsonFile(file.Path))
-            .Select((file, _) => CreateLocalizationFileCandidate(file))
+            .Combine(context.AnalyzerConfigOptionsProvider.Select((provider, _) => GetLocalizationFolderPath(provider)))
+            .Where(value => IsLocalizationJsonFile(value.Left.Path) && IsPathUnderLocalizationFolder(value.Left.Path, value.Right))
+            .Select((value, _) => CreateLocalizationFileCandidate(value.Left))
             .Where(file => file != null)
             .Select((file, _) => file!);
 
@@ -156,7 +159,75 @@ public sealed partial class LGenerator : IIncrementalGenerator
         return "en.json";
     }
 
+    private static string GetLocalizationFolderPath(AnalyzerConfigOptionsProvider provider)
+    {
+        if (provider.GlobalOptions.TryGetValue(LocalizationFolderProperty, out var folderPath) && !string.IsNullOrWhiteSpace(folderPath))
+        {
+            return folderPath;
+        }
+
+        return "L";
+    }
+
     private static bool IsLocalizationJsonFile(string path) =>
         string.Equals(Path.GetExtension(path), ".json", StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsPathUnderLocalizationFolder(string path, string folderPath)
+    {
+        var pathSegments = SplitPathSegments(path);
+        var folderSegments = SplitPathSegments(folderPath);
+        if (folderSegments.Length == 0)
+        {
+            return false;
+        }
+
+        for (var startIndex = 0; startIndex <= pathSegments.Length - folderSegments.Length; startIndex++)
+        {
+            var isMatch = true;
+            for (var folderIndex = 0; folderIndex < folderSegments.Length; folderIndex++)
+            {
+                if (!string.Equals(pathSegments[startIndex + folderIndex], folderSegments[folderIndex], StringComparison.OrdinalIgnoreCase))
+                {
+                    isMatch = false;
+                    break;
+                }
+            }
+
+            if (isMatch && startIndex + folderSegments.Length < pathSegments.Length)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static string[] SplitPathSegments(string path)
+    {
+        var normalizedSegments = new List<string>();
+        foreach (var segment in path.Split(new[] { '\\', '/' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (string.Equals(segment, ".", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            if (string.Equals(segment, "..", StringComparison.Ordinal))
+            {
+                if (normalizedSegments.Count > 0 && !string.Equals(normalizedSegments[normalizedSegments.Count - 1], "..", StringComparison.Ordinal))
+                {
+                    normalizedSegments.RemoveAt(normalizedSegments.Count - 1);
+                    continue;
+                }
+
+                normalizedSegments.Add(segment);
+                continue;
+            }
+
+            normalizedSegments.Add(segment);
+        }
+
+        return normalizedSegments.ToArray();
+    }
 }
 }

@@ -11,7 +11,7 @@
 说明：改用更传统的 C# 语法，主要降低的是编译器和工具链门槛；真正决定运行时兼容性的仍然是 `netstandard2.0` 目标框架。
 
 - 文档站点：<https://gui-xie.github.io/Senlinz.Localization/>
-- 当前已发布包版本：`3.2.0`
+- 当前已发布包版本：`3.3.0`
 
 ## 快速导航
 
@@ -52,7 +52,7 @@ dotnet add package Senlinz.Localization.Abstractions
 
 ### 创建本地化文件
 
-把本地化 JSON 放到 `L/` 文件夹下。除非你用 `SenlinzLocalizationFile` 覆盖，默认主文件是 `en.json`。
+默认把本地化 JSON 放到 `L/` 文件夹下。除非你用 `SenlinzLocalizationFile` 覆盖，默认主文件是 `en.json`。
 
 示例目录：
 
@@ -94,12 +94,13 @@ MyProject/
 
 ```xml
 <ItemGroup>
-  <AdditionalFiles Include="L/*.json" />
+  <AdditionalFiles Include="L/**/*.json" />
 </ItemGroup>
 ```
 
-- `AdditionalFiles` 让源码生成器在编译期间读取 `L/` 下的本地化文件。
-- 如果后续放到子目录，只需要放宽 glob；文件夹不会影响生成的命名空间。
+- 默认情况下，生成器只会读取 `L/` 及其所有子目录下的 JSON 文件。
+- `AdditionalFiles` 仍然需要把你希望编译器传给生成器的本地化文件包含进来。
+- 从构建性能考虑，仍然建议把 `AdditionalFiles` 的 glob 限定在本地化目录内。
 
 ### 使用生成代码
 
@@ -175,13 +176,32 @@ var message2 = L.OrderSummary("SO-001", "Alice");
 
 ```xml
 <PropertyGroup>
+  <SenlinzLocalizationFolder>L</SenlinzLocalizationFolder>
   <SenlinzLocalizationFile>zh.json</SenlinzLocalizationFile>
 </PropertyGroup>
 
 <ItemGroup>
-  <AdditionalFiles Include="L/*.json" />
+  <AdditionalFiles Include="L/**/*.json" />
 </ItemGroup>
 ```
+
+### 本地化文件夹
+
+`SenlinzLocalizationFolder` 用来指定生成器扫描本地化 JSON 的目录。默认值是 `L`，并且会递归包含所有子目录。
+
+```xml
+<PropertyGroup>
+  <SenlinzLocalizationFolder>Localization</SenlinzLocalizationFolder>
+  <SenlinzLocalizationFile>en.json</SenlinzLocalizationFile>
+</PropertyGroup>
+
+<ItemGroup>
+  <AdditionalFiles Include="**/*.json" />
+</ItemGroup>
+```
+
+- 只有位于配置目录下的 JSON 文件才会被当成本地化输入。
+- 这样即使 `AdditionalFiles` 里还有其他用途的 JSON，生成器也不会把它们误判为本地化资源。
 
 ## 生成的类型
 
@@ -372,7 +392,7 @@ Console.WriteLine(resolver[UserType.Student.ToLString()]);
 
 ## 发布与文档站点
 
-- 当前已经发布到 NuGet 的版本是 `3.2.0`。
+- 当前已经发布到 NuGet 的版本是 `3.3.0`。
 - 请保持 `README.md`、`README.zh-CN.md`、`docs/README.md` 和 `docs/zh-CN/README.md` 同步，确保仓库首页与 Docsify 文档站点展示一致的发布状态。
 - 在创建下一次发布标签前，把面向包使用者的重要变更补充到 `CHANGELOG.md` 与 `RELEASE_NOTES.md`。
 - 推送 `v*` 或 `V*` 标签会触发 NuGet 发布工作流，而 `docs/` 目录中的内容会通过文档工作流部署到站点。
